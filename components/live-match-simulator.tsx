@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Pause, Play, RotateCcw, SkipForward } from "lucide-react";
-import { forecastFixture } from "@/lib/model";
+import { forecastWithHistory } from "@/lib/historical-forecast";
+import { useLocalMatchHistory } from "@/lib/use-local-history";
 import { generateMatchTape, snapshotMatch, type MatchSide, type SimTeamStat } from "@/lib/match-playback";
 import type { Fixture, LineupIntelligence } from "@/lib/types";
 import { Panel, PanelHead } from "./ui";
@@ -17,6 +18,7 @@ const BAR_FIELDS: Array<{ key: keyof SimTeamStat; title: string }> = [
 ];
 
 export function LiveMatchSimulator({ fixtures }: { fixtures: Fixture[] }) {
+  const history = useLocalMatchHistory();
   const [fixtureId, setFixtureId] = useState(fixtures.find((f) => f.status === "scheduled")?.id ?? fixtures[0]?.id ?? "");
   const [seed, setSeed] = useState("migo-matchday");
   const [lineups, setLineups] = useState<LineupIntelligence | null>(null);
@@ -26,7 +28,7 @@ export function LiveMatchSimulator({ fixtures }: { fixtures: Fixture[] }) {
   const [speed, setSpeed] = useState(4);
   const [selectedSide, setSelectedSide] = useState<MatchSide>("home");
   const fixture = fixtures.find((f) => f.id === fixtureId);
-  const forecast = useMemo(() => fixture ? forecastFixture(fixture) : null, [fixture]);
+  const forecast = useMemo(() => fixture ? forecastWithHistory(fixture, history) : null, [fixture, history]);
 
   useEffect(() => {
     const url = new URLSearchParams(window.location.search);
