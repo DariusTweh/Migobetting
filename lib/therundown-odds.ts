@@ -73,7 +73,7 @@ export function parseRundownOdds(payload: unknown, fixtures: Fixture[], leagueId
         }
         for (const rawLine of arr(participant.lines)) {
           const line = obj(rawLine);
-          let key = side;
+          let key: MarketKey | null = side;
           if (marketId === 3) {
             const point = Number(line.value);
             if (participantName.toLowerCase() === "over" && point === 1.5) key = "over-1.5";
