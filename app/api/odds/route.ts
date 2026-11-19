@@ -1,6 +1,6 @@
 import { getFixtures } from "@/lib/espn";
 import { parseBookmakerOdds, parseEspnQuotedOdds, type MarketQuote, type OddsFeed, ODDS_SPORTS } from "@/lib/market-odds";
-import { RUNDOWN_SOCCER, parseRundownOdds } from "@/lib/therundown-odds";
+import { RUNDOWN_SOCCER_SPORT, parseRundownOdds } from "@/lib/therundown";
 import type { LeagueId } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -34,7 +34,7 @@ async function getRundownOdds(fixtures: Awaited<ReturnType<typeof getFixtures>>[
   const groups = new Map<string, { leagueId: LeagueId; sportId: number; date: string }>();
   const uncoveredLeagues = new Set<string>();
   for (const fixture of upcoming) {
-    const sportId = RUNDOWN_SOCCER[fixture.leagueId];
+    const sportId = RUNDOWN_SOCCER_SPORT[fixture.leagueId];
     if (!sportId) {
       uncoveredLeagues.add(fixture.league);
       continue;
