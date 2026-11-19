@@ -1,16 +1,17 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useOddsFeed } from "@/lib/use-odds-feed";
+import { buildPricedCard } from "@/lib/priced-cards";
+import { forecastWithHistory } from "@/lib/historical-forecast";
 import { Calculator, Layers3, Plus, Save, Trash2, TriangleAlert } from "lucide-react";
 import { PageHeader, Panel, PanelHead, Notice } from "./ui";
 import type { Fixture } from "@/lib/types";
 import { americanToDecimal, decimalToAmerican, formatAmerican, impliedProbability } from "@/lib/odds";
-import { estimateParlayProbability } from "@/lib/parlay";
-import { buildResearchCard } from "@/lib/auto-cards";
 import { useLocalMatchHistory } from "@/lib/use-local-history";
 import { createPaperParlay, savePaperParlay } from "@/lib/paper-parlays";
 
-type Leg = { id: string; fixtureId: string; market: string; odds: number | null };
+type Leg = { id: string; fixtureId: string; market: string; odds: number | null; bookKey?: string; bookmaker?: string; quoteSource?: string; quoteUpdatedAt?: string };
 type CardKind = "daily-double" | "banger" | "manual";
 const MARKETS = ["Home win", "Draw", "Away win", "Home or draw", "Away or draw", "Over 1.5 goals", "Over 2.5 goals", "Under 3.5 goals", "Both teams to score"];
 const MARKET_KEYS: Record<string, string> = {
@@ -22,6 +23,8 @@ const MARKET_KEYS: Record<string, string> = {
 
 export function PickBuilder({ fixtures }: { fixtures: Fixture[] }) {
   const history = useLocalMatchHistory();
+  const { feed, loading: oddsLoading, error: oddsError } = useOddsFeed();
+  const [initializedFromUrl, setInitializedFromUrl] = useState(false);
   const [fixtureId, setFixtureId] = useState(fixtures.find((f) => f.status === "scheduled")?.id ?? fixtures[0]?.id ?? "");
   const [market, setMarket] = useState("Home win");
   const [odds, setOdds] = useState(-110);
@@ -37,55 +40,76 @@ export function PickBuilder({ fixtures }: { fixtures: Fixture[] }) {
   const decimal = useMemo(() => allPriced ? legs.reduce((product, leg) => product * americanToDecimal(leg.odds!), 1) : null, [legs, allPriced]);
   const combined = decimal === null ? null : decimalToAmerican(decimal);
   const payout = decimal === null ? null : stake * decimal;
-  const modelEstimate = useMemo(() => legs.length ? estimateParlayProbability(legs, fixtures) : null, [legs, fixtures]);
+  const modelEstimate = useMemo(() => {
+    if (!legs.length) return null;
+    let probability = 1;
+    for (const leg of legs) {
+      const fixture = fixtureMap.get(leg.fixtureId);
+      const key = Object.entries(MARKET_KEYS).find(([, label]) => label === leg.market)?.[0];
+      if (!fixture || !key) return null;
+      const market = forecastWithHistory(fixture, history).markets.find((m) => m.key === key);
+      if (!market) return null;
+      probability *= market.probability;
+    }
+    return { probability };
+  }, [legs, fixtureMap, history]);
 
   function autoBuild(target: "daily-double" | "banger") {
-    const suggested = buildResearchCard(fixtures, target, Date.now(), history);
-    if (!suggested.legs.length) {
-      setNotice("PASS: no qualified upcoming " + (target === "daily-double" ? "Daily Double" : "Banger") + " card.");
-      setSaved(false);
+    const proposed = buildPricedCard(fixtures, feed?.quotes ?? [], target, history);
+    if (!proposed.legs.length) {
+      setLegs([]); setKind(target); setSaved(false);
+      setNotice(proposed.notes[0] + (feed?.setupRequired ? " Configure your free THERUNDOWN_API_KEY to unlock quoted prices." : ""));
       return;
     }
-    setLegs(suggested.legs.map((leg) => ({
+    setLegs(proposed.legs.map((leg) => ({
       id: crypto.randomUUID(), fixtureId: leg.fixtureId,
-      market: MARKET_KEYS[leg.marketKey] ?? leg.market, odds: null,
+      market: MARKET_KEYS[leg.marketKey] ?? leg.market, odds: leg.americanOdds,
+      bookKey: leg.bookKey, bookmaker: leg.bookmaker, quoteSource: leg.source,
+      quoteUpdatedAt: leg.updatedAt,
     })));
-    setKind(target);
-    setNotice("MIGO loaded the " + target + " research card. Enter REAL sportsbook odds for every leg before paper-locking it.");
-    setSaved(false);
+    setKind(target); setSaved(false);
+    setNotice("Loaded a qualified " + target + " priced card from " + proposed.bookmaker +
+      ". Quotes are indicative, may be delayed, and must be checked before use.");
   }
 
   useEffect(() => {
+    if (oddsLoading || initializedFromUrl) return;
+    setInitializedFromUrl(true);
     const search = new URLSearchParams(window.location.search);
     const mode = search.get("mode");
-    if (mode === "daily-double" || mode === "banger") {
-      const selections = search.get("selections");
-      if (selections) {
-        try {
-          const decoded: unknown = JSON.parse(selections);
-          if (Array.isArray(decoded)) {
-            const imported: Leg[] = decoded.flatMap((raw: unknown) => {
-              const item = raw as { fixtureId?: string; marketKey?: string };
-              const fixture = fixtures.find((candidate) => candidate.id === item.fixtureId);
-              const canonical = item.marketKey ? MARKET_KEYS[item.marketKey] : undefined;
-              return fixture && canonical && fixture.status === "scheduled" && Date.parse(fixture.kickoff) > Date.now()
-                ? [{ id: crypto.randomUUID(), fixtureId: fixture.id, market: canonical, odds: null }]
-                : [];
-            });
-            if (imported.length && new Set(imported.map((leg) => leg.fixtureId)).size === imported.length) {
-              setLegs(imported);
-              setKind(mode);
-              setNotice("Imported the exact " + mode + " selections from the dashboard. Enter actual sportsbook odds to price the complete ticket.");
-              return;
-            }
+    if (mode !== "daily-double" && mode !== "banger") return;
+    const encoded = search.get("selections");
+    if (encoded) {
+      try {
+        const decoded: unknown = JSON.parse(encoded);
+        if (Array.isArray(decoded) && decoded.length >= 2 && decoded.length <= 6) {
+          const imported: Leg[] = decoded.flatMap((raw: unknown) => {
+            const item = raw as { fixtureId?: string; marketKey?: string; bookKey?: string };
+            const fixture = fixtures.find((candidate) => candidate.id === item.fixtureId);
+            const canonical = item.marketKey ? MARKET_KEYS[item.marketKey] : undefined;
+            if (!fixture || !canonical || fixture.status !== "scheduled" || Date.parse(fixture.kickoff) <= Date.now()) return [];
+            const quote = (feed?.quotes ?? []).find((q) =>
+              q.fixtureId === item.fixtureId && q.marketKey === item.marketKey && q.bookKey === item.bookKey);
+            return [{
+              id: crypto.randomUUID(), fixtureId: fixture.id, market: canonical,
+              odds: quote?.americanOdds ?? null, bookKey: quote?.bookKey,
+              bookmaker: quote?.bookmaker, quoteSource: quote?.source, quoteUpdatedAt: quote?.updatedAt,
+            }];
+          });
+          if (imported.length === decoded.length && new Set(imported.map((x) => x.fixtureId)).size === imported.length) {
+            setLegs(imported); setKind(mode); setSaved(false);
+            setNotice(imported.every((leg) => leg.odds !== null)
+              ? "Imported the exact quoted slip from Command Center. Recheck bookmaker prices before paper-locking."
+              : "Imported your selected markets; some old prices are no longer available. Enter the missing current odds manually.");
+            return;
           }
-        } catch { /* fall back to fresh recommendations */ }
-      }
-      autoBuild(mode);
+        }
+      } catch { /* Untrusted URL selection; use freshly retrieved quotes instead. */ }
     }
-    // Initial URL import is intentionally performed once for the loaded fixture list.
+    autoBuild(mode);
+    // Hydrate once after the current quote feed has loaded.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [oddsLoading, initializedFromUrl, feed, fixtures]);
 
   function addLeg() {
     if (!selectedFixture || selectedFixture.status !== "scheduled" || Date.parse(selectedFixture.kickoff) <= Date.now()) {
@@ -103,7 +127,7 @@ export function PickBuilder({ fixtures }: { fixtures: Fixture[] }) {
 
   function updateLeg(id: string, raw: string) {
     const price = raw.trim() ? Number(raw) : null;
-    setLegs((current) => current.map((leg) => leg.id === id ? { ...leg, odds: price } : leg));
+    setLegs((current) => current.map((leg) => leg.id === id ? { ...leg, odds: price, bookmaker: undefined, bookKey: undefined, quoteSource: undefined, quoteUpdatedAt: undefined } : leg));
     setSaved(false);
   }
 
@@ -123,6 +147,7 @@ export function PickBuilder({ fixtures }: { fixtures: Fixture[] }) {
             fixtureId: fixture.id, fixtureLabel: fixture.home.shortName + " vs " + fixture.away.shortName,
             leagueId: fixture.leagueId, kickoff: fixture.kickoff,
             market: leg.market, americanOdds: leg.odds,
+            bookmaker: leg.bookmaker, oddsSource: leg.quoteSource, quoteUpdatedAt: leg.quoteUpdatedAt,
           };
         }),
       });
@@ -133,12 +158,13 @@ export function PickBuilder({ fixtures }: { fixtures: Fixture[] }) {
   }
 
   return <>
-    <PageHeader eyebrow="Research and paper parlays" title="Pick Builder" description="Generate Daily Double and Banger cards, enter real sportsbook prices, and track the complete parlay as one paper ticket." />
+    <PageHeader eyebrow="Research and paper parlays" title="Pick Builder" description="Generate odds-qualified Daily Double and Banger cards from available bookmaker quotes, then track the complete parlay as one paper ticket." />
     <div className="lab-tabs">
       <button onClick={() => autoBuild("daily-double")}><Layers3 size={16}/> Generate Daily Double</button>
       <button onClick={() => autoBuild("banger")}><Layers3 size={16}/> Generate Banger</button>
       <button onClick={() => { setLegs([]); setKind("manual"); setSaved(false); setNotice(""); }}>Clear card</button>
     </div>
+    <div className="notice">Odds provider: {oddsLoading ? "Loading…" : feed?.provider ?? "Unavailable"}. {feed?.setupRequired ? "TheRundown free key not yet configured." : "Only currently quoted prices are used for automatic parlays."}{oddsError ? " " + oddsError : ""}</div>
     {notice ? <div className="lineup-explanation">{notice}</div> : null}
     <div className="builder-layout">
       <Panel>
@@ -156,12 +182,12 @@ export function PickBuilder({ fixtures }: { fixtures: Fixture[] }) {
         <PanelHead title={kind === "daily-double" ? "Daily Double paper slip" : kind === "banger" ? "Banger paper slip" : "Custom paper parlay"} meta={legs.length ? legs.length + " selected legs" : "Nothing added"} />
         {legs.length ? <div className="builder-card">
           <div className="leg-list">{legs.map((leg) => { const fixture = fixtureMap.get(leg.fixtureId); return <div className="leg-row" key={leg.id}>
-            <div><span>{fixture?.league}</span><strong>{leg.market}</strong><small>{fixture?.home.shortName} vs {fixture?.away.shortName}</small><label className="field"><small>Actual American price (manual)</small><input className="input" style={{ maxWidth: 185 }} type="number" placeholder="-150 or +120" value={leg.odds ?? ""} onChange={(event) => updateLeg(leg.id, event.target.value)} /></label></div>
+            <div><span>{fixture?.league}</span><strong>{leg.market}</strong><small>{fixture?.home.shortName} vs {fixture?.away.shortName}</small><label className="field"><small>{leg.bookmaker ? leg.bookmaker + " · " + leg.quoteSource + " · quoted " + (leg.quoteUpdatedAt ? new Date(leg.quoteUpdatedAt).toLocaleTimeString() : "time unknown") : "Manually entered American odds"}</small><input className="input" style={{ maxWidth: 185 }} type="number" placeholder="-150 or +120" value={leg.odds ?? ""} onChange={(event) => updateLeg(leg.id, event.target.value)} /></label></div>
             <b>{leg.odds === null || leg.odds === 0 ? "NEEDS PRICE" : formatAmerican(leg.odds)}</b>
             <button className="icon-button" onClick={() => setLegs((current) => current.filter((item) => item.id !== leg.id))} aria-label="Remove leg"><Trash2 size={16}/></button>
           </div>; })}</div>
           {duplicateFixture ? <div className="correlation-warning"><TriangleAlert size={16}/> Duplicate fixtures are not allowed for the current parlay generator.</div> : null}
-          {modelEstimate?.warnings.map((warning) => <div className="model-warning" key={warning}><TriangleAlert size={14}/><span>{warning}</span></div>)}
+          <div className="model-warning"><TriangleAlert size={14}/><span>Model probabilities are uncalibrated and assume independence across fixtures; published odds are not guaranteed available where you live.</span></div>
           <div className="card-totals">
             <div><span>Combined actual odds</span><strong>{combined === null ? "Waiting for prices" : formatAmerican(combined)}</strong></div>
             <div><span>Uncalibrated model probability</span><strong>{modelEstimate ? (modelEstimate.probability * 100).toFixed(1) + "%" : "—"}</strong></div>
@@ -173,6 +199,6 @@ export function PickBuilder({ fixtures }: { fixtures: Fixture[] }) {
         </div> : <div className="empty-state"><Calculator size={30}/><strong>Pick a research card</strong>Generate a Daily Double or Banger above, or build manually. MIGO never invents bookmaker prices.</div>}
       </Panel>
     </div>
-    <Notice>A model-only research card is not a priced bet. Enter actual odds to calculate payouts. The ticket is a single paper parlay; no real wager is placed.</Notice>
+    <Notice>Automatic cards use current published quotes from a single bookmaker (where available), rejecting prices shorter than -350. Manually entered odds are not independently verified. This is paper research, not a placed wager.</Notice>
   </>;
 }
