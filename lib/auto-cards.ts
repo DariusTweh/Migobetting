@@ -8,6 +8,7 @@ export type SuggestedLeg = {
   kickoff: string;
   league: string;
   market: string;
+  marketKey: string;
   probability: number;
   quality: "good" | "limited" | "insufficient";
 };
@@ -36,6 +37,7 @@ export function researchCandidates(fixtures: Fixture[], cutoff = Date.now()): Su
       fixtureLabel: fixture.home.shortName + " vs " + fixture.away.shortName,
       kickoff: fixture.kickoff, league: fixture.league,
       market: best.label,
+      marketKey: best.key,
       probability: best.probability, quality: forecast.dataQuality,
     }];
   }).sort((a, b) => b.probability - a.probability || a.kickoff.localeCompare(b.kickoff));
