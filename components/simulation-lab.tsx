@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Activity, FlaskConical, Play, RotateCcw, Save, ShieldAlert, WalletCards } from "lucide-react";
-import { forecastFixture } from "@/lib/model";
+import { forecastWithHistory } from "@/lib/historical-forecast";
+import { useLocalMatchHistory } from "@/lib/use-local-history";
 import type { Fixture } from "@/lib/types";
 import type { SimulationResult } from "@/lib/simulation";
 import { simulateStrategy, type StrategyResult } from "@/lib/strategy";
@@ -28,6 +29,7 @@ export function SimulationLab({ fixtures, providerErrors, fetchedAt }: { fixture
 }
 
 function MatchSimulator({ fixtures, providerErrors, fetchedAt }: { fixtures: Fixture[]; providerErrors: string[]; fetchedAt: string }) {
+  const history = useLocalMatchHistory();
   const [fixtureId, setFixtureId] = useState(fixtures[0]?.id ?? "");
   const [iterations, setIterations] = useState(50_000);
   const [seed, setSeed] = useState("migo-2026");
@@ -40,7 +42,7 @@ function MatchSimulator({ fixtures, providerErrors, fetchedAt }: { fixtures: Fix
   const [saved, setSaved] = useState(false);
   const workerRef = useRef<Worker | null>(null);
   const fixture = fixtures.find((item) => item.id === fixtureId) ?? fixtures[0];
-  const forecast = useMemo(() => fixture ? forecastFixture(fixture) : null, [fixture]);
+  const forecast = useMemo(() => fixture ? forecastWithHistory(fixture, history) : null, [fixture, history]);
   const modified = homeMultiplier !== 1 || awayMultiplier !== 1 || homeAdvantage !== 0;
   const expectedHome = Math.max(0, (forecast?.expectedHomeGoals ?? 0) * homeMultiplier + homeAdvantage);
   const expectedAway = Math.max(0, (forecast?.expectedAwayGoals ?? 0) * awayMultiplier);
