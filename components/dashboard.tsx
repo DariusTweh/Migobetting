@@ -6,7 +6,8 @@ import { AutoParlayCards } from "./auto-parlay-cards";
 import { FixtureCard } from "./fixture-card";
 import { Metric, Notice, PageHeader, Panel, PanelHead } from "./ui";
 import { LEAGUES } from "@/lib/leagues";
-import { forecastFixture } from "@/lib/model";
+import { forecastWithHistory } from "@/lib/historical-forecast";
+import { useLocalMatchHistory } from "@/lib/use-local-history";
 import type { Fixture } from "@/lib/types";
 import { applyFinalResults, readForwardPredictions, snapshotUpcomingFixtures } from "@/lib/forward-store";
 
@@ -14,10 +15,11 @@ type Data = { fixtures: Fixture[]; errors: string[]; fetchedAt: string };
 
 export function Dashboard({ initialData }: { initialData: Data }) {
   const [data, setData] = useState(initialData);
+  const history = useLocalMatchHistory();
   const [league, setLeague] = useState("all");
   const [loading, setLoading] = useState(false);
   const fixtures = useMemo(() => league === "all" ? data.fixtures : data.fixtures.filter((fixture) => fixture.leagueId === league), [data.fixtures, league]);
-  const forecasts = fixtures.map((fixture) => ({ fixture, forecast: forecastFixture(fixture) }));
+  const forecasts = fixtures.map((fixture) => ({ fixture, forecast: forecastWithHistory(fixture, history) }));
   const qualified = forecasts.filter((item) => item.forecast.qualified && item.forecast.dataQuality !== "insufficient");
 
   useEffect(() => {
@@ -74,7 +76,7 @@ export function Dashboard({ initialData }: { initialData: Data }) {
               {qualified.length === 0 && <div className="empty-state compact"><strong>No qualified signals</strong>That is a valid model outcome.</div>}
             </div>
           </Panel>
-          <Notice>MIGO v0.1 uses season W-D-L strength, fixed home advantage, and a Poisson score matrix. It is uncalibrated and should not be used for real-money decisions.</Notice>
+          <Notice>MIGO uses imported historical goals when available (otherwise season W-D-L) and a Poisson score matrix. Neither model is calibrated or evidence of real-money betting value.</Notice>
         </div>
       </div>
     </>
