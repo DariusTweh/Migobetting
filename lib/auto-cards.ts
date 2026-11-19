@@ -1,4 +1,5 @@
-import { forecastFixture } from "./model";
+import { forecastWithHistory } from "./historical-forecast";
+import type { HistoricalMatch } from "./history";
 import type { Fixture } from "./types";
 import { americanToDecimal, decimalToAmerican } from "./odds";
 
@@ -22,10 +23,10 @@ export type SuggestedCard = {
 
 const supported = new Set(["home", "away", "home-draw", "away-draw", "over-1.5", "over-2.5", "under-3.5", "btts"]);
 
-export function researchCandidates(fixtures: Fixture[], cutoff = Date.now()): SuggestedLeg[] {
+export function researchCandidates(fixtures: Fixture[], cutoff = Date.now(), history: HistoricalMatch[] = []): SuggestedLeg[] {
   return fixtures.flatMap((fixture) => {
     if (fixture.status !== "scheduled" || Date.parse(fixture.kickoff) <= cutoff) return [];
-    const forecast = forecastFixture(fixture);
+    const forecast = forecastWithHistory(fixture, history);
     if (forecast.dataQuality === "insufficient") return [];
     const eligible = forecast.markets
       .filter((item) => supported.has(item.key) && Number.isFinite(item.probability) && item.probability >= 0.68)
@@ -43,8 +44,8 @@ export function researchCandidates(fixtures: Fixture[], cutoff = Date.now()): Su
   }).sort((a, b) => b.probability - a.probability || a.kickoff.localeCompare(b.kickoff));
 }
 
-export function buildResearchCard(fixtures: Fixture[], kind: SuggestedCard["kind"], cutoff = Date.now()): SuggestedCard {
-  const candidates = researchCandidates(fixtures, cutoff);
+export function buildResearchCard(fixtures: Fixture[], kind: SuggestedCard["kind"], cutoff = Date.now(), history: HistoricalMatch[] = []): SuggestedCard {
+  const candidates = researchCandidates(fixtures, cutoff, history);
   const limit = kind === "daily-double" ? 4 : 5;
   const minLegs = kind === "daily-double" ? 2 : 3;
   const selected: SuggestedLeg[] = [];
