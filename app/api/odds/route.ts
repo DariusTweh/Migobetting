@@ -6,7 +6,7 @@ import type { LeagueId } from "@/lib/types";
 export const dynamic = "force-dynamic";
 
 const MAX_RUNDOWN_REQUESTS = 8;
-const DEFAULT_AFFILIATES = "3,19,22"; // Pinnacle, DraftKings and BetMGM.
+const DEFAULT_AFFILIATES = "3,19,22,23"; // Pinnacle, DraftKings, BetMGM and FanDuel.
 const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 const usageNumber = (value: string | null) => {
