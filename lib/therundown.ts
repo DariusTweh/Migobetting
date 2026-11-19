@@ -21,6 +21,7 @@ export const RUNDOWN_SOCCER_SPORT: Partial<Record<LeagueId, number>> = {
   "uefa.champions": 16,
 };
 const BOOKS: Record<string, string> = {
+  "3": "Pinnacle",
   "19": "DraftKings",
   "22": "BetMGM",
   "23": "FanDuel",
@@ -33,13 +34,18 @@ function matchEspnFixture(event: Obj, fixtures: Fixture[], leagueId: LeagueId): 
   if (!home || !away) return null;
   const kick = Date.parse(str(event.event_date));
   if (!Number.isFinite(kick)) return null;
-  const homeName = normalizedOddsTeam(str(home.name));
-  const awayName = normalizedOddsTeam(str(away.name));
+  const names = (team: Obj) => {
+    const base = str(team.name);
+    const mascot = str(team.mascot);
+    return new Set([normalizedOddsTeam(base), normalizedOddsTeam([base, mascot].filter(Boolean).join(" "))]);
+  };
+  const homeNames = names(home);
+  const awayNames = names(away);
   const options = fixtures.filter((fixture) =>
     fixture.leagueId === leagueId &&
     Math.abs(Date.parse(fixture.kickoff) - kick) <= 90 * 60000 &&
-    normalizedOddsTeam(fixture.home.name) === homeName &&
-    normalizedOddsTeam(fixture.away.name) === awayName,
+    homeNames.has(normalizedOddsTeam(fixture.home.name)) &&
+    awayNames.has(normalizedOddsTeam(fixture.away.name)),
   );
   return options.length === 1 ? options[0] : null;
 }
