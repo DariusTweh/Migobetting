@@ -27,15 +27,24 @@ function market(key: string, label: string, probability: number): MarketProbabil
   return { key, label, probability, fairAmerican: fairOdds(probability) };
 }
 
-export function forecastFixture(fixture: Fixture): Forecast {
+export type ForecastOverrides = {
+  expectedHomeGoals: number;
+  expectedAwayGoals: number;
+  version: string;
+  quality: Forecast["dataQuality"];
+  evidence: string[];
+  risks: string[];
+};
+
+export function forecastFixture(fixture: Fixture, overrides?: ForecastOverrides): Forecast {
   const homeRecord = parseRecord(fixture.home.record);
   const awayRecord = parseRecord(fixture.away.record);
   const insufficient = !homeRecord || !awayRecord;
   const homePpg = homeRecord?.ppg ?? 1.45;
   const awayPpg = awayRecord?.ppg ?? 1.45;
   const strengthGap = Math.max(-1.5, Math.min(1.5, homePpg - awayPpg));
-  const expectedHomeGoals = Math.max(0.45, Math.min(3.1, 1.45 + 0.22 + strengthGap * 0.42));
-  const expectedAwayGoals = Math.max(0.35, Math.min(2.7, 1.2 - strengthGap * 0.34));
+  const expectedHomeGoals = overrides?.expectedHomeGoals ?? Math.max(0.45, Math.min(3.1, 1.45 + 0.22 + strengthGap * 0.42));
+  const expectedAwayGoals = overrides?.expectedAwayGoals ?? Math.max(0.35, Math.min(2.7, 1.2 - strengthGap * 0.34));
   let homeWin = 0;
   let draw = 0;
   let awayWin = 0;
@@ -83,8 +92,8 @@ export function forecastFixture(fixture: Fixture): Forecast {
 
   return {
     fixtureId: fixture.id,
-    modelVersion: "migo-baseline-0.1",
-    dataQuality: insufficient ? "insufficient" : homeRecord!.played < 6 || awayRecord!.played < 6 ? "limited" : "good",
+    modelVersion: overrides?.version ?? "migo-baseline-0.1",
+    dataQuality: overrides?.quality ?? (insufficient ? "insufficient" : homeRecord!.played < 6 || awayRecord!.played < 6 ? "limited" : "good"),
     expectedHomeGoals,
     expectedAwayGoals,
     homeWin,
@@ -92,11 +101,11 @@ export function forecastFixture(fixture: Fixture): Forecast {
     awayWin,
     markets,
     scorelines: scores.sort((a, b) => b.probability - a.probability).slice(0, 5),
-    evidence,
-    risks: [
+    evidence: overrides?.evidence ?? evidence,
+    risks: overrides?.risks ?? [
       "The baseline does not yet include injuries, confirmed lineups, xG, or opponent-adjusted recent form.",
       "Season records are a coarse input; these probabilities require calibration before real-money use.",
     ],
-    qualified: !insufficient && Math.max(...markets.map((item) => item.probability)) >= 0.68,
+    qualified: (Boolean(overrides) || !insufficient) && Math.max(...markets.map((item) => item.probability)) >= 0.68,
   };
 }
