@@ -1,0 +1,42 @@
+"use client";
+
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import { Plus, WalletCards } from "lucide-react";
+import { getBankroll, getPaperBets } from "./local-storage";
+import { Metric, Notice, PageHeader, Panel, PanelHead } from "./ui";
+import { formatAmerican } from "@/lib/odds";
+import type { PaperBet } from "@/lib/types";
+import { readForwardPredictions, type ForwardPrediction } from "@/lib/forward-store";
+
+export function PaperDashboard() {
+  const [bets, setBets] = useState<PaperBet[]>([]);
+  const [bankroll, setBankroll] = useState(1000);
+  const [forward, setForward] = useState<ForwardPrediction[]>([]);
+  useEffect(() => { const load = () => { setBets(getPaperBets()); setBankroll(getBankroll()); }; load(); window.addEventListener("migo:storage", load); return () => window.removeEventListener("migo:storage", load); }, []);
+  useEffect(() => { const load = () => setForward(readForwardPredictions()); load(); window.addEventListener("migo:forward", load); return () => window.removeEventListener("migo:forward", load); }, []);
+  const graded = bets.filter((bet) => bet.status !== "open");
+  const profit = useMemo(() => graded.reduce((sum, bet) => sum + (bet.payout ?? 0) - bet.stake, 0), [graded]);
+  const won = graded.filter((bet) => bet.status === "won").length;
+  const gradedForward = forward.filter((item) => item.status === "graded");
+  return <>
+    <PageHeader eyebrow="Simulation only" title="Paper Performance" description="Forward-test locked decisions without changing a prediction after the result is known." action={<Link href="/builder" className="button button-primary"><Plus size={16} />New paper pick</Link>} />
+    <div className="paper-banner"><span className="paper-pill"><span /> PAPER MODE</span><p>No real money is wagered. Records live only in this browser.</p></div>
+    <div className="metrics-grid">
+      <Metric label="Starting bankroll" value={`$${bankroll.toFixed(2)}`} sub="local setting" />
+      <Metric label="Open selections" value={String(bets.filter((bet) => bet.status === "open").length)} sub="awaiting result" tone="orange" />
+      <Metric label="Graded selections" value={String(graded.length)} sub={graded.length ? `${Math.round(won / graded.length * 100)}% hit rate` : "no results yet"} />
+      <Metric label="Simulated P/L" value={graded.length ? `${profit >= 0 ? "+" : "-"}$${Math.abs(profit).toFixed(2)}` : "—"} sub="graded picks only" tone={profit > 0 ? "green" : "default"} />
+    </div>
+    <Panel>
+      <PanelHead title="Locked selection ledger" meta={`${bets.length} local records`} />
+      {bets.length ? <div className="paper-table"><div className="paper-table-head"><span>Fixture / market</span><span>Price</span><span>Stake</span><span>Status</span></div>{bets.map((bet) => <div className="paper-row" key={bet.id}><div><strong>{bet.fixtureLabel}</strong><small>{bet.market} · locked {new Date(bet.lockedAt).toLocaleString()}</small></div><b>{formatAmerican(bet.americanOdds)}</b><span>${bet.stake.toFixed(2)}</span><span className={`badge ${bet.status === "open" ? "badge-limited" : bet.status === "won" ? "badge-good" : "badge-insufficient"}`}>{bet.status}</span></div>)}</div> : <div className="empty-state"><WalletCards size={32} /><strong>No paper selections yet</strong>Build a card and lock it before kickoff to start a forward-testing record.</div>}
+    </Panel>
+    <Panel className="forward-panel">
+      <PanelHead title="MIGO forward validation" meta="Automatically locked before kickoff and graded from ESPN finals" />
+      <div className="forward-summary"><div><span>Locked forecasts</span><strong>{forward.length}</strong></div><div><span>Graded outcomes</span><strong>{gradedForward.length}</strong></div><div><span>Outcome accuracy</span><strong>{gradedForward.length ? `${Math.round(gradedForward.filter((item) => item.correct).length / gradedForward.length * 100)}%` : "—"}</strong></div><div><span>Average Brier</span><strong>{gradedForward.length ? (gradedForward.reduce((sum, item) => sum + (item.brier ?? 0), 0) / gradedForward.length).toFixed(4) : "—"}</strong></div></div>
+      {forward.length ? <div className="forward-list">{forward.slice().reverse().slice(0, 12).map((item) => <div key={item.id}><div><strong>{item.fixtureLabel}</strong><small>{item.modelVersion} · locked {new Date(item.lockedAt).toLocaleString()}</small></div><span className={`badge ${item.status === "graded" ? item.correct ? "badge-good" : "badge-insufficient" : "badge-limited"}`}>{item.status === "graded" ? item.correct ? "Correct" : "Incorrect" : "Awaiting final"}</span>{item.actual ? <b>{item.actual.homeGoals}–{item.actual.awayGoals}</b> : <b>{item.predictedOutcome}</b>}</div>)}</div> : <div className="empty-state compact"><strong>No forward forecasts yet</strong>Open Command Center before kickoff to create immutable model snapshots.</div>}
+    </Panel>
+    <Notice>MIGO model forecasts are graded automatically when the app next opens after a final result. Manually entered paper-bet settlement remains separate and is not inferred from an ambiguous market label.</Notice>
+  </>;
+}
