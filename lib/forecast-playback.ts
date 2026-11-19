@@ -7,7 +7,7 @@ export function forecastSeedForMatch(fixtureId: string, modelVersion: string, ex
   if (![expectedHomeGoals, expectedAwayGoals].every((x) => Number.isFinite(x) && x >= 0)) {
     throw new Error("Invalid pre-match scoring parameters");
   }
-  return ["migo-forecast-10000-v1", fixtureId, modelVersion, expectedHomeGoals.toFixed(6), expectedAwayGoals.toFixed(6)].join(":");
+  return ["migo-forecast-30000-v2", fixtureId, modelVersion, expectedHomeGoals.toFixed(6), expectedAwayGoals.toFixed(6)].join(":");
 }
 
 /**
