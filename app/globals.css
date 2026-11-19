@@ -523,3 +523,38 @@ main { padding: 34px; max-width: 1510px; margin: 0 auto; }
   .simulation-market-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .risk-result { grid-template-columns: 1fr; }
 }
+
+
+/* MIGO virtual match-center playback — intentionally distinguished from ESPN live scores */
+.playback-actions{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+.playback-scoreboard{border:1px solid #304d28;border-radius:15px;background:radial-gradient(circle at 50% 20%,#1e3927 0%,#10201e 48%,#0a1319 100%);padding:20px 24px 16px;box-shadow:inset 0 0 42px #9ffc2210}
+.playback-topline{display:flex;justify-content:space-between;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--lime);font-weight:800}
+.playback-scores{display:grid;grid-template-columns:1fr auto 1fr;gap:20px;align-items:center;text-align:center;margin:23px auto;max-width:920px}
+.playback-scores>div{display:grid;gap:8px;min-width:0}
+.playback-scores>div strong{font-size:clamp(15px,2vw,24px);white-space:normal}
+.playback-scores small{color:var(--muted);letter-spacing:.12em;font-size:10px}
+.playback-scores>b{font-size:clamp(36px,6vw,72px);letter-spacing:-.07em;white-space:nowrap;font-variant-numeric:tabular-nums}
+.playback-scores>b span{color:var(--lime);font-weight:400}
+.playback-progress{height:7px;background:#233127;border-radius:9px;overflow:hidden}
+.playback-progress>span{display:block;background:var(--lime);height:100%;transition:width .2s ease}
+.playback-xg{color:#a9b7ad;text-align:center;font-size:12px;margin-top:11px;line-height:1.5}
+.playback-columns{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.playback-statbox{padding:14px 20px}
+.playback-stat{display:grid;grid-template-columns:minmax(40px,1fr) minmax(130px,2fr) minmax(40px,1fr);gap:12px;align-items:center;padding:11px 0;border-bottom:1px solid var(--line-soft);text-align:center}
+.playback-stat:last-child{border:0}
+.playback-stat b{font-variant-numeric:tabular-nums;font-size:19px}
+.playback-stat span{font-size:12px;color:var(--muted)}
+.playback-feed{max-height:470px;overflow:auto;padding:14px 18px}
+.playback-feed-item{display:grid;grid-template-columns:50px 1fr;gap:8px;padding:12px 0;border-bottom:1px solid var(--line-soft)}
+.playback-feed-item>b{color:var(--lime)}
+.playback-feed-item>div{display:grid;gap:4px}
+.playback-feed-item>div strong{font-size:11px;letter-spacing:.08em}
+.playback-feed-item>div span{font-size:13px;color:var(--muted)}
+.playback-feed-item.is-goal{background:#b8f23b10;border-radius:9px;padding-left:8px}
+.playback-player-table{padding:8px 18px 14px;overflow-x:auto}
+.playback-player-row{display:grid;grid-template-columns:minmax(180px,3fr) repeat(4,minmax(55px,1fr));gap:8px;align-items:center;padding:10px 8px;border-bottom:1px solid var(--line-soft);font-size:13px;text-align:center;min-width:500px}
+.playback-player-row>span:first-child{text-align:left}
+.playback-player-row>span strong{display:block}
+.playback-player-row>span small{display:block;color:var(--muted);font-size:11px;margin-top:4px}
+.playback-player-row.headings{color:var(--muted);font-size:11px;font-weight:800;text-transform:uppercase}
+@media(max-width:800px){.playback-columns{grid-template-columns:1fr}.playback-scores{gap:8px}.playback-scoreboard{padding:16px 12px}.playback-stat{gap:6px}.playback-stat span{font-size:11px}}
