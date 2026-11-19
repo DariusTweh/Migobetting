@@ -17,7 +17,7 @@ No Supabase project or account is required. Settings, builder legs, and paper be
 
 - Live fixtures across the Premier League, La Liga, Bundesliga, Serie A, Ligue 1, and Champions League
 - Transparent record-strength + analytical Poisson baseline probabilities
-- Deterministic-seed 10K/50K/100K Monte Carlo match simulations in a Web Worker
+- Deterministic-seed 10K/30K/50K/100K Monte Carlo match simulations in a Web Worker
 - What-if attack assumptions, coherent market distributions, and bankroll-risk paths
 - Local IndexedDB ingestion for football-data.co.uk or compatible historical CSV files
 - Chronological historical replay with leakage guards, calibration, Brier score, log loss, and odds-gated ROI
@@ -60,8 +60,8 @@ The Historical Parlay Lab uses only the imported 1X2 and O/U 2.5 decimal prices 
 
 - Simulation Lab now has a **Live-style match** screen with a virtual 0–90-minute clock, play/pause/seek, live-updating synthetic score, passes, shots, cards, commentary and player statistics. It is NOT a real ESPN play-by-play feed. Simulated player statistics are fictional and must not be treated as player prop forecasts. Actual names are displayed only when ESPN supplies an eleven-player lineup; otherwise placeholders are used.
 - Match Intelligence, Dashboard and probability simulation use local historical home/away goals from IndexedDB when sufficient valid previous matches are available; otherwise they use the original season-record model. Model version, evidence and unmodeled lineup impacts are shown.
-- Command Center displays model-only Daily Double and Banger research cards, including predicted probabilities. Model-implied fair prices are NOT bookmaker odds.
-- The Parlays & Builder page imports the exact suggested card legs and requires manually entered actual American odds to quote a combined payout. The combined paper parlay is saved as ONE ticket and appears in Paper Performance.
+- Command Center builds a Daily Double or Banger only when actual quotes match the ESPN fixtures and the price/quality criteria; otherwise it shows PASS. A quoted price is never represented as a guaranteed executable offer.
+- The Parlays & Builder page imports the exact suggested card legs and auto-fills their available bookmaker quotes. The user can manually update prices. The combined paper parlay is saved as ONE ticket and appears in Paper Performance.
 - The app grades paper parlay legs from ESPN final scores when reopened. This does not place or settle any real wager.
 - GitHub Actions verifies unit tests and the Next.js production build on main.
 
@@ -70,12 +70,12 @@ Update a local clone using git pull origin main and npm run dev. Use npm ci only
 
 ## Stable forecast versus match playback
 
-Live-style match playback runs a **separate seeded 10,000-trial Poisson forecast in a Web Worker** when you select a fixture or the underlying goal model inputs change. This displays home/draw/away probabilities, totals, BTTS and the five most frequent exact scores.
+Live-style match playback runs a **separate seeded 30,000-trial Poisson forecast in a Web Worker** when you select a fixture or the underlying goal model inputs change. This displays home/draw/away probabilities, totals, BTTS and the five most frequent exact scores.
 
-- **Representative (default):** conditions the fictional 90-minute event timeline on the most common exact final score in those 10,000 trials. The clock, passes, goals, shots and player assignments are synthetic, not observations or player-prop projections. The most common exact score is not a guaranteed, or even majority-likely, result.
+- **Representative (default):** conditions the fictional 90-minute event timeline on the most common exact final score in those 30,000 trials. The clock, passes, goals, shots and player assignments are synthetic, not observations or player-prop projections. The most common exact score is not a guaranteed, or even majority-likely, result.
 - **Alternate:** draws an independent fictional result and event timeline for the selected playback seed.
 - **Changing the playback seed:** changes the fictional timeline but NOT the underlying model probabilities. In representative mode the final score stays fixed to the modal score; in alternate mode the final score can change.
-- **Changing fixtures or imported model evidence:** recomputes the 10,000-trial probabilities and the representative score. Forecasts are not live in-game predictions, and do not use the real current match score.
+- **Changing fixtures or imported model evidence:** recomputes the 30,000-trial probabilities and the representative score. Forecasts are not live in-game predictions, and do not use the real current match score.
 
 This dual-display implementation does not add AI API credits, external paid sources, or real-time player tracking.
 
@@ -100,3 +100,17 @@ For free quota protection, MIGO queries up to eight league/date combinations wit
 **Automatic Daily Double and Banger cards now require actual matched same-bookmaker quotes**, reject prices shorter than -350 (including -1100), and require at least an indicative 1-percentage-point model-implied margin plus +100 for Daily Double or +400 for Banger. If the feed cannot supply a valid combination, MIGO outputs PASS instead of adding cheap legs. These model-implied edges are **not calibrated or validated profits**.
 
 The Free plan does not include double chance or alternative totals such as Over 1.5 when the sportsbook's main line is 2.5. Women's UEFA Champions League is not listed among TheRundown's published soccer sport IDs and may show no odds. Missing quotes are never invented, and historical odds backtesting still requires a separate historical-odds dataset.
+
+
+## Free TheRundown odds integration
+
+1. Obtain your own free API key: https://docs.therundown.io/quickstart.
+2. In the repository root create a LOCAL file named `.env.local` and put: `THERUNDOWN_API_KEY=your_actual_key_here`.
+3. Restart `npm run dev`; open Command Center or Parlays & Builder. The server-only `/api/odds` endpoint reads your key. `.env.local` is Git-ignored. Never commit the key.
+4. You can test the source/status without exposing your key by visiting `http://localhost:3000/api/odds`, which shows a JSON payload with `provider`, `setupRequired`, `quotes` and `errors` (no key value).
+
+TheRundown V2 is the primary supported feed. It uses `X-TheRundown-Key`, requests prematch market IDs 1 (soccer three-way winner) and 3 (correctly specified goal totals), and currently scans matching upcoming ESPN fixtures within three days. To conserve the free allowance, it limits league/date batches to eight per request, fetches at no more than one request per second and caches provider responses for 45 minutes. The free plan is delayed around five minutes, capped at 20,000 data points/day and 200,000/month, and has no player props or odds-history access. Free published soccer IDs cover MLS, EPL, La Liga, Bundesliga, Serie A, Ligue 1 and men's UCL; **UEFA Women's Champions League is not in the published list** and must be treated as unsupported until live coverage is confirmed.
+
+Automatic Daily Double / Banger slips require published prices from **the same sportsbook**, no more than one market per match, no leg priced shorter than -350, a positive model-implied margin (not a verified market edge), and combined quoted odds of at least +100 / +400 respectively. When those criteria are not met, the app shows PASS. ESPN 1X2 prices are an optional limited fallback without a separate API key. Unverified odds are never synthesized.
+
+The app cannot authenticate to TheRundown from GitHub Actions because the actual secret stays local, so unit tests validate the documented response schema and CI verifies TypeScript/build; a real key is required to confirm live quotes.
