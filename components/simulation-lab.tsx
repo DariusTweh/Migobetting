@@ -7,16 +7,23 @@ import type { Fixture } from "@/lib/types";
 import type { SimulationResult } from "@/lib/simulation";
 import { simulateStrategy, type StrategyResult } from "@/lib/strategy";
 import { Metric, Notice, PageHeader, Panel, PanelHead } from "./ui";
+import { LiveMatchSimulator } from "./live-match-simulator";
 
 const percent = (value: number) => `${(value * 100).toFixed(1)}%`;
 const SAVED_KEY = "migo:simulations:v1";
 
 export function SimulationLab({ fixtures, providerErrors, fetchedAt }: { fixtures: Fixture[]; providerErrors: string[]; fetchedAt: string }) {
-  const [tab, setTab] = useState<"match" | "strategy">("match");
+  const [tab, setTab] = useState<"live" | "match" | "strategy">("live");
+  useEffect(() => {
+    const search = new URLSearchParams(window.location.search);
+    if (search.get("view") === "probabilities") setTab("match");
+    else if (search.get("view") === "strategy") setTab("strategy");
+    else if (search.get("view") === "live") setTab("live");
+  }, []);
   return <>
-    <PageHeader eyebrow="Reproducible Monte Carlo" title="Simulation Lab" description="Stress-test match outcomes and bankroll assumptions with deterministic seeds—not promises." />
-    <div className="lab-tabs"><button className={tab === "match" ? "active" : ""} onClick={() => setTab("match")}><FlaskConical size={16} />Match simulation</button><button className={tab === "strategy" ? "active" : ""} onClick={() => setTab("strategy")}><WalletCards size={16} />Strategy risk</button></div>
-    {tab === "match" ? <MatchSimulator fixtures={fixtures} providerErrors={providerErrors} fetchedAt={fetchedAt} /> : <StrategySimulator />}
+    <PageHeader eyebrow="Virtual match center" title="Simulation Lab" description="Watch a synthetic match unfold minute by minute, or inspect model probabilities and long-run strategy risk." />
+    <div className="lab-tabs"><button className={tab === "live" ? "active" : ""} onClick={() => setTab("live")}><Activity size={16} />Live-style match</button><button className={tab === "match" ? "active" : ""} onClick={() => setTab("match")}><FlaskConical size={16} />Probability lab</button><button className={tab === "strategy" ? "active" : ""} onClick={() => setTab("strategy")}><WalletCards size={16} />Strategy risk</button></div>
+    {tab === "live" ? <LiveMatchSimulator fixtures={fixtures} /> : tab === "match" ? <MatchSimulator fixtures={fixtures} providerErrors={providerErrors} fetchedAt={fetchedAt} /> : <StrategySimulator />}
   </>;
 }
 
