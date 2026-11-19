@@ -1,62 +1,76 @@
 import { getFixtures } from "@/lib/espn";
-import { ODDS_SPORTS, parseBookmakerOdds, parseEspnQuotedOdds, type MarketQuote, type OddsFeed } from "@/lib/market-odds";
+import { parseEspnQuotedOdds, type OddsFeed, type MarketQuote } from "@/lib/market-odds";
+import { parseRundownOdds, RUNDOWN_SOCCER_SPORT } from "@/lib/therundown";
 import type { LeagueId } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+const YYYY_MM_DD = (datetime: string) => datetime.slice(0, 10);
+
 export async function GET() {
   const { fixtures, errors: fixtureErrors } = await getFixtures();
   const now = Date.now();
-  const nextWeek = now + 7 * 86400000;
-  const upcoming = fixtures.filter((f) => f.status === "scheduled" && Date.parse(f.kickoff) > now && Date.parse(f.kickoff) < nextWeek);
+  const upcoming = fixtures.filter((f) => f.status === "scheduled" &&
+    Date.parse(f.kickoff) > now && Date.parse(f.kickoff) <= now + 72 * 3600000);
   const espn = parseEspnQuotedOdds(upcoming);
-  const key = process.env.THE_ODDS_API_KEY?.trim();
-  const fetchedAt = new Date().toISOString();
+  const key = process.env.THERUNDOWN_API_KEY?.trim();
   const result: OddsFeed = {
-    quotes: espn, fetchedAt,
-    provider: key ? "The Odds API + ESPN fallback" : "ESPN available moneylines only",
-    setupRequired: !key,
-    errors: [...fixtureErrors],
+    quotes: espn, fetchedAt: new Date().toISOString(),
+    provider: key ? "TheRundown Free + ESPN fallback" : "ESPN fallback (TheRundown key missing)",
+    setupRequired: !key, errors: [...fixtureErrors],
   };
   if (!key) return Response.json(result, { headers: { "Cache-Control": "private, max-age=60" } });
 
-  // Only leagues with upcoming ESPN fixtures are queried, and the odds provider
-  // data cache is reused for 3 hours to conserve its free monthly credits.
-  const leagues = [...new Set(upcoming.map((fixture) => fixture.leagueId))]
-    .filter((league): league is LeagueId => Boolean(ODDS_SPORTS[league]));
-  const region = ["us", "uk", "eu", "au"].includes(process.env.THE_ODDS_API_REGION ?? "")
-    ? process.env.THE_ODDS_API_REGION! : "us";
-  const responses = await Promise.allSettled(leagues.map(async (league) => {
-    const sport = ODDS_SPORTS[league]!;
-    const url = new URL("https://api.the-odds-api.com/v4/sports/" + sport + "/odds");
-    url.searchParams.set("apiKey", key);
-    url.searchParams.set("regions", region);
-    url.searchParams.set("markets", "h2h,totals");
-    url.searchParams.set("oddsFormat", "american");
-    const response = await fetch(url, {
-      next: { revalidate: 10800 },
-      headers: { Accept: "application/json" },
-      signal: AbortSignal.timeout(12000),
-    });
-    if (!response.ok) throw new Error(sport + " odds HTTP " + response.status);
-    const payload: unknown = await response.json();
-    const remaining = Number(response.headers.get("x-requests-remaining"));
-    return { quotes: parseBookmakerOdds(payload, upcoming, league), remaining: Number.isFinite(remaining) ? remaining : undefined };
-  }));
-
+  // One request per league/date pair; only near-term ESPN fixtures and main lines.
+  // The Free plan has a strict 1 req/s and data-point quotas.
+  const requests = new Map<string, { league: LeagueId; sport: number; date: string }>();
+  for (const fixture of upcoming) {
+    const sport = RUNDOWN_SOCCER_SPORT[fixture.leagueId];
+    if (!sport) continue;
+    const date = YYYY_MM_DD(fixture.kickoff);
+    requests.set(sport + ":" + date, { league: fixture.leagueId, sport, date });
+  }
+  const batch = [...requests.values()].sort((a, b) => a.date.localeCompare(b.date)).slice(0, 8);
   const external: MarketQuote[] = [];
-  const remaining: number[] = [];
-  for (let index = 0; index < responses.length; index++) {
-    const item = responses[index];
-    if (item.status === "fulfilled") {
-      external.push(...item.value.quotes);
-      if (item.value.remaining !== undefined) remaining.push(item.value.remaining);
-    } else {
-      result.errors.push((ODDS_SPORTS[leagues[index]] ?? leagues[index]) + ": " +
-        (item.reason instanceof Error ? item.reason.message : "Odds unavailable"));
+  let lastRequestTime = 0;
+  for (const [index, item] of batch.entries()) {
+    // Cached requests still use the same throttle; conservative on free quota.
+    if (index > 0) await sleep(Math.max(0, 1100 - (Date.now() - lastRequestTime)));
+    lastRequestTime = Date.now();
+    const url = new URL("https://therundown.io/api/v2/sports/" + item.sport + "/events/" + item.date);
+    url.searchParams.set("offset", "0");
+    url.searchParams.set("market_ids", "1,3");
+    url.searchParams.set("affiliate_ids", "19,22,23");
+    url.searchParams.set("main_line", "true");
+    url.searchParams.set("hide_closed", "true");
+    try {
+      const response = await fetch(url, {
+        headers: { Accept: "application/json", "X-TheRundown-Key": key },
+        next: { revalidate: 7200 },
+        signal: AbortSignal.timeout(10000),
+      });
+      if (!response.ok) {
+        result.errors.push("TheRundown sport " + item.sport + ": HTTP " + response.status);
+        if (response.status === 401 || response.status === 403 || response.status === 429) break;
+        continue;
+      }
+      const remaining = Number(response.headers.get("x-datapoints-remaining"));
+      if (Number.isFinite(remaining)) result.creditsRemaining = remaining;
+      const json: unknown = await response.json();
+      external.push(...parseRundownOdds(json, upcoming, item.league));
+    } catch (error) {
+      result.errors.push("TheRundown sport " + item.sport + ": " +
+        (error instanceof Error ? error.message : "Request failed"));
     }
   }
-  result.quotes = [...external, ...espn];
-  if (remaining.length) result.creditsRemaining = Math.min(...remaining);
-  return Response.json(result, { headers: { "Cache-Control": "private, max-age=60" } });
+  const seen = new Set<string>();
+  result.quotes = [...external, ...espn].filter((quote) => {
+    const k = [quote.fixtureId, quote.marketKey, quote.bookKey].join("|");
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+  if (requests.size > batch.length) result.errors.push("Odds scan capped to eight league/date combinations per request to protect the Free plan.");
+  return Response.json(result, { headers: { "Cache-Control": "private, max-age=120" } });
 }
