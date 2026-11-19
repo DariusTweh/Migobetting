@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { RefreshCw, Satellite, Sparkles } from "lucide-react";
+import { RefreshCw, Satellite } from "lucide-react";
+import { AutoParlayCards } from "./auto-parlay-cards";
 import { FixtureCard } from "./fixture-card";
 import { Metric, Notice, PageHeader, Panel, PanelHead } from "./ui";
 import { LEAGUES } from "@/lib/leagues";
@@ -62,15 +63,7 @@ export function Dashboard({ initialData }: { initialData: Data }) {
           </div>
         </Panel>
         <div className="stack">
-          <Panel className="card-panel">
-            <PanelHead title="Daily Double" meta="Target combined price: +100 or better" />
-            <div className="card-body">
-              <div className="card-symbol"><Sparkles size={20} /></div>
-              <strong>No qualifying card yet</strong>
-              <p>MIGO only creates this card when quoted market prices and model edges clear the threshold. It will not add a weak leg just to reach +100.</p>
-              <span className="badge badge-limited">Price validation required</span>
-            </div>
-          </Panel>
+          <AutoParlayCards fixtures={fixtures} />
           <Panel>
             <PanelHead title="Strongest model signals" meta="Not recommendations · baseline model" />
             <div className="signal-list">
