@@ -55,6 +55,21 @@ const ALIASES: Record<string, string> = {
   "atletico de madrid": "atletico madrid",
   "tottenham hotspur": "tottenham",
   "wolves": "wolverhampton wanderers",
+  "newcastle": "newcastle united",
+  "brighton": "brighton and hove albion",
+  "brighton hove albion": "brighton and hove albion",
+  "west ham": "west ham united",
+  "west ham utd": "west ham united",
+  "nottingham": "nottingham forest",
+  "la galaxy": "los angeles galaxy",
+  "lafc": "los angeles",
+  "los angeles football club": "los angeles",
+  "ny red bulls": "new york red bulls",
+  "new york city": "new york city",
+  "nycfc": "new york city",
+  "inter miami": "inter miami",
+  "bayern": "bayern munchen",
+
 };
 
 export function normalizedOddsTeam(name: string): string {
