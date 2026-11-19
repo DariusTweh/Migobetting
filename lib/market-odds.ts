@@ -7,7 +7,7 @@ export type MarketQuote = {
   americanOdds: number;
   bookmaker: string;
   bookKey: string;
-  source: "The Odds API" | "ESPN";
+  source: "The Odds API" | "TheRundown" | "ESPN";
   updatedAt: string;
 };
 
