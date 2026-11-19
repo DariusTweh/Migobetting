@@ -56,8 +56,33 @@ export function PickBuilder({ fixtures }: { fixtures: Fixture[] }) {
   }
 
   useEffect(() => {
-    const mode = new URLSearchParams(window.location.search).get("mode");
-    if (mode === "daily-double" || mode === "banger") autoBuild(mode);
+    const search = new URLSearchParams(window.location.search);
+    const mode = search.get("mode");
+    if (mode === "daily-double" || mode === "banger") {
+      const selections = search.get("selections");
+      if (selections) {
+        try {
+          const decoded: unknown = JSON.parse(selections);
+          if (Array.isArray(decoded)) {
+            const imported: Leg[] = decoded.flatMap((raw: unknown) => {
+              const item = raw as { fixtureId?: string; marketKey?: string };
+              const fixture = fixtures.find((candidate) => candidate.id === item.fixtureId);
+              const canonical = item.marketKey ? MARKET_KEYS[item.marketKey] : undefined;
+              return fixture && canonical && fixture.status === "scheduled" && Date.parse(fixture.kickoff) > Date.now()
+                ? [{ id: crypto.randomUUID(), fixtureId: fixture.id, market: canonical, odds: null }]
+                : [];
+            });
+            if (imported.length && new Set(imported.map((leg) => leg.fixtureId)).size === imported.length) {
+              setLegs(imported);
+              setKind(mode);
+              setNotice("Imported the exact " + mode + " selections from the dashboard. Enter actual sportsbook odds to price the complete ticket.");
+              return;
+            }
+          }
+        } catch { /* fall back to fresh recommendations */ }
+      }
+      autoBuild(mode);
+    }
     // Initial URL import is intentionally performed once for the loaded fixture list.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
