@@ -7,8 +7,6 @@ export const LEAGUES: Array<{ id: LeagueId; name: string; short: string }> = [
   { id: "ita.1", name: "Serie A", short: "SA" },
   { id: "fra.1", name: "Ligue 1", short: "L1" },
   { id: "uefa.champions", name: "Champions League", short: "UCL" },
-  { id: "uefa.wchampions", name: "UEFA Women’s Champions League", short: "UWCL" },
-  { id: "usa.1", name: "Major League Soccer", short: "MLS" },
   { id: "uefa.wchampions", name: "UEFA Women's Champions League", short: "UWCL" },
   { id: "usa.1", name: "Major League Soccer", short: "MLS" },
 ];
