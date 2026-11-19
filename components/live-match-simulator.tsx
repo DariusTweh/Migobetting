@@ -67,7 +67,7 @@ export function LiveMatchSimulator({ fixtures }: { fixtures: Fixture[] }) {
     };
     worker.onerror = () => {
       if (!cancelled) {
-        setForecastError("Could not calculate the 10,000-match forecast in this browser.");
+        setForecastError("Could not calculate the 30,000-match forecast in this browser.");
         setForecastLoading(false);
       }
       worker.terminate();
@@ -76,7 +76,7 @@ export function LiveMatchSimulator({ fixtures }: { fixtures: Fixture[] }) {
       homeTeam: fixture.home.shortName, awayTeam: fixture.away.shortName,
       expectedHomeGoals: forecast.expectedHomeGoals,
       expectedAwayGoals: forecast.expectedAwayGoals,
-      iterations: 10_000, seed: forecastSeed, modelVersion: forecast.modelVersion, scenario: "baseline",
+      iterations: 30_000, seed: forecastSeed, modelVersion: forecast.modelVersion, scenario: "baseline",
     });
     return () => { cancelled = true; worker.terminate(); };
   }, [forecastSeed, fixture?.home.shortName, fixture?.away.shortName, forecast?.expectedHomeGoals, forecast?.expectedAwayGoals, forecast?.modelVersion, forecast?.dataQuality]);
@@ -137,9 +137,9 @@ export function LiveMatchSimulator({ fixtures }: { fixtures: Fixture[] }) {
   return <div className="stack">
     <div className="notice"><strong>SIMULATION · NOT A LIVE MATCH</strong> Every minute, shot, pass, event and player performance shown below is synthetic. ESPN supplies fixture information and available lineup names; this is not an ESPN play-by-play feed.</div>
     <Panel>
-      <PanelHead title="Pre-match forecast · 10,000 simulated matches" meta={forecast ? forecast.modelVersion + " · " + forecast.dataQuality + " data quality · same forecast regardless of playback seed" : "Choose a fixture"} />
+      <PanelHead title="Pre-match forecast · 30,000 simulated matches" meta={forecast ? forecast.modelVersion + " · " + forecast.dataQuality + " data quality · same forecast regardless of playback seed" : "Choose a fixture"} />
       {forecastLoading ? <div className="forecast-loading">
-        <strong>Running 10,000 background scenarios… {Math.round(forecastProgress * 100)}%</strong>
+        <strong>Running 30,000 background scenarios… {Math.round(forecastProgress * 100)}%</strong>
         <div className="simulation-progress"><i style={{ width: Math.round(forecastProgress * 100) + "%" }} /></div>
       </div> : null}
       {forecastError ? <div className="lineup-explanation">{forecastError}</div> : null}
@@ -151,7 +151,7 @@ export function LiveMatchSimulator({ fixtures }: { fixtures: Fixture[] }) {
         </div>
         <div className="forecast-scoring">
           <div><span>Most frequent exact score</span><strong>{prediction.scorelines[0]?.score ?? "—"}</strong>
-            <small>{prediction.scorelines[0] ? (prediction.scorelines[0].probability * 100).toFixed(1) + "% of 10,000 samples" : "Unavailable"}</small>
+            <small>{prediction.scorelines[0] ? (prediction.scorelines[0].probability * 100).toFixed(1) + "% of 30,000 samples" : "Unavailable"}</small>
           </div>
           <div><span>Over 1.5 goals</span><strong>{(prediction.totals.over15 * 100).toFixed(1)}%</strong></div>
           <div><span>Over 2.5 goals</span><strong>{(prediction.totals.over25 * 100).toFixed(1)}%</strong></div>
@@ -176,8 +176,8 @@ export function LiveMatchSimulator({ fixtures }: { fixtures: Fixture[] }) {
           <div className="field"><label>Playback speed</label><select className="select" value={speed} onChange={(event) => setSpeed(Number(event.target.value))}><option value="1">1×</option><option value="4">4×</option><option value="10">10×</option></select></div>
         </div>
         <p className="forecast-disclaimer">{playbackMode === "representative"
-          ? "Changing the playback seed changes hypothetical goal minutes, players and events, but not the representative final score or the 10,000-match forecast."
-          : "Alternate mode samples a different possible final score for each seed. The 10,000-match probabilities remain unchanged."}</p>
+          ? "Changing the playback seed changes hypothetical goal minutes, players and events, but not the representative final score or the 30,000-match forecast."
+          : "Alternate mode samples a different possible final score for each seed. The 30,000-match probabilities remain unchanged."}</p>
         <div className="playback-actions">
           <button className="button button-primary" disabled={!tape || minute === 90} onClick={() => setPlaying((x) => !x)}>{playing ? <Pause size={16} /> : <Play size={16} />}{playing ? "Pause match" : minute ? "Resume match" : "Kick off simulation"}</button>
           <button className="button" onClick={() => { setMinute(0); setPlaying(false); }} disabled={!tape}><RotateCcw size={16} />Restart</button>
@@ -187,7 +187,7 @@ export function LiveMatchSimulator({ fixtures }: { fixtures: Fixture[] }) {
         <div className="field"><label>Match clock · {minute}′ / 90′</label><input aria-label="Simulated minute" type="range" min={0} max={90} value={minute} disabled={!tape} onChange={(event) => { setMinute(Number(event.target.value)); setPlaying(false); }} style={{ width: "100%" }} /></div>
       </div>
     </Panel>
-    {!fixture || !forecast || !tape || !snapshot ? <Panel><div className="empty-state"><strong>{forecastLoading ? "Preparing representative match…" : "Match timeline unavailable"}</strong>{forecastLoading ? "The 10,000-match forecast will determine the representative final score." : "Choose a fixture with sufficient model data."}</div></Panel> : <>
+    {!fixture || !forecast || !tape || !snapshot ? <Panel><div className="empty-state"><strong>{forecastLoading ? "Preparing representative match…" : "Match timeline unavailable"}</strong>{forecastLoading ? "The 30,000-match forecast will determine the representative final score." : "Choose a fixture with sufficient model data."}</div></Panel> : <>
       <div className="playback-scoreboard">
         <div className="playback-topline"><span>{fixture.league}</span><span>{minute === 0 ? "PRE-MATCH" : minute === 90 ? "FULL TIME · SIMULATED" : String(minute) + "′ · SIMULATED"}</span></div>
         <div className="playback-scores">
