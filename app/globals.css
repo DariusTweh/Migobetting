@@ -579,3 +579,30 @@ main { padding: 34px; max-width: 1510px; margin: 0 auto; }
 .builder-card .leg-row .input{height:36px;min-height:36px}
 .builder-card .leg-row>div:first-child{min-width:0}
 .builder-card .leg-row>b{font-size:12px;white-space:nowrap}
+
+/* Pre-match 10K forecast is visually separated from the fictional 90-minute playback */
+.forecast-loading { padding: 18px 20px; display:grid;gap:14px; }
+.forecast-loading strong { font-size:13px; color:var(--muted); }
+.forecast-outcomes { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding:20px 20px 14px; }
+.forecast-outcomes>div { display:grid;gap:6px;padding:17px 12px;border:1px solid var(--line);border-radius:10px;background:#101a1d;min-width:0;text-align:center; }
+.forecast-outcomes span { color:var(--muted);font-size:12px; }
+.forecast-outcomes strong { font-size:clamp(22px,3vw,32px);font-variant-numeric:tabular-nums; }
+.forecast-outcomes>div:first-child strong { color:var(--lime); }
+.forecast-outcomes>div:last-child strong { color:var(--blue); }
+.forecast-scoring { display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;padding:0 20px 16px; }
+.forecast-scoring>div { display:grid;align-content:center;gap:7px;padding:13px 11px;background:#0b1419;border:1px solid var(--line-soft);border-radius:9px; }
+.forecast-scoring span { color:var(--muted);font-size:11px; }
+.forecast-scoring strong { font-size:20px;font-variant-numeric:tabular-nums; }
+.forecast-scoring small { font-size:10px;color:var(--faint); }
+.forecast-scorelines { display:flex;gap:8px;padding:0 20px 16px;flex-wrap:wrap; }
+.forecast-scorelines>span { font-size:11px;font-weight:700;background:#142016;color:#b6dca7;border:1px solid #354a30;border-radius:100px;padding:7px 10px; }
+.forecast-disclaimer { color:var(--muted);font-size:12px;line-height:1.6;margin:0;padding:0 20px 18px; }
+.builder-form .forecast-disclaimer { padding:0;margin:0 0 3px; }
+@media(max-width:700px) {
+  .forecast-outcomes { gap:6px;padding:12px; }
+  .forecast-outcomes>div { padding:12px 5px; }
+  .forecast-outcomes span { font-size:10px; }
+  .forecast-scoring { grid-template-columns:repeat(2,minmax(0,1fr));padding:0 12px 15px; }
+  .forecast-scorelines { padding:0 12px 15px; }
+  .forecast-disclaimer { padding:0 12px 15px; }
+}
