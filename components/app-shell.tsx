@@ -7,8 +7,8 @@ import { useEffect, useState } from "react";
 
 const nav = [
   { href: "/", label: "Command Center", short: "Home", icon: LayoutDashboard },
-  { href: "/simulation", label: "Simulation Lab", short: "Sim", icon: Dices },
-  { href: "/builder", label: "Pick Builder", short: "Builder", icon: SlidersHorizontal },
+  { href: "/simulation", label: "Match Simulator", short: "Match Sim", icon: Dices },
+  { href: "/builder", label: "Parlays & Builder", short: "Parlays", icon: SlidersHorizontal },
   { href: "/backtest", label: "Backtesting Lab", short: "Lab", icon: FlaskConical },
   { href: "/paper", label: "Paper Performance", short: "Paper", icon: BarChart3 },
   { href: "/settings", label: "Settings", short: "Settings", icon: Settings },
