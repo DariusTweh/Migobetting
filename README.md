@@ -66,3 +66,15 @@ The Historical Parlay Lab uses only the imported 1X2 and O/U 2.5 decimal prices 
 - GitHub Actions verifies unit tests and the Next.js production build on main.
 
 Update a local clone using git pull origin main and npm run dev. Use npm ci only when dependencies need to be reinstalled and disk space is sufficient.
+
+
+## Stable forecast versus match playback
+
+Live-style match playback runs a **separate seeded 10,000-trial Poisson forecast in a Web Worker** when you select a fixture or the underlying goal model inputs change. This displays home/draw/away probabilities, totals, BTTS and the five most frequent exact scores.
+
+- **Representative (default):** conditions the fictional 90-minute event timeline on the most common exact final score in those 10,000 trials. The clock, passes, goals, shots and player assignments are synthetic, not observations or player-prop projections. The most common exact score is not a guaranteed, or even majority-likely, result.
+- **Alternate:** draws an independent fictional result and event timeline for the selected playback seed.
+- **Changing the playback seed:** changes the fictional timeline but NOT the underlying model probabilities. In representative mode the final score stays fixed to the modal score; in alternate mode the final score can change.
+- **Changing fixtures or imported model evidence:** recomputes the 10,000-trial probabilities and the representative score. Forecasts are not live in-game predictions, and do not use the real current match score.
+
+This dual-display implementation does not add AI API credits, external paid sources, or real-time player tracking.
