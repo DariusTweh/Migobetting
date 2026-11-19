@@ -7,6 +7,7 @@ import type { Fixture } from "@/lib/types";
 import { americanToDecimal, decimalToAmerican, formatAmerican, impliedProbability } from "@/lib/odds";
 import { estimateParlayProbability } from "@/lib/parlay";
 import { buildResearchCard } from "@/lib/auto-cards";
+import { useLocalMatchHistory } from "@/lib/use-local-history";
 import { createPaperParlay, savePaperParlay } from "@/lib/paper-parlays";
 
 type Leg = { id: string; fixtureId: string; market: string; odds: number | null };
@@ -20,6 +21,7 @@ const MARKET_KEYS: Record<string, string> = {
 };
 
 export function PickBuilder({ fixtures }: { fixtures: Fixture[] }) {
+  const history = useLocalMatchHistory();
   const [fixtureId, setFixtureId] = useState(fixtures.find((f) => f.status === "scheduled")?.id ?? fixtures[0]?.id ?? "");
   const [market, setMarket] = useState("Home win");
   const [odds, setOdds] = useState(-110);
@@ -38,7 +40,7 @@ export function PickBuilder({ fixtures }: { fixtures: Fixture[] }) {
   const modelEstimate = useMemo(() => legs.length ? estimateParlayProbability(legs, fixtures) : null, [legs, fixtures]);
 
   function autoBuild(target: "daily-double" | "banger") {
-    const suggested = buildResearchCard(fixtures, target);
+    const suggested = buildResearchCard(fixtures, target, Date.now(), history);
     if (!suggested.legs.length) {
       setNotice("PASS: no qualified upcoming " + (target === "daily-double" ? "Daily Double" : "Banger") + " card.");
       setSaved(false);
