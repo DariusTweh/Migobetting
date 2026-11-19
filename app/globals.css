@@ -558,3 +558,24 @@ main { padding: 34px; max-width: 1510px; margin: 0 auto; }
 .playback-player-row>span small{display:block;color:var(--muted);font-size:11px;margin-top:4px}
 .playback-player-row.headings{color:var(--muted);font-size:11px;font-weight:800;text-transform:uppercase}
 @media(max-width:800px){.playback-columns{grid-template-columns:1fr}.playback-scores{gap:8px}.playback-scoreboard{padding:16px 12px}.playback-stat{gap:6px}.playback-stat span{font-size:11px}}
+
+
+/* Auto Daily Double and Banger research cards */
+.suggested-card{display:grid;gap:14px;padding:16px 18px}
+.suggested-card-summary{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.suggested-card-summary>strong{font-size:20px;font-variant-numeric:tabular-nums}
+.suggested-card-summary>strong small{display:block;font-size:10px;color:var(--muted);font-weight:500}
+.suggested-legs{display:grid;gap:7px}
+.suggested-leg{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 12px;background:#111c21;border:1px solid #243238;border-radius:9px}
+.suggested-leg>div{min-width:0;display:grid;gap:3px}
+.suggested-leg>div small{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.06em}
+.suggested-leg>div b{font-size:12px}
+.suggested-leg>div strong{color:var(--lime);font-size:13px}
+.suggested-leg>span{font-size:14px;font-weight:750;font-variant-numeric:tabular-nums}
+.suggested-card-bottom{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line-soft)}
+.suggested-card-bottom span{font-size:12px;color:var(--muted)}
+.suggested-card-bottom strong{font-size:19px}
+.builder-card .leg-row .field{margin-top:10px}
+.builder-card .leg-row .input{height:36px;min-height:36px}
+.builder-card .leg-row>div:first-child{min-width:0}
+.builder-card .leg-row>b{font-size:12px;white-space:nowrap}
