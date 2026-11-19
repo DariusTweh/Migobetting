@@ -13,6 +13,9 @@ export type LockedParlayLeg = {
   kickoff: string;
   market: string;
   americanOdds: number;
+  bookmaker?: string;
+  oddsSource?: string;
+  quoteUpdatedAt?: string;
 };
 export type PaperParlay = {
   id: string;
