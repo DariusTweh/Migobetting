@@ -31,7 +31,7 @@ export function SimulationLab({ fixtures, providerErrors, fetchedAt }: { fixture
 function MatchSimulator({ fixtures, providerErrors, fetchedAt }: { fixtures: Fixture[]; providerErrors: string[]; fetchedAt: string }) {
   const history = useLocalMatchHistory();
   const [fixtureId, setFixtureId] = useState(fixtures[0]?.id ?? "");
-  const [iterations, setIterations] = useState(50_000);
+  const [iterations, setIterations] = useState(30_000);
   const [seed, setSeed] = useState("migo-2026");
   const [homeMultiplier, setHomeMultiplier] = useState(1);
   const [awayMultiplier, setAwayMultiplier] = useState(1);
@@ -76,7 +76,7 @@ function MatchSimulator({ fixtures, providerErrors, fetchedAt }: { fixtures: Fix
         <PanelHead title="Simulation controls" meta="One seed reproduces the same sampled outcomes" />
         <div className="simulation-form">
           <div className="field"><label>Upcoming fixture</label><select className="select" value={fixtureId} onChange={(event) => { setFixtureId(event.target.value); setResult(null); }}>{fixtures.map((item) => <option key={item.id} value={item.id}>{item.home.shortName} vs {item.away.shortName} · {item.league}</option>)}</select></div>
-          <div className="form-grid"><div className="field"><label>Simulation count</label><select className="select" value={iterations} onChange={(event) => setIterations(Number(event.target.value))}><option value="10000">10,000</option><option value="50000">50,000</option><option value="100000">100,000</option></select></div><div className="field"><label>Random seed</label><input className="input" value={seed} onChange={(event) => setSeed(event.target.value)} /></div></div>
+          <div className="form-grid"><div className="field"><label>Simulation count</label><select className="select" value={iterations} onChange={(event) => setIterations(Number(event.target.value))}><option value="10000">10,000</option><option value="30000">30,000</option><option value="50000">50,000</option><option value="100000">100,000</option></select></div><div className="field"><label>Random seed</label><input className="input" value={seed} onChange={(event) => setSeed(event.target.value)} /></div></div>
           <div className="scenario-box"><div className="scenario-head"><div><strong>What-if assumptions</strong><span className={`badge ${modified ? "badge-limited" : "badge-good"}`}>{modified ? "Modified scenario" : "Baseline"}</span></div><button className="button button-small" onClick={resetScenario}><RotateCcw size={14} />Reset</button></div>
             <div className="form-grid"><RangeField label="Home attack multiplier" value={homeMultiplier} onChange={setHomeMultiplier} /><RangeField label="Away attack multiplier" value={awayMultiplier} onChange={setAwayMultiplier} /><RangeField label="Extra home-goal adjustment" value={homeAdvantage} onChange={setHomeAdvantage} min={-0.4} max={0.4} step={0.05} /></div>
             <div className="lambda-preview"><span>Simulation inputs</span><strong>{expectedHome.toFixed(2)} xG</strong><i>vs</i><strong>{expectedAway.toFixed(2)} xG</strong></div>
