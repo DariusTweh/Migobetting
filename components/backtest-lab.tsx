@@ -24,6 +24,9 @@ const ESPN_LEAGUES: Record<string, string> = {
   "Serie A": "ita.1",
   "Ligue 1": "fra.1",
 };
+const HISTORY_LEAGUES = Object.entries(ESPN_HISTORY_COMPETITIONS) as Array<[EspnHistoryLeague, string]>;
+const espnHistoryId = (name: string) => HISTORY_LEAGUES.find(([, title]) => title === name)?.[0];
+const historicalYears = () => Array.from({ length: 3 }, (_, index) => new Date().getUTCFullYear() - 2 + index);
 const percent = (value: number | null) => value === null ? "—" : `${(value * 100).toFixed(1)}%`;
 
 export function BacktestLab() {
@@ -31,9 +34,6 @@ export function BacktestLab() {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("Loading local history…");
   const [preset, setPreset] = useState(PRESETS[0].id);
-  const [espnLeague, setEspnLeague] = useState<EspnHistoryLeague>("usa.1");
-  const [espnYear, setEspnYear] = useState(2025);
-  const [espnInfo, setEspnInfo] = useState("");
   const [market, setMarket] = useState<BacktestMarket>("best-pick");
   const [threshold, setThreshold] = useState(68);
   const [iterations, setIterations] = useState(10_000);
@@ -50,8 +50,16 @@ export function BacktestLab() {
     initializationStarted.current = true;
     void initializeAutomatedLoop();
   }, []);
-  const competitions = useMemo(() => [...new Set(matches.map((item) => item.competition))].sort(), [matches]);
-  const seasons = useMemo(() => [...new Set(matches.map((item) => item.season))].sort(), [matches]);
+  // Every competition uses the same filter and test controls. ESPN-backed leagues
+  // remain visible even before their first historical import.
+  const competitions = useMemo(
+    () => [...new Set([...matches.map((item) => item.competition), ...HISTORY_LEAGUES.map(([, name]) => name)])].sort(),
+    [matches],
+  );
+  const seasons = useMemo(
+    () => [...new Set(matches.filter((item) => competition === "all" || item.competition === competition).map((item) => item.season))].sort(),
+    [matches, competition],
+  );
   const filtered = useMemo(() => matches.filter((item) => (competition === "all" || item.competition === competition) && (season === "all" || item.season === season)), [matches, competition, season]);
 
   function evaluate(data: HistoricalMatch[], settings = { market, threshold: threshold / 100, iterations, seed }) {
@@ -98,9 +106,18 @@ export function BacktestLab() {
 
   async function syncAndRerun() {
     try {
-      const data = await syncCoreHistory();
-      const enriched = await enrichHistoricalLineups(data);
-      await evaluate(enriched);
+      if (espnHistoryId(competition)) {
+        const latest = await ensureLeagueHistory(competition, await getHistoricalMatches(), true);
+        const scoped = latest.filter((item) => item.competition === competition && (season === "all" || item.season === season));
+        if (!scoped.length) throw new Error("No historical matches for the selected season.");
+        await evaluate(scoped);
+      } else {
+        const data = await syncCoreHistory();
+        const enriched = await enrichHistoricalLineups(data);
+        const scoped = enriched.filter((item) => (competition === "all" || item.competition === competition) && (season === "all" || item.season === season));
+        if (!scoped.length) throw new Error("No historical matches for the selected filters.");
+        await evaluate(scoped);
+      }
     } catch (error) {
       setLoading(false); setAutoStatus("error"); setMessage(error instanceof Error ? error.message : "Automatic historical sync failed");
     }
@@ -136,22 +153,42 @@ export function BacktestLab() {
     return enriched;
   }
 
-  async function importEspnSeason() {
-    setLoading(true); setEspnInfo("Importing ESPN historical final scores; odds will remain unavailable…");
+  // ESPN history is fetched automatically when its league is selected and the
+  // user runs the SAME historical test used by all other competitions.
+  async function ensureLeagueHistory(name: string, existing: HistoricalMatch[], force = false): Promise<HistoricalMatch[]> {
+    const leagueId = espnHistoryId(name);
+    if (!leagueId) return existing;
+
+    const importedYears = new Set(
+      existing.filter((item) => item.competition === name).map((item) => Number(item.date.slice(0, 4))),
+    );
+    const years = historicalYears().filter((year) => force || !importedYears.has(year));
+    if (years.length === 0) return existing;
+
+    setLoading(true);
+    setAutoStatus("syncing");
+    setMessage(`Loading ${name} match history from ESPN for ${years.join(", ")}…`);
     try {
-      const response = await fetch(`/api/historical/espn?league=${encodeURIComponent(espnLeague)}&year=${espnYear}`);
-      const payload = await response.json() as { matches?: HistoricalMatch[]; errors?: string[]; warnings?: string[]; error?: string };
-      if (!response.ok || !payload.matches) throw new Error(payload.error ?? "ESPN historical import failed");
-      const imported = await importHistoricalMatches(payload.matches);
+      const responses = await Promise.allSettled(years.map(async (year) => {
+        const response = await fetch(`/api/historical/espn?league=${encodeURIComponent(leagueId)}&year=${year}`);
+        const payload = await response.json() as { matches?: HistoricalMatch[]; error?: string; errors?: string[] };
+        if (!response.ok || !payload.matches) throw new Error(`${year}: ${payload.error ?? "ESPN history unavailable"}`);
+        return { year, matches: payload.matches, warnings: payload.errors ?? [] };
+      }));
+      const imported = responses.flatMap((item) => item.status === "fulfilled" ? item.value.matches : []);
+      const errors = responses.flatMap((item) => item.status === "rejected"
+        ? [item.reason instanceof Error ? item.reason.message : "ESPN historical import failed"]
+        : item.value.warnings.map((warning) => `${item.value.year}: ${warning}`));
+      if (imported.length) await importHistoricalMatches(imported);
       const all = await getHistoricalMatches();
-      setMatches(all); setResult(null); setSeason("all");
-      const name = ESPN_HISTORY_COMPETITIONS[espnLeague];
-      setCompetition(name);
-      setEspnInfo(`${imported.inserted} new ${name} matches, ${imported.updated} refreshed · ${payload.errors?.length ?? 0} monthly fetch errors. No historical odds imported.`);
-      await evaluate(all.filter((match) => match.competition === name));
-    } catch (error) {
-      setEspnInfo(error instanceof Error ? error.message : "ESPN historical import failed");
-    } finally { setLoading(false); }
+      setMatches(all);
+      const count = all.filter((item) => item.competition === name).length;
+      if (!count) throw new Error(`No completed historical matches are available for ${name}. ${errors.join(" · ")}`);
+      setMessage(`${name}: ${count.toLocaleString()} historical matches loaded. ${errors.length ? `${errors.length} provider warning(s). ` : ""}ESPN scores have no historical bookmaker prices.`);
+      return all;
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function importPreset() {
@@ -178,9 +215,20 @@ export function BacktestLab() {
     } catch (error) { setMessage(error instanceof Error ? error.message : "CSV import failed"); }
     finally { setLoading(false); }
   }
-  function run() {
-    if (!filtered.length) return;
-    setResult(null); evaluate(filtered);
+  async function run() {
+    if (running || loading) return;
+    setResult(null);
+    try {
+      const latest = espnHistoryId(competition)
+        ? await ensureLeagueHistory(competition, matches)
+        : matches;
+      const scoped = latest.filter((item) => (competition === "all" || item.competition === competition) && (season === "all" || item.season === season));
+      if (!scoped.length) throw new Error("No historical matches available for the selected league and season.");
+      await evaluate(scoped);
+    } catch (error) {
+      setAutoStatus("error");
+      setMessage(error instanceof Error ? error.message : "Historical test failed");
+    }
   }
   async function clear() {
     if (!window.confirm("Remove all locally imported historical fixtures?")) return;
@@ -194,28 +242,15 @@ export function BacktestLab() {
     <Panel className="simple-test-panel">
       <PanelHead title="Choose the test" meta={`${matches.length.toLocaleString()} real matches are loaded locally. Automatic mode lets MIGO choose a different market for every match.`} />
       <div className="simple-test-controls">
-        <div className="field"><label>League</label><select className="select" value={competition} onChange={(event) => { setCompetition(event.target.value); setResult(null); }}><option value="all">All five leagues</option>{competitions.map((item) => <option key={item}>{item}</option>)}</select></div>
-        <div className="field"><label>Season</label><select className="select" value={season} onChange={(event) => { setSeason(event.target.value); setResult(null); }}><option value="all">All three seasons</option>{seasons.map((item) => <option key={item}>{item}</option>)}</select></div>
+        <div className="field"><label>League</label><select className="select" value={competition} onChange={(event) => { setCompetition(event.target.value); setSeason("all"); setResult(null); }}><option value="all">All leagues</option>{competitions.map((item) => <option key={item}>{item}</option>)}</select></div>
+        <div className="field"><label>Season</label><select className="select" value={season} onChange={(event) => { setSeason(event.target.value); setResult(null); }}><option value="all">All seasons</option>{seasons.map((item) => <option key={item}>{item}</option>)}</select></div>
         <div className="field"><label>Type of pick</label><select className="select" value={market} onChange={(event) => { setMarket(event.target.value as BacktestMarket); setResult(null); }}><option value="best-pick">Automatic — strongest pick</option><optgroup label="Match result"><option value="match-winner">Match winner (ML)</option><option value="double-chance">Best double chance</option></optgroup><optgroup label="Total goals"><option value="over-1.5">Over 1.5 goals</option><option value="under-1.5">Under 1.5 goals</option><option value="over-2.5">Over 2.5 goals</option><option value="under-2.5">Under 2.5 goals</option><option value="over-3.5">Over 3.5 goals</option><option value="under-3.5">Under 3.5 goals</option></optgroup><optgroup label="Both teams to score"><option value="btts-yes">BTTS Yes</option><option value="btts-no">BTTS No</option></optgroup></select></div>
         <div className="field"><label>Only count picks at or above</label><div className="percent-input"><input className="input" type="number" min="50" max="95" value={threshold} onChange={(event) => { setThreshold(Number(event.target.value)); setResult(null); }} /><span>% confidence</span></div></div>
       </div>
       <div className="test-explainer"><div><b>1</b><span><strong>MIGO compares the markets</strong><small>Attack, defense, home/away scoring and prior matches set the probabilities.</small></span></div><div><b>2</b><span><strong>The strongest side is selected</strong><small>ML, double chance, totals, BTTS Yes/No—or PASS.</small></span></div><div><b>3</b><span><strong>The real score grades it</strong><small>Every recorded pick becomes WON or LOST.</small></span></div></div>
-      <button className="button button-primary run-backtest" onClick={run} disabled={!filtered.length || running}><Play size={17} />{running ? "Testing old matches…" : "Run the historical test"}</button>
+      <button className="button button-primary run-backtest" onClick={() => void run()} disabled={loading || running || (!filtered.length && !espnHistoryId(competition))}><Play size={17} />{running ? "Testing old matches…" : "Run the historical test"}</button>
     </Panel>
 
-    <Panel>
-      <PanelHead title="Test MLS and UEFA Women's Champions League" meta="Import actual completed matches from ESPN by calendar year; no API key required" />
-      <div className="import-controls">
-        <div className="field"><label>Competition</label><select className="select" value={espnLeague} onChange={(event) => setEspnLeague(event.target.value as EspnHistoryLeague)}>
-          <option value="usa.1">MLS</option><option value="uefa.wchampions">UEFA Women's Champions League</option>
-        </select></div>
-        <div className="field"><label>Calendar year</label><select className="select" value={espnYear} onChange={(event) => setEspnYear(Number(event.target.value))}>
-          {Array.from({ length: Math.max(1, new Date().getFullYear() - 2022) }, (_, n) => 2023 + n).map((year) => <option key={year} value={year}>{year}</option>)}
-        </select></div>
-        <button className="button" onClick={importEspnSeason} disabled={loading || running}><DatabaseZap size={16} />Import and backtest</button>
-      </div>
-      <div className="lineup-explanation">{espnInfo || "Import multiple years to improve prior-match coverage. Women's UCL spans calendar years. Historical ESPN data adds completed results but does NOT include bookmaker odds, so price-based ROI remains unavailable for those fixtures."}</div>
-    </Panel>
     {result ? <><BacktestResults result={result} /><HistoricalParlayLab result={result} matches={filtered} /></> : <Panel className="results-placeholder"><DatabaseZap size={34} /><strong>{running ? "Running the historical test…" : "Ready for a fresh historical test"}</strong><p>{running ? "MIGO is predicting old matches before revealing their final scores." : "Run the test to see predictions, real final scores, and WON/LOST results for these settings."}</p></Panel>}
 
     <details className="advanced-backtest">
