@@ -1,4 +1,4 @@
-export type SimulationIterations = 10_000 | 50_000 | 100_000;
+export type SimulationIterations = 10_000 | 30_000 | 50_000 | 100_000;
 
 export type SimulationInput = {
   homeTeam: string;
