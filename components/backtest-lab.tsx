@@ -6,6 +6,8 @@ import { clearHistoricalMatches, getHistoricalMatches, importHistoricalMatches, 
 import { parseHistoricalCsv, runHistoricalBacktest, type BacktestMarket, type BacktestResult, type HistoricalMatch } from "@/lib/history";
 import { decimalToAmerican, formatAmerican } from "@/lib/odds";
 import { PageHeader, Panel, PanelHead } from "./ui";
+import { HistoricalParlayLab } from "./historical-parlay-lab";
+import { ESPN_HISTORY_COMPETITIONS, type EspnHistoryLeague } from "@/lib/espn-history";
 
 const PRESETS = [
   { id: "epl-2025", label: "Premier League 2025–26", season: "2025–26" },
@@ -29,6 +31,9 @@ export function BacktestLab() {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("Loading local history…");
   const [preset, setPreset] = useState(PRESETS[0].id);
+  const [espnLeague, setEspnLeague] = useState<EspnHistoryLeague>("usa.1");
+  const [espnYear, setEspnYear] = useState(2025);
+  const [espnInfo, setEspnInfo] = useState("");
   const [market, setMarket] = useState<BacktestMarket>("best-pick");
   const [threshold, setThreshold] = useState(68);
   const [iterations, setIterations] = useState(10_000);
@@ -131,6 +136,24 @@ export function BacktestLab() {
     return enriched;
   }
 
+  async function importEspnSeason() {
+    setLoading(true); setEspnInfo("Importing ESPN historical final scores; odds will remain unavailable…");
+    try {
+      const response = await fetch(`/api/historical/espn?league=${encodeURIComponent(espnLeague)}&year=${espnYear}`);
+      const payload = await response.json() as { matches?: HistoricalMatch[]; errors?: string[]; warnings?: string[]; error?: string };
+      if (!response.ok || !payload.matches) throw new Error(payload.error ?? "ESPN historical import failed");
+      const imported = await importHistoricalMatches(payload.matches);
+      const all = await getHistoricalMatches();
+      setMatches(all); setResult(null); setSeason("all");
+      const name = ESPN_HISTORY_COMPETITIONS[espnLeague];
+      setCompetition(name);
+      setEspnInfo(`${imported.inserted} new ${name} matches, ${imported.updated} refreshed · ${payload.errors?.length ?? 0} monthly fetch errors. No historical odds imported.`);
+      await evaluate(all.filter((match) => match.competition === name));
+    } catch (error) {
+      setEspnInfo(error instanceof Error ? error.message : "ESPN historical import failed");
+    } finally { setLoading(false); }
+  }
+
   async function importPreset() {
     setLoading(true); setMessage("Downloading documented provider CSV…");
     try {
@@ -180,7 +203,20 @@ export function BacktestLab() {
       <button className="button button-primary run-backtest" onClick={run} disabled={!filtered.length || running}><Play size={17} />{running ? "Testing old matches…" : "Run the historical test"}</button>
     </Panel>
 
-    {result ? <BacktestResults result={result} /> : <Panel className="results-placeholder"><DatabaseZap size={34} /><strong>{running ? "Running the historical test…" : "Ready for a fresh historical test"}</strong><p>{running ? "MIGO is predicting old matches before revealing their final scores." : "Run the test to see predictions, real final scores, and WON/LOST results for these settings."}</p></Panel>}
+    <Panel>
+      <PanelHead title="Test MLS and UEFA Women's Champions League" meta="Import actual completed matches from ESPN by calendar year; no API key required" />
+      <div className="import-controls">
+        <div className="field"><label>Competition</label><select className="select" value={espnLeague} onChange={(event) => setEspnLeague(event.target.value as EspnHistoryLeague)}>
+          <option value="usa.1">MLS</option><option value="uefa.wchampions">UEFA Women's Champions League</option>
+        </select></div>
+        <div className="field"><label>Calendar year</label><select className="select" value={espnYear} onChange={(event) => setEspnYear(Number(event.target.value))}>
+          {Array.from({ length: Math.max(1, new Date().getFullYear() - 2022) }, (_, n) => 2023 + n).map((year) => <option key={year} value={year}>{year}</option>)}
+        </select></div>
+        <button className="button" onClick={importEspnSeason} disabled={loading || running}><DatabaseZap size={16} />Import and backtest</button>
+      </div>
+      <div className="lineup-explanation">{espnInfo || "Import multiple years to improve prior-match coverage. Women's UCL spans calendar years. Historical ESPN data adds completed results but does NOT include bookmaker odds, so price-based ROI remains unavailable for those fixtures."}</div>
+    </Panel>
+    {result ? <><BacktestResults result={result} /><HistoricalParlayLab result={result} matches={filtered} /></> : <Panel className="results-placeholder"><DatabaseZap size={34} /><strong>{running ? "Running the historical test…" : "Ready for a fresh historical test"}</strong><p>{running ? "MIGO is predicting old matches before revealing their final scores." : "Run the test to see predictions, real final scores, and WON/LOST results for these settings."}</p></Panel>}
 
     <details className="advanced-backtest">
       <summary>Advanced settings, data controls, and statistical diagnostics</summary>

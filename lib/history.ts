@@ -260,9 +260,31 @@ export function runHistoricalBacktest(matches: HistoricalMatch[], config: Backte
   const predictions: BacktestPrediction[] = [];
   const priorLineups = new Map<string, string[]>();
   let excludedWarmup = 0;
+  let lastDay = "";
+  const pending: HistoricalMatch[] = [];
+  function commitHistory(match: HistoricalMatch) {
+    const homeKey = `${match.competition}:${normalizeTeamName(match.homeTeam)}`;
+    const awayKey = `${match.competition}:${normalizeTeamName(match.awayTeam)}`;
+    const homeStats = stats.get(homeKey) ?? emptyStats();
+    const awayStats = stats.get(awayKey) ?? emptyStats();
+    const league = leagueHistory.get(match.competition) ?? { homeGoals: 0, awayGoals: 0, matches: 0 };
+    homeStats.played += 1; homeStats.goalsFor += match.homeGoals; homeStats.goalsAgainst += match.awayGoals; homeStats.homePlayed += 1; homeStats.homeFor += match.homeGoals; homeStats.homeAgainst += match.awayGoals;
+    awayStats.played += 1; awayStats.goalsFor += match.awayGoals; awayStats.goalsAgainst += match.homeGoals; awayStats.awayPlayed += 1; awayStats.awayFor += match.awayGoals; awayStats.awayAgainst += match.homeGoals;
+    stats.set(homeKey, homeStats); stats.set(awayKey, awayStats);
+    league.homeGoals += match.homeGoals; league.awayGoals += match.awayGoals; league.matches += 1;
+    leagueHistory.set(match.competition, league);
+    if (match.lineup) {
+      priorLineups.set(homeKey, match.lineup.home.starters.map((player) => player.id));
+      priorLineups.set(awayKey, match.lineup.away.starters.map((player) => player.id));
+    }
+  }
+  function flushDay() { pending.forEach(commitHistory); pending.length = 0; }
   const splitIndex = Math.floor(sorted.length * Math.min(0.9, Math.max(0.1, config.trainingFraction)));
 
   sorted.forEach((match, matchIndex) => {
+    const day = match.date.slice(0, 10);
+    if (lastDay && day !== lastDay) flushDay();
+    lastDay = day;
     const homeKey = `${match.competition}:${normalizeTeamName(match.homeTeam)}`;
     const awayKey = `${match.competition}:${normalizeTeamName(match.awayTeam)}`;
     const homeStats = stats.get(homeKey) ?? emptyStats();
@@ -296,16 +318,9 @@ export function runHistoricalBacktest(matches: HistoricalMatch[], config: Backte
       predictions.push({ matchId: match.id, date: match.date, competition: match.competition, homeTeam: match.homeTeam, awayTeam: match.awayTeam, actualHomeGoals: match.homeGoals, actualAwayGoals: match.awayGoals, actualOutcome, probabilities, selected, selectedMarket: selection?.[2] ?? null, selectedLabel, selectedProbability: selection?.[1] ?? 0, correct, brier, logLoss: -Math.log(Math.max(1e-9, actualProbability)), expectedHomeGoals: expected.home, expectedAwayGoals: expected.away, oddsUsed, profit: oddsUsed && correct !== null ? (correct ? oddsUsed - 1 : -1) : undefined, projectedLineupEligible, actualLineupEligible });
     } else if (matchIndex >= splitIndex) excludedWarmup += 1;
 
-    homeStats.played += 1; homeStats.goalsFor += match.homeGoals; homeStats.goalsAgainst += match.awayGoals; homeStats.homePlayed += 1; homeStats.homeFor += match.homeGoals; homeStats.homeAgainst += match.awayGoals;
-    awayStats.played += 1; awayStats.goalsFor += match.awayGoals; awayStats.goalsAgainst += match.homeGoals; awayStats.awayPlayed += 1; awayStats.awayFor += match.awayGoals; awayStats.awayAgainst += match.homeGoals;
-    stats.set(homeKey, homeStats); stats.set(awayKey, awayStats);
-    league.homeGoals += match.homeGoals; league.awayGoals += match.awayGoals; league.matches += 1;
-    leagueHistory.set(match.competition, league);
-    if (match.lineup) {
-      priorLineups.set(homeKey, match.lineup.home.starters.map((player) => player.id));
-      priorLineups.set(awayKey, match.lineup.away.starters.map((player) => player.id));
-    }
+    pending.push(match);
   });
+  flushDay();
 
   const qualified = predictions.filter((item) => item.selected !== null);
   const correct = qualified.filter((item) => item.correct).length;
