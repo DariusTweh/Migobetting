@@ -2,44 +2,71 @@
 
 import Link from "next/link";
 import { ArrowRight, Layers3, ShieldAlert } from "lucide-react";
-import { buildResearchCard, type SuggestedCard } from "@/lib/auto-cards";
 import { useLocalMatchHistory } from "@/lib/use-local-history";
+import { useOddsFeed } from "@/lib/use-odds-feed";
+import { buildPricedCard, type PricedCard } from "@/lib/priced-cards";
 import { formatAmerican } from "@/lib/odds";
 import type { Fixture } from "@/lib/types";
 import { Panel, PanelHead } from "./ui";
 
-const pretty = (value: number) => (100 * value).toFixed(1) + "%";
+const pct = (value: number) => (value * 100).toFixed(1) + "%";
 
-function Card({ card }: { card: SuggestedCard }) {
+function Card({ card }: { card: PricedCard }) {
   const title = card.kind === "daily-double" ? "Daily Double" : "Banger Card";
+  const payload = encodeURIComponent(JSON.stringify(card.legs.map((leg) => ({
+    fixtureId: leg.fixtureId, marketKey: leg.marketKey, bookKey: leg.bookKey,
+  }))));
   return <Panel>
-    <PanelHead title={title} meta={card.kind === "daily-double" ? "Research selection · goal: +100 with real quotes" : "Higher-risk multi-match research · requires real quotes"} />
+    <PanelHead title={title} meta={card.kind === "daily-double" ? "Real quoted odds · target +100 minimum" : "Real quoted odds · higher-risk +400 target"} />
     {card.legs.length ? <div className="suggested-card">
-      <div className="suggested-card-summary"><span className="badge badge-limited">MODEL ONLY · NOT PRICED</span><strong>{pretty(card.probability ?? 0)} <small>estimated joint probability</small></strong></div>
-      <div className="suggested-legs">
-        {card.legs.map((leg) => <div key={leg.fixtureId} className="suggested-leg">
-          <div><small>{leg.league}</small><b>{leg.fixtureLabel}</b><strong>{leg.market}</strong></div>
-          <span>{pretty(leg.probability)}</span>
-        </div>)}
+      <div className="suggested-card-summary">
+        <span className="badge badge-good">{card.bookmaker} · QUOTED ODDS</span>
+        <strong>{card.combinedAmerican === null ? "—" : formatAmerican(card.combinedAmerican)}
+          <small>combined quoted price</small></strong>
       </div>
-      <div className="suggested-card-bottom"><span>Model-implied fair combined odds</span><strong>{card.fairAmerican === null ? "—" : formatAmerican(card.fairAmerican)}</strong></div>
-      <div className="model-warning"><ShieldAlert size={14}/><span>No actual bookmaker odds yet. This fair price is NOT an offered betting line, and the model is uncalibrated.</span></div>
-      <Link className="button button-primary full-button" href={"/builder?mode=" + card.kind + "&selections=" + encodeURIComponent(JSON.stringify(card.legs.map((leg) => ({ fixtureId: leg.fixtureId, marketKey: leg.marketKey }))))}><Layers3 size={16}/> Open and price all legs <ArrowRight size={16}/></Link>
+      <div className="suggested-legs">{card.legs.map((leg) => <div key={leg.fixtureId} className="suggested-leg">
+        <div>
+          <small>{leg.league} · {leg.source}</small>
+          <b>{leg.fixtureLabel}</b>
+          <strong>{leg.market}</strong>
+        </div>
+        <div className="quoted-leg-price">
+          <b>{formatAmerican(leg.americanOdds)}</b>
+          <small>Model {pct(leg.probability)}</small>
+        </div>
+      </div>)}</div>
+      <div className="suggested-card-bottom">
+        <span>Uncalibrated model-implied chance (independent fixtures)</span>
+        <strong>{card.jointProbability !== null ? pct(card.jointProbability) : "—"}</strong>
+      </div>
+      <div className="model-warning"><ShieldAlert size={14}/><span>These are published bookmaker quotes, not guaranteed available at your location. Confirm prices before paper-locking. Model edge is not proven.</span></div>
+      <Link className="button button-primary full-button" href={"/builder?mode=" + card.kind + "&selections=" + payload}>
+        <Layers3 size={16}/> Open this priced slip <ArrowRight size={16}/>
+      </Link>
     </div> : <div className="card-body">
       <div className="card-symbol"><Layers3 size={21}/></div>
-      <strong>No qualifying {title} today · PASS</strong>
-      <p>Not enough eligible upcoming fixtures meet the model selection rules. MIGO will not invent legs or odds.</p>
-      <Link className="button" href="/builder">Build manually <ArrowRight size={15}/></Link>
+      <strong>PASS · No qualifying {title}</strong>
+      <p>{card.notes[0]} MIGO no longer fills a slip with -1100 selections simply to make its predicted win rate look high.</p>
+      <Link className="button" href="/builder">Open builder <ArrowRight size={15}/></Link>
     </div>}
   </Panel>;
 }
 
 export function AutoParlayCards({ fixtures }: { fixtures: Fixture[] }) {
   const history = useLocalMatchHistory();
-  const double = buildResearchCard(fixtures, "daily-double", Date.now(), history);
-  const banger = buildResearchCard(fixtures, "banger", Date.now(), history);
+  const { feed, loading, error } = useOddsFeed();
+  const quotes = feed?.quotes ?? [];
+  const double = buildPricedCard(fixtures, quotes, "daily-double", history);
+  const banger = buildPricedCard(fixtures, quotes, "banger", history);
   return <div className="stack">
-    <Card card={double} />
-    <Card card={banger} />
+    {loading ? <div className="notice">Loading published market prices for upcoming fixtures…</div> : null}
+    {error ? <div className="notice">Odds connection unavailable: {error}</div> : null}
+    {feed ? <div className="notice">
+      Odds feed: {feed.provider} · {quotes.length} matching quoted selections · updated {new Date(feed.fetchedAt).toLocaleTimeString()}.
+      {feed.setupRequired ? " Add THERUNDOWN_API_KEY to .env.local for free DraftKings, FanDuel and BetMGM pre-match odds." : " Free data is delayed about five minutes."}
+      {feed.errors.length ? " Some competitions have no usable quotes." : ""}
+    </div> : null}
+    <Card card={double}/>
+    <Card card={banger}/>
   </div>;
 }
