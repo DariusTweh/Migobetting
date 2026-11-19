@@ -79,6 +79,7 @@ export function buildResearchCard(fixtures: Fixture[], kind: SuggestedCard["kind
 export function priceSuggestedCard(card: SuggestedCard, prices: Record<string, number | undefined>) {
   const values = card.legs.map((leg) => prices[leg.fixtureId]);
   if (!card.legs.length || values.some((v) => v === undefined || !Number.isFinite(v) || v === 0)) return null;
-  const decimal = values.reduce((product, v) => product * americanToDecimal(v!), 1);
+  const priced = values as number[];
+  const decimal = priced.reduce((product: number, v: number) => product * americanToDecimal(v), 1);
   return { decimal, american: decimalToAmerican(decimal), grossReturnPerUnit: decimal };
 }
