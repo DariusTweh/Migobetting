@@ -3,15 +3,17 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, BrainCircuit, CalendarClock, CheckCircle2, ShieldAlert } from "lucide-react";
-import { useState } from "react";
-import { forecastFixture } from "@/lib/model";
+import { useMemo, useState } from "react";
+import { useLocalMatchHistory } from "@/lib/use-local-history";
+import { forecastWithHistory } from "@/lib/historical-forecast";
 import { formatAmerican } from "@/lib/odds";
 import type { Fixture, LineupIntelligence, TeamLineup } from "@/lib/types";
 import { Notice, Panel, PanelHead } from "./ui";
 
 export function MatchIntelligence({ fixture, lineups }: { fixture: Fixture; lineups: LineupIntelligence }) {
   const [tab, setTab] = useState<"overview" | "lineups">("overview");
-  const model = forecastFixture(fixture);
+  const history = useLocalMatchHistory();
+  const model = useMemo(() => forecastWithHistory(fixture, history), [fixture, history]);
   const date = new Date(fixture.kickoff);
   return <>
     <Link href="/" className="back-link"><ArrowLeft size={15} />Back to fixtures</Link>
@@ -23,6 +25,10 @@ export function MatchIntelligence({ fixture, lineups }: { fixture: Fixture; line
         <TeamBlock team={fixture.away} side="Away" />
       </div>
       <div className="source-bar"><span><i /> LIVE PROVIDER DATA</span><span>ESPN · fetched {new Date(fixture.sourceUpdatedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</span></div>
+      <div className="playback-actions">
+        <Link href={"/simulation?view=live&fixture=" + encodeURIComponent(fixture.id)} className="button button-primary">Watch simulated match</Link>
+        <Link href="/builder?mode=daily-double" className="button">Build Daily Double / Banger</Link>
+      </div>
     </div>
 
     <div className="match-tabs"><button className={tab === "overview" ? "active" : ""} onClick={() => setTab("overview")}>Match overview</button><button className={tab === "lineups" ? "active" : ""} onClick={() => setTab("lineups")}>Lineup intelligence <span className={`badge ${lineups.home.status === "CONFIRMED" && lineups.away.status === "CONFIRMED" ? "badge-good" : "badge-limited"}`}>{lineups.home.status === lineups.away.status ? lineups.home.status : "MIXED"}</span></button></div>
