@@ -78,3 +78,25 @@ Live-style match playback runs a **separate seeded 10,000-trial Poisson forecast
 - **Changing fixtures or imported model evidence:** recomputes the 10,000-trial probabilities and the representative score. Forecasts are not live in-game predictions, and do not use the real current match score.
 
 This dual-display implementation does not add AI API credits, external paid sources, or real-time player tracking.
+
+
+## 30,000-match simulation + free sportsbook odds (TheRundown)
+
+The Match Simulator now runs **30,000 independent Poisson goal samples** per fixture in the background. This reduces sampling noise relative to 10,000 but does not improve the underlying model's calibration. The displayed outcome distribution stays fixed when only the fictional playback seed changes.
+
+For published bookmaker prices, MIGO uses **TheRundown V2 Free API** (prematch moneylines and main goal totals from DraftKings, FanDuel, and BetMGM, up to five minutes delayed) and falls back to limited ESPN-provided 1X2 prices where available.
+
+1. Sign up for the Free key at https://therundown.io/docs/quickstart.
+2. Create a private **.env.local** file beside package.json. Put this line in it:
+   THERUNDOWN_API_KEY=YOUR_PERSONAL_KEY_HERE
+3. Restart npm run dev so Next.js loads the new environment variable.
+4. Open Command Center or /builder. The app reads /api/odds on the server; the key is never sent to the browser.
+5. If using Vercel, add THERUNDOWN_API_KEY as a secret environment variable in project settings and redeploy.
+
+Do not commit .env.local or put the actual API key into GitHub, chats, or screenshots.
+
+For free quota protection, MIGO queries up to eight league/date combinations with events within the next 72 hours, filters to market IDs 1 and 3 and free sportsbook IDs 19/22/23, throttles to ~1 request/second, and caches each provider fetch for two hours. Repeated snapshots can still count against quota; watch the provider account usage and response errors.
+
+**Automatic Daily Double and Banger cards now require actual matched same-bookmaker quotes**, reject prices shorter than -350 (including -1100), and require at least an indicative 1-percentage-point model-implied margin plus +100 for Daily Double or +400 for Banger. If the feed cannot supply a valid combination, MIGO outputs PASS instead of adding cheap legs. These model-implied edges are **not calibrated or validated profits**.
+
+The Free plan does not include double chance or alternative totals such as Over 1.5 when the sportsbook's main line is 2.5. Women's UEFA Champions League is not listed among TheRundown's published soccer sport IDs and may show no odds. Missing quotes are never invented, and historical odds backtesting still requires a separate historical-odds dataset.
