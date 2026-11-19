@@ -7,30 +7,62 @@ import { getBankroll, getPaperBets } from "./local-storage";
 import { Metric, Notice, PageHeader, Panel, PanelHead } from "./ui";
 import { formatAmerican } from "@/lib/odds";
 import type { PaperBet } from "@/lib/types";
+import { applyPaperParlayResults, readPaperParlays, type PaperParlay } from "@/lib/paper-parlays";
 import { readForwardPredictions, type ForwardPrediction } from "@/lib/forward-store";
 
 export function PaperDashboard() {
   const [bets, setBets] = useState<PaperBet[]>([]);
+  const [parlays, setParlays] = useState<PaperParlay[]>([]);
   const [bankroll, setBankroll] = useState(1000);
   const [forward, setForward] = useState<ForwardPrediction[]>([]);
-  useEffect(() => { const load = () => { setBets(getPaperBets()); setBankroll(getBankroll()); }; load(); window.addEventListener("migo:storage", load); return () => window.removeEventListener("migo:storage", load); }, []);
+  useEffect(() => { const load = () => { setBets(getPaperBets()); setParlays(readPaperParlays()); setBankroll(getBankroll()); }; load(); window.addEventListener("migo:storage", load); return () => window.removeEventListener("migo:storage", load); }, []);
   useEffect(() => { const load = () => setForward(readForwardPredictions()); load(); window.addEventListener("migo:forward", load); return () => window.removeEventListener("migo:forward", load); }, []);
+  useEffect(() => {
+    const due = readPaperParlays().filter((card) => card.status === "open").flatMap((card) => card.legs)
+      .filter((leg) => Date.parse(leg.kickoff) < Date.now());
+    const events = [...new Map(due.map((leg) => [leg.fixtureId, { fixtureId: leg.fixtureId, leagueId: leg.leagueId }])).values()];
+    if (!events.length) return;
+    fetch("/api/results", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ events }) })
+      .then((response) => response.ok ? response.json() : Promise.reject(new Error("Unavailable")))
+      .then((payload: { results: Parameters<typeof applyPaperParlayResults>[0] }) => setParlays(applyPaperParlayResults(payload.results)))
+      .catch(() => undefined);
+  }, []);
   const graded = bets.filter((bet) => bet.status !== "open");
   const profit = useMemo(() => graded.reduce((sum, bet) => sum + (bet.payout ?? 0) - bet.stake, 0), [graded]);
   const won = graded.filter((bet) => bet.status === "won").length;
+  const gradedParlays = parlays.filter((parlay) => parlay.status !== "open");
+  const parlayProfit = gradedParlays.reduce((sum, card) => sum + (card.payout ?? 0) - card.stake, 0);
+  const totalProfit = profit + parlayProfit;
+  const gradedCount = graded.length + gradedParlays.length;
+  const totalWon = won + gradedParlays.filter((card) => card.status === "won").length;
   const gradedForward = forward.filter((item) => item.status === "graded");
   return <>
     <PageHeader eyebrow="Simulation only" title="Paper Performance" description="Forward-test locked decisions without changing a prediction after the result is known." action={<Link href="/builder" className="button button-primary"><Plus size={16} />New paper pick</Link>} />
     <div className="paper-banner"><span className="paper-pill"><span /> PAPER MODE</span><p>No real money is wagered. Records live only in this browser.</p></div>
     <div className="metrics-grid">
       <Metric label="Starting bankroll" value={`$${bankroll.toFixed(2)}`} sub="local setting" />
-      <Metric label="Open selections" value={String(bets.filter((bet) => bet.status === "open").length)} sub="awaiting result" tone="orange" />
-      <Metric label="Graded selections" value={String(graded.length)} sub={graded.length ? `${Math.round(won / graded.length * 100)}% hit rate` : "no results yet"} />
-      <Metric label="Simulated P/L" value={graded.length ? `${profit >= 0 ? "+" : "-"}$${Math.abs(profit).toFixed(2)}` : "—"} sub="graded picks only" tone={profit > 0 ? "green" : "default"} />
+      <Metric label="Open selections" value={String(bets.filter((bet) => bet.status === "open").length + parlays.filter((card) => card.status === "open").length)} sub="awaiting result" tone="orange" />
+      <Metric label="Graded selections" value={String(gradedCount)} sub={gradedCount ? `${Math.round(totalWon / gradedCount * 100)}% hit rate` : "no results yet"} />
+      <Metric label="Simulated P/L" value={gradedCount ? `${totalProfit >= 0 ? "+" : "-"}${Math.abs(totalProfit).toFixed(2)}` : "—"} sub="graded singles and parlays" tone={totalProfit > 0 ? "green" : "default"} />
     </div>
     <Panel>
       <PanelHead title="Locked selection ledger" meta={`${bets.length} local records`} />
       {bets.length ? <div className="paper-table"><div className="paper-table-head"><span>Fixture / market</span><span>Price</span><span>Stake</span><span>Status</span></div>{bets.map((bet) => <div className="paper-row" key={bet.id}><div><strong>{bet.fixtureLabel}</strong><small>{bet.market} · locked {new Date(bet.lockedAt).toLocaleString()}</small></div><b>{formatAmerican(bet.americanOdds)}</b><span>${bet.stake.toFixed(2)}</span><span className={`badge ${bet.status === "open" ? "badge-limited" : bet.status === "won" ? "badge-good" : "badge-insufficient"}`}>{bet.status}</span></div>)}</div> : <div className="empty-state"><WalletCards size={32} /><strong>No paper selections yet</strong>Build a card and lock it before kickoff to start a forward-testing record.</div>}
+    </Panel>
+    <Panel>
+      <PanelHead title="Locked paper parlays" meta={parlays.length + " complete tickets · Daily Double / Banger / Custom"} />
+      {parlays.length ? <div className="paper-table">
+        <div className="paper-table-head"><span>Slip / legs</span><span>Combined price</span><span>Stake</span><span>Status</span></div>
+        {parlays.map((card) => <div className="paper-row" key={card.id}>
+          <div><strong>{card.kind === "daily-double" ? "Daily Double" : card.kind === "banger" ? "Banger" : "Custom parlay"} · {card.legs.length} legs</strong>
+            {card.legs.map((leg) => <small key={leg.fixtureId}>{leg.fixtureLabel}: {leg.market} ({formatAmerican(leg.americanOdds)})</small>)}
+            <small>Locked {new Date(card.lockedAt).toLocaleString()}</small>
+          </div>
+          <b>{formatAmerican(card.decimalOdds >= 2 ? Math.round((card.decimalOdds - 1) * 100) : Math.round(-100 / (card.decimalOdds - 1)))}</b>
+          <span>${card.stake.toFixed(2)}</span>
+          <span className={`badge ${card.status === "won" ? "badge-good" : card.status === "lost" ? "badge-insufficient" : "badge-limited"}`}>{card.status.toUpperCase()}</span>
+        </div>)}
+      </div> : <div className="empty-state compact"><strong>No parlays locked yet</strong>Use Pick Builder to generate and price a Daily Double or Banger.</div>}
     </Panel>
     <Panel className="forward-panel">
       <PanelHead title="MIGO forward validation" meta="Automatically locked before kickoff and graded from ESPN finals" />
