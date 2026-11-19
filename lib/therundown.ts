@@ -75,12 +75,13 @@ export function parseRundownOdds(payload: unknown, fixtures: Fixture[], leagueId
         if (!marketKey) continue;
         for (const rawLine of arr(participant.lines)) {
           const line = obj(rawLine);
+          let lineMarket = marketKey;
           if (marketId === 3) {
             const point = num(line.value);
             // Free main-line totals are usually 2.5; never call a 2.5 quote "over 1.5".
-            if (point === 1.5 && marketKey === "over-2.5") marketKey = "over-1.5";
-            else if (point === 2.5 && marketKey === "over-2.5") marketKey = "over-2.5";
-            else if (point === 3.5 && marketKey === "under-3.5") marketKey = "under-3.5";
+            if (point === 1.5 && marketKey === "over-2.5") lineMarket = "over-1.5";
+            else if (point === 2.5 && marketKey === "over-2.5") lineMarket = "over-2.5";
+            else if (point === 3.5 && marketKey === "under-3.5") lineMarket = "under-3.5";
             else continue;
           }
           const prices = obj(line.prices);
@@ -92,7 +93,7 @@ export function parseRundownOdds(payload: unknown, fixtures: Fixture[], leagueId
             const updatedAt = str(price.updated_at);
             if (!Number.isFinite(Date.parse(updatedAt))) continue;
             quotes.push({
-              fixtureId: fixture.id, marketKey, americanOdds: value,
+              fixtureId: fixture.id, marketKey: lineMarket, americanOdds: value,
               bookmaker: BOOKS[book], bookKey: "rundown-" + book,
               updatedAt, source: "TheRundown",
             });
