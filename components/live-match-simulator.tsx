@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import type { SimulationResult } from "@/lib/simulation";
+import { forecastSeedForMatch, representativeFinalScore, type PlaybackMode } from "@/lib/forecast-playback";
 import { Pause, Play, RotateCcw, SkipForward } from "lucide-react";
 import { forecastWithHistory } from "@/lib/historical-forecast";
 import { useLocalMatchHistory } from "@/lib/use-local-history";
@@ -21,6 +23,11 @@ export function LiveMatchSimulator({ fixtures }: { fixtures: Fixture[] }) {
   const history = useLocalMatchHistory();
   const [fixtureId, setFixtureId] = useState(fixtures.find((f) => f.status === "scheduled")?.id ?? fixtures[0]?.id ?? "");
   const [seed, setSeed] = useState("migo-matchday");
+  const [playbackMode, setPlaybackMode] = useState<PlaybackMode>("representative");
+  const [forecastResult, setForecastResult] = useState<SimulationResult | null>(null);
+  const [forecastLoading, setForecastLoading] = useState(false);
+  const [forecastProgress, setForecastProgress] = useState(0);
+  const [forecastError, setForecastError] = useState("");
   const [lineups, setLineups] = useState<LineupIntelligence | null>(null);
   const [lineupStatus, setLineupStatus] = useState("Using placeholder roster until lineups load");
   const [minute, setMinute] = useState(0);
@@ -29,6 +36,50 @@ export function LiveMatchSimulator({ fixtures }: { fixtures: Fixture[] }) {
   const [selectedSide, setSelectedSide] = useState<MatchSide>("home");
   const fixture = fixtures.find((f) => f.id === fixtureId);
   const forecast = useMemo(() => fixture ? forecastWithHistory(fixture, history) : null, [fixture, history]);
+  const forecastSeed = fixture && forecast && forecast.dataQuality !== "insufficient"
+    ? forecastSeedForMatch(fixture.id, forecast.modelVersion, forecast.expectedHomeGoals, forecast.expectedAwayGoals)
+    : null;
+  const prediction = forecastResult?.input.seed === forecastSeed ? forecastResult : null;
+  const modalScore = prediction ? representativeFinalScore(prediction) : null;
+
+  // Do not use the user-editable playback seed here. A Web Worker runs 10K
+  // Poisson scenarios on every change to fixture/model goal expectations.
+  useEffect(() => {
+    setForecastResult(null);
+    setForecastError("");
+    setForecastProgress(0);
+    if (!forecastSeed || !fixture || !forecast || forecast.dataQuality === "insufficient") {
+      setForecastLoading(false);
+      return;
+    }
+    let cancelled = false;
+    setForecastLoading(true);
+    const worker = new Worker("/simulation-worker.js");
+    worker.onmessage = (event: MessageEvent<{ type: string; progress?: number; result?: SimulationResult }>) => {
+      if (cancelled) return;
+      if (event.data.type === "progress") setForecastProgress(event.data.progress ?? 0);
+      if (event.data.type === "result" && event.data.result?.input.seed === forecastSeed) {
+        setForecastResult(event.data.result);
+        setForecastProgress(1);
+        setForecastLoading(false);
+        worker.terminate();
+      }
+    };
+    worker.onerror = () => {
+      if (!cancelled) {
+        setForecastError("Could not calculate the 10,000-match forecast in this browser.");
+        setForecastLoading(false);
+      }
+      worker.terminate();
+    };
+    worker.postMessage({
+      homeTeam: fixture.home.shortName, awayTeam: fixture.away.shortName,
+      expectedHomeGoals: forecast.expectedHomeGoals,
+      expectedAwayGoals: forecast.expectedAwayGoals,
+      iterations: 10_000, seed: forecastSeed, modelVersion: forecast.modelVersion, scenario: "baseline",
+    });
+    return () => { cancelled = true; worker.terminate(); };
+  }, [forecastSeed, fixture?.home.shortName, fixture?.away.shortName, forecast?.expectedHomeGoals, forecast?.expectedAwayGoals, forecast?.modelVersion, forecast?.dataQuality]);
 
   useEffect(() => {
     const url = new URLSearchParams(window.location.search);
@@ -54,6 +105,7 @@ export function LiveMatchSimulator({ fixtures }: { fixtures: Fixture[] }) {
 
   const tape = useMemo(() => {
     if (!fixture || !forecast || forecast.dataQuality === "insufficient") return null;
+    if (playbackMode === "representative" && !modalScore) return null;
     const homeLineup = lineups?.fixtureId === fixture.id ? lineups.home.players : undefined;
     const awayLineup = lineups?.fixtureId === fixture.id ? lineups.away.players : undefined;
     return generateMatchTape({
@@ -62,10 +114,11 @@ export function LiveMatchSimulator({ fixtures }: { fixtures: Fixture[] }) {
       expectedHomeGoals: forecast.expectedHomeGoals, expectedAwayGoals: forecast.expectedAwayGoals,
       homeLineup: homeLineup?.length === 11 ? homeLineup : undefined,
       awayLineup: awayLineup?.length === 11 ? awayLineup : undefined,
+      finalScoreOverride: playbackMode === "representative" ? modalScore ?? undefined : undefined,
     });
-  }, [fixture, forecast, seed, lineups]);
+  }, [fixture, forecast, seed, lineups, playbackMode, modalScore?.home, modalScore?.away]);
 
-  useEffect(() => { setMinute(0); setPlaying(false); }, [fixtureId, seed, lineups]);
+  useEffect(() => { setMinute(0); setPlaying(false); }, [fixtureId, seed, lineups, playbackMode, modalScore?.home, modalScore?.away]);
   useEffect(() => {
     if (!playing || !tape) return;
     const handle = window.setInterval(() => setMinute((current) => Math.min(90, current + 1)), Math.max(70, Math.round(900 / speed)));
@@ -84,13 +137,47 @@ export function LiveMatchSimulator({ fixtures }: { fixtures: Fixture[] }) {
   return <div className="stack">
     <div className="notice"><strong>SIMULATION · NOT A LIVE MATCH</strong> Every minute, shot, pass, event and player performance shown below is synthetic. ESPN supplies fixture information and available lineup names; this is not an ESPN play-by-play feed.</div>
     <Panel>
-      <PanelHead title="Match playback controls" meta="A seeded scenario. Replay the same seed for the same sequence." />
+      <PanelHead title="Pre-match forecast · 10,000 simulated matches" meta={forecast ? forecast.modelVersion + " · " + forecast.dataQuality + " data quality · same forecast regardless of playback seed" : "Choose a fixture"} />
+      {forecastLoading ? <div className="forecast-loading">
+        <strong>Running 10,000 background scenarios… {Math.round(forecastProgress * 100)}%</strong>
+        <div className="simulation-progress"><i style={{ width: Math.round(forecastProgress * 100) + "%" }} /></div>
+      </div> : null}
+      {forecastError ? <div className="lineup-explanation">{forecastError}</div> : null}
+      {prediction ? <>
+        <div className="forecast-outcomes">
+          <div><span>{fixture?.home.shortName ?? "Home"} win</span><strong>{(prediction.outcomes.home * 100).toFixed(1)}%</strong></div>
+          <div><span>Draw</span><strong>{(prediction.outcomes.draw * 100).toFixed(1)}%</strong></div>
+          <div><span>{fixture?.away.shortName ?? "Away"} win</span><strong>{(prediction.outcomes.away * 100).toFixed(1)}%</strong></div>
+        </div>
+        <div className="forecast-scoring">
+          <div><span>Most frequent exact score</span><strong>{prediction.scorelines[0]?.score ?? "—"}</strong>
+            <small>{prediction.scorelines[0] ? (prediction.scorelines[0].probability * 100).toFixed(1) + "% of 10,000 samples" : "Unavailable"}</small>
+          </div>
+          <div><span>Over 1.5 goals</span><strong>{(prediction.totals.over15 * 100).toFixed(1)}%</strong></div>
+          <div><span>Over 2.5 goals</span><strong>{(prediction.totals.over25 * 100).toFixed(1)}%</strong></div>
+          <div><span>Both teams to score</span><strong>{(prediction.bothTeamsScore * 100).toFixed(1)}%</strong></div>
+        </div>
+        <div className="forecast-scorelines">
+          {prediction.scorelines.map((item) => <span key={item.score}>{item.score} · {(item.probability * 100).toFixed(1)}%</span>)}
+        </div>
+        <p className="forecast-disclaimer">Pre-match model distribution, not live odds or a guaranteed result. Most frequent exact score does not mean that score is likely to happen most of the time. Lineup-specific player impact is not modeled in these probabilities.</p>
+      </> : !forecastLoading && !forecastError ? <div className="empty-state compact"><strong>Forecast unavailable</strong>Choose a fixture with sufficient scoring inputs.</div> : null}
+    </Panel>
+    <Panel>
+      <PanelHead title="Match playback controls" meta="Representative: most frequent final score with a synthetic timeline. Alternate: independently sampled match." />
       <div className="builder-form">
         <div className="field"><label>Fixture</label><select className="select" value={fixtureId} onChange={(event) => { setFixtureId(event.target.value); setPlaying(false); }}>{fixtures.map((f) => <option value={f.id} key={f.id}>{f.home.shortName} vs {f.away.shortName} · {f.league}</option>)}</select></div>
         <div className="form-grid">
-          <div className="field"><label>Simulation seed</label><input className="input" value={seed} onChange={(event) => setSeed(event.target.value)} /></div>
+          <div className="field"><label>Playback mode</label><select className="select" value={playbackMode} onChange={(event) => setPlaybackMode(event.target.value as PlaybackMode)}>
+            <option value="representative">Representative · modal score</option>
+            <option value="alternate">Alternate · random score</option>
+          </select></div>
+          <div className="field"><label>Playback seed · changes timeline only</label><input className="input" value={seed} onChange={(event) => setSeed(event.target.value)} /></div>
           <div className="field"><label>Playback speed</label><select className="select" value={speed} onChange={(event) => setSpeed(Number(event.target.value))}><option value="1">1×</option><option value="4">4×</option><option value="10">10×</option></select></div>
         </div>
+        <p className="forecast-disclaimer">{playbackMode === "representative"
+          ? "Changing the playback seed changes hypothetical goal minutes, players and events, but not the representative final score or the 10,000-match forecast."
+          : "Alternate mode samples a different possible final score for each seed. The 10,000-match probabilities remain unchanged."}</p>
         <div className="playback-actions">
           <button className="button button-primary" disabled={!tape || minute === 90} onClick={() => setPlaying((x) => !x)}>{playing ? <Pause size={16} /> : <Play size={16} />}{playing ? "Pause match" : minute ? "Resume match" : "Kick off simulation"}</button>
           <button className="button" onClick={() => { setMinute(0); setPlaying(false); }} disabled={!tape}><RotateCcw size={16} />Restart</button>
@@ -100,7 +187,7 @@ export function LiveMatchSimulator({ fixtures }: { fixtures: Fixture[] }) {
         <div className="field"><label>Match clock · {minute}′ / 90′</label><input aria-label="Simulated minute" type="range" min={0} max={90} value={minute} disabled={!tape} onChange={(event) => { setMinute(Number(event.target.value)); setPlaying(false); }} style={{ width: "100%" }} /></div>
       </div>
     </Panel>
-    {!fixture || !forecast || !tape || !snapshot ? <Panel><div className="empty-state"><strong>Insufficient fixture data</strong>Choose a match with valid ESPN season records before simulating.</div></Panel> : <>
+    {!fixture || !forecast || !tape || !snapshot ? <Panel><div className="empty-state"><strong>{forecastLoading ? "Preparing representative match…" : "Match timeline unavailable"}</strong>{forecastLoading ? "The 10,000-match forecast will determine the representative final score." : "Choose a fixture with sufficient model data."}</div></Panel> : <>
       <div className="playback-scoreboard">
         <div className="playback-topline"><span>{fixture.league}</span><span>{minute === 0 ? "PRE-MATCH" : minute === 90 ? "FULL TIME · SIMULATED" : String(minute) + "′ · SIMULATED"}</span></div>
         <div className="playback-scores">
@@ -109,7 +196,7 @@ export function LiveMatchSimulator({ fixtures }: { fixtures: Fixture[] }) {
           <div><small>AWAY</small><strong>{fixture.away.shortName}</strong></div>
         </div>
         <div className="playback-progress"><span style={{ width: minute / 90 * 100 + "%" }} /></div>
-        <div className="playback-xg">Forecast goals: {forecast.expectedHomeGoals.toFixed(2)}–{forecast.expectedAwayGoals.toFixed(2)} · {lineupStatus}</div>
+        <div className="playback-xg">{playbackMode === "representative" ? "Representative modal-score scenario" : "Random alternate scenario"} · Model goal means: {forecast.expectedHomeGoals.toFixed(2)}–{forecast.expectedAwayGoals.toFixed(2)} · {lineupStatus}</div>
       </div>
       <div className="playback-columns">
         <Panel>
