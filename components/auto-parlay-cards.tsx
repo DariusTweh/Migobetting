@@ -24,7 +24,7 @@ function Card({ card }: { card: SuggestedCard }) {
       </div>
       <div className="suggested-card-bottom"><span>Model-implied fair combined odds</span><strong>{card.fairAmerican === null ? "—" : formatAmerican(card.fairAmerican)}</strong></div>
       <div className="model-warning"><ShieldAlert size={14}/><span>No actual bookmaker odds yet. This fair price is NOT an offered betting line, and the model is uncalibrated.</span></div>
-      <Link className="button button-primary full-button" href={"/builder?mode=" + card.kind}><Layers3 size={16}/> Open and price all legs <ArrowRight size={16}/></Link>
+      <Link className="button button-primary full-button" href={"/builder?mode=" + card.kind + "&selections=" + encodeURIComponent(JSON.stringify(card.legs.map((leg) => ({ fixtureId: leg.fixtureId, marketKey: leg.marketKey }))))}><Layers3 size={16}/> Open and price all legs <ArrowRight size={16}/></Link>
     </div> : <div className="card-body">
       <div className="card-symbol"><Layers3 size={21}/></div>
       <strong>No qualifying {title} today · PASS</strong>
