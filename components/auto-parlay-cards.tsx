@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ArrowRight, Layers3, ShieldAlert } from "lucide-react";
 import { buildResearchCard, type SuggestedCard } from "@/lib/auto-cards";
+import { useLocalMatchHistory } from "@/lib/use-local-history";
 import { formatAmerican } from "@/lib/odds";
 import type { Fixture } from "@/lib/types";
 import { Panel, PanelHead } from "./ui";
@@ -34,8 +35,9 @@ function Card({ card }: { card: SuggestedCard }) {
 }
 
 export function AutoParlayCards({ fixtures }: { fixtures: Fixture[] }) {
-  const double = buildResearchCard(fixtures, "daily-double");
-  const banger = buildResearchCard(fixtures, "banger");
+  const history = useLocalMatchHistory();
+  const double = buildResearchCard(fixtures, "daily-double", Date.now(), history);
+  const banger = buildResearchCard(fixtures, "banger", Date.now(), history);
   return <div className="stack">
     <Card card={double} />
     <Card card={banger} />
