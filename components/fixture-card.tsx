@@ -5,12 +5,12 @@ import Link from "next/link";
 import { Clock3 } from "lucide-react";
 import { forecastFixture } from "@/lib/model";
 import { formatAmerican } from "@/lib/odds";
-import type { Fixture } from "@/lib/types";
+import type { Fixture, Forecast } from "@/lib/types";
 
 function percent(value: number) { return `${Math.round(value * 100)}%`; }
 
-export function FixtureCard({ fixture }: { fixture: Fixture }) {
-  const forecast = forecastFixture(fixture);
+export function FixtureCard({ fixture, forecast: suppliedForecast }: { fixture: Fixture; forecast?: Forecast }) {
+  const forecast = suppliedForecast ?? forecastFixture(fixture);
   const date = new Date(fixture.kickoff);
   const best = forecast.markets[0];
   const hasScore = (fixture.status === "live" || fixture.status === "final") &&
