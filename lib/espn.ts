@@ -125,7 +125,7 @@ async function fetchLeagueScoreboard(leagueId: LeagueId, date?: string): Promise
   }
   const response = await withScoreboardSlot(() => fetch(url.toString(), {
     headers: { Accept: "application/json", "User-Agent": "MIGO-Soccer-Intelligence/0.6" },
-    next: { revalidate: 900 },
+    next: { revalidate: date ? 900 : 60 },
     signal: AbortSignal.timeout(10000),
   }));
   if (!response.ok) throw new Error(`ESPN returned ${response.status} for ${leagueId}${date ? ` on ${date}` : ""}`);
@@ -160,8 +160,13 @@ export async function getLeagueFixtures(leagueId: LeagueId, options: ScoreboardO
   const unique = new Map<string, Fixture>();
   for (const fixture of fixtures) {
     const previous = unique.get(fixture.id);
-    if (!previous || (previous.status !== "final" && previous.status !== "live") ||
-      fixture.status === "final" || fixture.status === "live") unique.set(fixture.id, fixture);
+    // Undated scoreboard (queried first, cached for one minute) is preferred
+    // for the same in-progress game over longer-lived dated schedule snapshots.
+    if (!previous ||
+      (previous.status === "scheduled" && fixture.status !== "scheduled") ||
+      (previous.status === "live" && fixture.status === "final")) {
+      unique.set(fixture.id, fixture);
+    }
   }
   return [...unique.values()].sort((a, b) => a.kickoff.localeCompare(b.kickoff));
 }
