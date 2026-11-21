@@ -6,6 +6,7 @@ import { ArrowLeft, BrainCircuit, CalendarClock, CheckCircle2, ShieldAlert } fro
 import { useMemo, useState } from "react";
 import { useLocalMatchHistory } from "@/lib/use-local-history";
 import { forecastWithHistory } from "@/lib/historical-forecast";
+import { describeScoreUncertainty } from "@/lib/score-context";
 import { formatAmerican } from "@/lib/odds";
 import type { Fixture, LineupIntelligence, TeamLineup } from "@/lib/types";
 import { Notice, Panel, PanelHead } from "./ui";
@@ -15,6 +16,7 @@ export function MatchIntelligence({ fixture, lineups }: { fixture: Fixture; line
   const history = useLocalMatchHistory();
   const model = useMemo(() => forecastWithHistory(fixture, history), [fixture, history]);
   const trainedHistoryModel = model.modelVersion === "migo-opponent-decay-dc-0.4";
+  const scoreContext = useMemo(() => describeScoreUncertainty(model), [model]);
   const date = new Date(fixture.kickoff);
   return <>
     <Link href="/" className="back-link"><ArrowLeft size={15} />Back to fixtures</Link>
@@ -52,8 +54,19 @@ export function MatchIntelligence({ fixture, lineups }: { fixture: Fixture; line
       </div>
       <div className="stack">
         <Panel>
-          <PanelHead title="Expected score" meta="Most likely scorelines" />
+          <PanelHead title="Goal forecast" meta="Expected goals and the full score distribution — not a guaranteed exact final score" />
           <div className="expected-score"><strong>{model.expectedHomeGoals.toFixed(2)}</strong><span>modeled goals</span><strong>{model.expectedAwayGoals.toFixed(2)}</strong></div>
+          <div className="goal-forecast-explainer">
+            <strong>Most frequent exact score: {scoreContext.modalScore}</strong>
+            <p>Only {(scoreContext.modalProbability * 100).toFixed(1)}% of modeled matches finish at that score. {(scoreContext.probabilityOtherScores * 100).toFixed(1)}% finish differently. Repeated 1–0 or 1–1 modes do not mean MIGO predicts them with certainty.</p>
+          </div>
+          <div className="goal-range-grid">
+            {scoreContext.goalRanges.map((range) => <div key={range.label}>
+              <small>{range.label}</small>
+              <strong>{(range.probability * 100).toFixed(1)}%</strong>
+              <div className="prob-track"><i className="home" style={{ width: (range.probability * 100).toFixed(1) + "%" }}/></div>
+            </div>)}
+          </div>
           <div className="scoreline-list">{model.scorelines.map((item) => <div key={item.score}><strong>{item.score}</strong><span>{Math.round(item.probability * 100)}%</span></div>)}</div>
         </Panel>
         <Panel>
