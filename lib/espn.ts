@@ -3,6 +3,24 @@ import type { Fixture, LeagueId, ProviderOdds, Team } from "./types";
 
 const ESPN_BASE = "https://site.api.espn.com/apis/site/v2/sports/soccer";
 const SCOREBOARD_TIME_ZONE = "America/Los_Angeles";
+// ESPN's undated soccer scoreboard may omit games even one day ahead.
+// Query explicit calendar dates instead of assuming the default window is complete.
+export const UPCOMING_FIXTURE_DAYS = 10;
+const MAX_SCOREBOARD_REQUESTS_IN_FLIGHT = 10;
+let scoreboardRequestsInFlight = 0;
+const scoreboardWaiters: Array<() => void> = [];
+
+async function withScoreboardSlot<T>(task: () => Promise<T>): Promise<T> {
+  if (scoreboardRequestsInFlight >= MAX_SCOREBOARD_REQUESTS_IN_FLIGHT) {
+    await new Promise<void>((resolve) => scoreboardWaiters.push(resolve));
+  }
+  scoreboardRequestsInFlight++;
+  try { return await task(); }
+  finally {
+    scoreboardRequestsInFlight--;
+    scoreboardWaiters.shift()?.();
+  }
+}
 
 type UnknownObject = Record<string, unknown>;
 
@@ -105,24 +123,31 @@ async function fetchLeagueScoreboard(leagueId: LeagueId, date?: string): Promise
     url.searchParams.set("dates", date);
     url.searchParams.set("limit", "500");
   }
-  const response = await fetch(url.toString(), {
-    headers: { Accept: "application/json", "User-Agent": "MIGO-Soccer-Intelligence/0.5" },
-    next: { revalidate: 300 },
+  const response = await withScoreboardSlot(() => fetch(url.toString(), {
+    headers: { Accept: "application/json", "User-Agent": "MIGO-Soccer-Intelligence/0.6" },
+    next: { revalidate: 900 },
     signal: AbortSignal.timeout(10000),
-  });
+  }));
   if (!response.ok) throw new Error(`ESPN returned ${response.status} for ${leagueId}${date ? ` on ${date}` : ""}`);
   const data: unknown = await response.json();
   return Array.isArray(object(data).events) ? (object(data).events as unknown[]) : [];
 }
 
-type ScoreboardOptions = { includeYesterday?: boolean; now?: Date };
+type ScoreboardOptions = { includeYesterday?: boolean; now?: Date; daysAhead?: number };
 
 export async function getLeagueFixtures(leagueId: LeagueId, options: ScoreboardOptions = {}): Promise<Fixture[]> {
   const fetchedAt = new Date().toISOString();
-  const yesterday = espnDateKey(options.now ?? new Date(), -1);
+  const anchor = options.now ?? new Date();
+  const daysAhead = Math.max(0, Math.min(14, Math.floor(options.daysAhead ?? UPCOMING_FIXTURE_DAYS)));
+  // ESPN may file Pacific-evening matches under the following Eastern day.
+  // Query the dates individually; its multi-day date-range behavior varies.
+  const explicitDates = [
+    ...(options.includeYesterday ? [espnDateKey(anchor, -1)] : []),
+    ...Array.from({ length: daysAhead + 2 }, (_, index) => espnDateKey(anchor, index)),
+  ];
   const settled = await Promise.allSettled([
     fetchLeagueScoreboard(leagueId),
-    ...(options.includeYesterday ? [fetchLeagueScoreboard(leagueId, yesterday)] : []),
+    ...[...new Set(explicitDates)].map((date) => fetchLeagueScoreboard(leagueId, date)),
   ]);
   const events = settled.flatMap((result) => result.status === "fulfilled" ? result.value : []);
   if (!events.length && settled.every((result) => result.status === "rejected")) {
@@ -132,7 +157,13 @@ export async function getLeagueFixtures(leagueId: LeagueId, options: ScoreboardO
   const fixtures = events
     .map((event) => normalizeEvent(event, leagueId, fetchedAt))
     .filter((event): event is Fixture => Boolean(event));
-  return [...new Map(fixtures.map((fixture) => [fixture.id, fixture])).values()];
+  const unique = new Map<string, Fixture>();
+  for (const fixture of fixtures) {
+    const previous = unique.get(fixture.id);
+    if (!previous || (previous.status !== "final" && previous.status !== "live") ||
+      fixture.status === "final" || fixture.status === "live") unique.set(fixture.id, fixture);
+  }
+  return [...unique.values()].sort((a, b) => a.kickoff.localeCompare(b.kickoff));
 }
 
 export async function getFixtures(
