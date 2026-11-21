@@ -1,4 +1,9 @@
 const PRESETS: Record<string, { url: string; season: string; competition: string }> = {
+  "epl-2026": { url: "https://www.football-data.co.uk/mmz4281/2627/E0.csv", season: "2026-27", competition: "Premier League" },
+  "laliga-2026": { url: "https://www.football-data.co.uk/mmz4281/2627/SP1.csv", season: "2026-27", competition: "La Liga" },
+  "bundesliga-2026": { url: "https://www.football-data.co.uk/mmz4281/2627/D1.csv", season: "2026-27", competition: "Bundesliga" },
+  "seriea-2026": { url: "https://www.football-data.co.uk/mmz4281/2627/I1.csv", season: "2026-27", competition: "Serie A" },
+  "ligue1-2026": { url: "https://www.football-data.co.uk/mmz4281/2627/F1.csv", season: "2026-27", competition: "Ligue 1" },
   "epl-2025": { url: "https://www.football-data.co.uk/mmz4281/2526/E0.csv", season: "2025-26", competition: "Premier League" },
   "epl-2024": { url: "https://www.football-data.co.uk/mmz4281/2425/E0.csv", season: "2024-25", competition: "Premier League" },
   "laliga-2025": { url: "https://www.football-data.co.uk/mmz4281/2526/SP1.csv", season: "2025-26", competition: "La Liga" },
@@ -16,7 +21,7 @@ const PRESETS: Record<string, { url: string; season: string; competition: string
   "ligue1-2023": { url: "https://www.football-data.co.uk/mmz4281/2324/F1.csv", season: "2023-24", competition: "Ligue 1" },
 };
 
-const CORE_BUNDLE = Object.entries(PRESETS).filter(([key]) => /-(2023|2024|2025)$/.test(key));
+const CORE_BUNDLE = Object.entries(PRESETS).filter(([key]) => /-(2023|2024|2025|2026)$/.test(key));
 
 async function downloadDataset(preset: { url: string; season: string; competition: string }) {
   const response = await fetch(preset.url, { headers: { Accept: "text/csv", "User-Agent": "MIGO-Soccer-Intelligence/0.3" }, signal: AbortSignal.timeout(20000), next: { revalidate: 86400 } });
