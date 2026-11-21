@@ -1,4 +1,5 @@
 import { forecastFixture } from "./model";
+import { summarizeGoalCalibration, type GoalCalibration } from "./goal-calibration";
 import type { Fixture } from "./types";
 
 export type HistoricalMatch = {
@@ -53,6 +54,7 @@ export type BacktestPrediction = {
   logLoss: number;
   expectedHomeGoals: number;
   expectedAwayGoals: number;
+  lowScoreCorrelation: number;
   oddsUsed?: number;
   profit?: number;
   projectedLineupEligible: boolean;
@@ -79,6 +81,8 @@ export type BacktestResult = {
   byCompetition: Array<{ competition: string; evaluated: number; qualified: number; hitRate: number | null }>;
   byMarket: Array<{ market: string; qualified: number; correct: number; hitRate: number | null }>;
   modelComparison: Array<{ model: string; coverage: number; evaluated: number; brierScore: number | null; note: string }>;
+  goalCalibration: GoalCalibration | null;
+  goalsByCompetition: Array<{ competition: string; calibration: GoalCalibration }>;
 };
 
 const DIVISION_NAMES: Record<string, string> = { E0: "Premier League", SP1: "La Liga", D1: "Bundesliga", I1: "Serie A", F1: "Ligue 1" };
@@ -436,7 +440,7 @@ export function runHistoricalBacktest(matches: HistoricalMatch[], config: Backte
       const oddsUsed = selected ? selectionOdds(selected, match) : undefined;
       const selectedLabel = selected ? selectionLabel(selected, match) : null;
       const actualOutcome = match.result === "H" ? "home" : match.result === "A" ? "away" : "draw";
-      predictions.push({ matchId: match.id, date: match.date, competition: match.competition, homeTeam: match.homeTeam, awayTeam: match.awayTeam, actualHomeGoals: match.homeGoals, actualAwayGoals: match.awayGoals, actualOutcome, probabilities, selected, selectedMarket: selection?.[2] ?? null, selectedLabel, selectedProbability: selection?.[1] ?? 0, correct, brier, logLoss: -Math.log(Math.max(1e-9, actualProbability)), expectedHomeGoals: expected.expectedHomeGoals, expectedAwayGoals: expected.expectedAwayGoals, oddsUsed, profit: oddsUsed && correct !== null ? (correct ? oddsUsed - 1 : -1) : undefined, projectedLineupEligible, actualLineupEligible });
+      predictions.push({ matchId: match.id, date: match.date, competition: match.competition, homeTeam: match.homeTeam, awayTeam: match.awayTeam, actualHomeGoals: match.homeGoals, actualAwayGoals: match.awayGoals, actualOutcome, probabilities, selected, selectedMarket: selection?.[2] ?? null, selectedLabel, selectedProbability: selection?.[1] ?? 0, correct, brier, logLoss: -Math.log(Math.max(1e-9, actualProbability)), expectedHomeGoals: expected.expectedHomeGoals, expectedAwayGoals: expected.expectedAwayGoals, lowScoreCorrelation: expected.lowScoreCorrelation, oddsUsed, profit: oddsUsed && correct !== null ? (correct ? oddsUsed - 1 : -1) : undefined, projectedLineupEligible, actualLineupEligible });
     } else if (matchIndex >= splitIndex) excludedWarmup += 1;
 
     pending.push(match);
@@ -460,12 +464,17 @@ export function runHistoricalBacktest(matches: HistoricalMatch[], config: Backte
   const projectedEligible = predictions.filter((item) => item.projectedLineupEligible);
   const actualEligible = predictions.filter((item) => item.actualLineupEligible);
   const subsetBrier = (items: BacktestPrediction[]) => items.length ? items.reduce((sum, item) => sum + item.brier, 0) / items.length : null;
+  const goalCalibration = summarizeGoalCalibration(predictions);
+  const goalsByCompetition = competitions.flatMap((competition) => {
+    const calibration = summarizeGoalCalibration(predictions.filter((pick) => pick.competition === competition));
+    return calibration ? [{ competition, calibration }] : [];
+  });
   return {
     config: { ...config },
     matchesSeen: sorted.length, evaluated: predictions.length, excludedWarmup, qualified: qualified.length, correct, incorrect: qualified.length - correct,
     hitRate: qualified.length ? correct / qualified.length : null, brierScore: average("brier"), logLoss: average("logLoss"),
     roi: priced.length && profit !== null ? profit / priced.length : null, profit, oddsCoverage: qualified.length ? priced.length / qualified.length : 0,
-    evaluationStart: predictions[0]?.date, predictions, calibration, byCompetition, byMarket,
+    evaluationStart: predictions[0]?.date, predictions, calibration, byCompetition, byMarket, goalCalibration, goalsByCompetition,
     modelComparison: [
       { model: "Opponent-adjusted production model", coverage: predictions.length ? 1 : 0, evaluated: predictions.length, brierScore: average("brier"), note: "Uses the same recency-weighted attack/defense ratings and low-score correction as live forecasts, with only results available before kickoff." },
       { model: "Projected starters from earlier matches", coverage: predictions.length ? projectedEligible.length / predictions.length : 0, evaluated: projectedEligible.length, brierScore: subsetBrier(projectedEligible), note: projectedEligible.length ? "Uses real starting lineups from earlier matches to estimate who was likely to start. No made-up player boost is applied." : "Needs more mapped historical lineups before it can be tested." },
