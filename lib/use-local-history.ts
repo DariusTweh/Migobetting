@@ -7,6 +7,23 @@ import { ESPN_HISTORY_COMPETITIONS, type EspnHistoryLeague } from "./espn-histor
 
 const CORE = ["Premier League", "La Liga", "Bundesliga", "Serie A", "Ligue 1"];
 const MIN_MATCHES_PER_LEAGUE = 40;
+const CORE_SYNC_KEY = "migo:core-history-updated:v2";
+const CORE_SYNC_MAX_AGE_MS = 12 * 3600000;
+const currentSeason = () => {
+  const now = new Date();
+  const year = now.getUTCMonth() < 7 ? now.getUTCFullYear() - 1 : now.getUTCFullYear();
+  return year + "-" + String((year + 1) % 100).padStart(2, "0");
+};
+function shouldRefreshCore(matches: HistoricalMatch[]): boolean {
+  if (!hasCoreHistory(matches)) return true;
+  // Old 2023–26 data alone does not train November 2026 fixtures properly.
+  const season = currentSeason();
+  if (CORE.some((league) => matches.filter((match) => match.competition === league && match.season === season).length < 8)) return true;
+  try {
+    const last = Number(window.localStorage.getItem(CORE_SYNC_KEY) ?? 0);
+    return !Number.isFinite(last) || Date.now() - last > CORE_SYNC_MAX_AGE_MS;
+  } catch { return true; }
+}
 let initialLoad: Promise<HistoricalMatch[]> | null = null;
 let initialError = "";
 
@@ -22,7 +39,7 @@ function hasCoreHistory(matches: HistoricalMatch[]): boolean {
 async function loadAvailableHistory(): Promise<HistoricalMatch[]> {
   let saved = await getHistoricalMatches();
   const warnings: string[] = [];
-  if (!hasCoreHistory(saved)) {
+  if (shouldRefreshCore(saved)) {
     try {
       const response = await fetch("/api/historical?bundle=core");
       if (!response.ok) throw new Error("Historical score provider HTTP " + response.status);
@@ -35,6 +52,7 @@ async function loadAvailableHistory(): Promise<HistoricalMatch[]> {
         parseHistoricalCsv(dataset.csv, { season: dataset.season, source: dataset.url }).matches);
       if (!parsed.length) throw new Error("No valid completed domestic-league scorelines returned");
       await importHistoricalMatches(parsed);
+      try { window.localStorage.setItem(CORE_SYNC_KEY, String(Date.now())); } catch { /* IndexedDB remains authoritative */ }
       warnings.push(...(bundle.errors ?? []).slice(0, 2));
       saved = await getHistoricalMatches();
     } catch (reason) {
