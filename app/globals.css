@@ -632,3 +632,9 @@ main { padding: 34px; max-width: 1510px; margin: 0 auto; }
   .goal-range-grid strong { font-size:16px; }
   .goal-calibration-intro { padding:12px; }
 }
+
+/* Keep each date heading above a full-width two-column game grid. */
+.fixture-list { display:block; background:transparent; }
+.fixture-day-games { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1px; background:var(--line-soft); }
+.fixture-day-games .fixture-card { display:block; }
+@media(max-width:1180px) { .fixture-day-games { grid-template-columns:1fr; } }
