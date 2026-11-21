@@ -7,27 +7,39 @@ function randomGenerator(seed) {
   let state = hashSeed(seed) || 1;
   return () => { state += 0x6d2b79f5; let value = state; value = Math.imul(value ^ value >>> 15, value | 1); value ^= value + Math.imul(value ^ value >>> 7, value | 61); return ((value ^ value >>> 14) >>> 0) / 4294967296; };
 }
-function poisson(lambda, random) {
-  if (lambda === 0) return 0;
-  const limit = Math.exp(-lambda); let product = 1; let count = 0;
-  do { count += 1; product *= random(); } while (product > limit);
-  return count - 1;
-}
 function factorial(value) { let result = 1; for (let index = 2; index <= value; index += 1) result *= index; return result; }
 function poissonProbability(lambda, goals) { return Math.exp(-lambda) * lambda ** goals / factorial(goals); }
-function analytical(homeLambda, awayLambda) {
+function lowScoreFactor(home, away, homeLambda, awayLambda, rho) {
+  if (home === 0 && away === 0) return 1 - homeLambda * awayLambda * rho;
+  if (home === 0 && away === 1) return 1 + homeLambda * rho;
+  if (home === 1 && away === 0) return 1 + awayLambda * rho;
+  if (home === 1 && away === 1) return 1 - rho;
+  return 1;
+}
+function scoreGrid(homeLambda, awayLambda, rawRho) {
+  const rho = Math.max(-0.2, Math.min(0.2, rawRho || 0)); const cells = []; let mass = 0;
+  for (let h = 0; h <= 12; h += 1) for (let a = 0; a <= 12; a += 1) {
+    const probability = poissonProbability(homeLambda, h) * poissonProbability(awayLambda, a) * Math.max(0.01, lowScoreFactor(h, a, homeLambda, awayLambda, rho));
+    mass += probability; cells.push({ homeGoals: h, awayGoals: a, probability });
+  }
+  let cumulative = 0;
+  return cells.map((cell) => { const probability = cell.probability / mass; cumulative += probability; return { ...cell, probability, cumulative }; });
+}
+function analytical(grid) {
   let home = 0; let draw = 0; let away = 0;
-  for (let h = 0; h <= 12; h += 1) for (let a = 0; a <= 12; a += 1) { const p = poissonProbability(homeLambda, h) * poissonProbability(awayLambda, a); if (h > a) home += p; else if (h === a) draw += p; else away += p; }
-  const mass = home + draw + away; return { home: home / mass, draw: draw / mass, away: away / mass };
+  for (const cell of grid) { if (cell.homeGoals > cell.awayGoals) home += cell.probability; else if (cell.homeGoals === cell.awayGoals) draw += cell.probability; else away += cell.probability; }
+  return { home, draw, away };
 }
 self.onmessage = (event) => {
   const input = event.data;
   const random = randomGenerator(input.seed);
+  const grid = scoreGrid(input.expectedHomeGoals, input.expectedAwayGoals, input.lowScoreCorrelation);
   let homeWins = 0; let draws = 0; let awayWins = 0; let btts = 0; let totalHomeGoals = 0; let totalAwayGoals = 0;
   const totals = [0, 0, 0, 0]; const teamGoals = [0, 0, 0, 0]; const goalCounts = new Map(); const scoreCounts = new Map();
   const checkpoint = Math.max(1, Math.floor(input.iterations / 10));
   for (let iteration = 0; iteration < input.iterations; iteration += 1) {
-    const homeGoals = poisson(input.expectedHomeGoals, random); const awayGoals = poisson(input.expectedAwayGoals, random); const total = homeGoals + awayGoals;
+    const roll = random(); const sampled = grid.find((cell) => roll <= cell.cumulative) || grid[grid.length - 1];
+    const homeGoals = sampled.homeGoals; const awayGoals = sampled.awayGoals; const total = homeGoals + awayGoals;
     totalHomeGoals += homeGoals; totalAwayGoals += awayGoals;
     if (homeGoals > awayGoals) homeWins += 1; else if (homeGoals === awayGoals) draws += 1; else awayWins += 1;
     if (homeGoals && awayGoals) btts += 1;
@@ -39,7 +51,7 @@ self.onmessage = (event) => {
   }
   const divide = (count) => count / input.iterations;
   const outcomes = { home: divide(homeWins), draw: divide(draws), away: divide(awayWins) };
-  const exact = analytical(input.expectedHomeGoals, input.expectedAwayGoals);
+  const exact = analytical(grid);
   const maximumDelta = Math.max(Math.abs(outcomes.home - exact.home), Math.abs(outcomes.draw - exact.draw), Math.abs(outcomes.away - exact.away));
   self.postMessage({ type: "result", result: {
     input, outcomes,

@@ -32,7 +32,7 @@ describe("independent 10,000-match probability forecast and simulated playback",
     expect(a.frames).not.toEqual(b.frames);
   });
   it("keeps randomly sampled alternate matches reproducible without forcing a final score", () => {
-    const input = { seed: "alternate-1", homeName: "Bayern Women", awayName: "Vienna Women", ...goalMeans };
+    const input = { seed: "alternate-1", homeName: "Bayern Women", awayName: "Vienna Women", ...goalMeans, lowScoreCorrelation: -0.08 };
     expect(generateMatchTape(input).frames).toEqual(generateMatchTape(input).frames);
     const different = generateMatchTape({ ...input, seed: "alternate-2" });
     expect(different.frames).not.toEqual(generateMatchTape(input).frames);

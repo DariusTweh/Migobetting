@@ -1,3 +1,5 @@
+import { scoreProbability } from "./model";
+
 export type SimulationIterations = 10_000 | 30_000 | 50_000 | 100_000;
 
 export type SimulationInput = {
@@ -5,6 +7,7 @@ export type SimulationInput = {
   awayTeam: string;
   expectedHomeGoals: number;
   expectedAwayGoals: number;
+  lowScoreCorrelation?: number;
   iterations: number;
   seed: string;
   modelVersion: string;
@@ -59,32 +62,52 @@ export function samplePoisson(lambda: number, random: () => number): number {
   return count - 1;
 }
 
-function poissonProbability(lambda: number, goals: number): number {
-  let factorial = 1;
-  for (let value = 2; value <= goals; value += 1) factorial *= value;
-  return Math.exp(-lambda) * lambda ** goals / factorial;
+type ScoreCell = { homeGoals: number; awayGoals: number; probability: number; cumulative: number };
+
+function scoreGrid(homeLambda: number, awayLambda: number, rho = 0): ScoreCell[] {
+  const cells: Array<Omit<ScoreCell, "cumulative">> = [];
+  let mass = 0;
+  for (let homeGoals = 0; homeGoals <= 12; homeGoals += 1) {
+    for (let awayGoals = 0; awayGoals <= 12; awayGoals += 1) {
+      const probability = scoreProbability(homeLambda, awayLambda, homeGoals, awayGoals, rho);
+      mass += probability;
+      cells.push({ homeGoals, awayGoals, probability });
+    }
+  }
+  let cumulative = 0;
+  return cells.map((cell) => {
+    const probability = cell.probability / mass;
+    cumulative += probability;
+    return { ...cell, probability, cumulative };
+  });
 }
 
-export function analyticalOutcomes(homeLambda: number, awayLambda: number) {
+export function sampleScore(
+  homeLambda: number, awayLambda: number, rho: number, random: () => number,
+): { home: number; away: number } {
+  const grid = scoreGrid(homeLambda, awayLambda, rho);
+  const roll = random();
+  const sampled = grid.find((cell) => roll <= cell.cumulative) ?? grid[grid.length - 1];
+  return { home: sampled.homeGoals, away: sampled.awayGoals };
+}
+
+export function analyticalOutcomes(homeLambda: number, awayLambda: number, rho = 0) {
   let home = 0;
   let draw = 0;
   let away = 0;
-  for (let homeGoals = 0; homeGoals <= 12; homeGoals += 1) {
-    for (let awayGoals = 0; awayGoals <= 12; awayGoals += 1) {
-      const probability = poissonProbability(homeLambda, homeGoals) * poissonProbability(awayLambda, awayGoals);
-      if (homeGoals > awayGoals) home += probability;
-      else if (homeGoals === awayGoals) draw += probability;
-      else away += probability;
-    }
+  for (const cell of scoreGrid(homeLambda, awayLambda, rho)) {
+    if (cell.homeGoals > cell.awayGoals) home += cell.probability;
+    else if (cell.homeGoals === cell.awayGoals) draw += cell.probability;
+    else away += cell.probability;
   }
-  const mass = home + draw + away;
-  return { home: home / mass, draw: draw / mass, away: away / mass };
+  return { home, draw, away };
 }
 
 export function simulateMatch(input: SimulationInput): SimulationResult {
   if (!Number.isInteger(input.iterations) || input.iterations < 1) throw new Error("Iterations must be a positive integer");
   if (input.expectedHomeGoals < 0 || input.expectedAwayGoals < 0) throw new Error("Expected goals cannot be negative");
   const random = createSeededRandom(input.seed);
+  const grid = scoreGrid(input.expectedHomeGoals, input.expectedAwayGoals, input.lowScoreCorrelation);
   let homeWins = 0;
   let draws = 0;
   let awayWins = 0;
@@ -97,8 +120,10 @@ export function simulateMatch(input: SimulationInput): SimulationResult {
   const scoreCounts = new Map<string, { count: number; homeGoals: number; awayGoals: number }>();
 
   for (let iteration = 0; iteration < input.iterations; iteration += 1) {
-    const homeGoals = samplePoisson(input.expectedHomeGoals, random);
-    const awayGoals = samplePoisson(input.expectedAwayGoals, random);
+    const roll = random();
+    const sampled = grid.find((cell) => roll <= cell.cumulative) ?? grid[grid.length - 1];
+    const homeGoals = sampled.homeGoals;
+    const awayGoals = sampled.awayGoals;
     const total = homeGoals + awayGoals;
     totalHomeGoals += homeGoals;
     totalAwayGoals += awayGoals;
@@ -119,7 +144,7 @@ export function simulateMatch(input: SimulationInput): SimulationResult {
 
   const divide = (count: number) => count / input.iterations;
   const outcomes = { home: divide(homeWins), draw: divide(draws), away: divide(awayWins) };
-  const analytical = analyticalOutcomes(input.expectedHomeGoals, input.expectedAwayGoals);
+  const analytical = analyticalOutcomes(input.expectedHomeGoals, input.expectedAwayGoals, input.lowScoreCorrelation);
   const maximumDelta = Math.max(
     Math.abs(outcomes.home - analytical.home),
     Math.abs(outcomes.draw - analytical.draw),

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { chooseBacktestSelection, normalizeTeamName, parseHistoricalCsv, runHistoricalBacktest, settlesBacktestSelection, type HistoricalMatch, type MarketProbabilities } from "../lib/history";
+import { chooseBacktestSelection, estimateHistoricalGoals, normalizeTeamName, parseHistoricalCsv, runHistoricalBacktest, settlesBacktestSelection, type HistoricalMatch, type MarketProbabilities } from "../lib/history";
 
 describe("historical ingestion and replay", () => {
   it("automatically chooses the strongest market side and settles unders, BTTS No, and double chance", () => {
@@ -25,6 +25,25 @@ describe("historical ingestion and replay", () => {
     expect(normalizeTeamName("Verona")).toBe(normalizeTeamName("Hellas Verona"));
   });
 
+  it("gives more weight to recent team strength than stale results", () => {
+    const teams = ["A", "B", "C", "D"];
+    const history = (strongRecently: boolean): HistoricalMatch[] => Array.from({ length: 120 }, (_, index) => {
+      const homeTeam = teams[index % 4];
+      const awayTeam = teams[(index + 1) % 4];
+      const recent = index >= 60;
+      const aStrong = strongRecently ? recent : !recent;
+      const homeGoals = homeTeam === "A" ? (aStrong ? 4 : 0) : 1;
+      const awayGoals = awayTeam === "A" ? (aStrong ? 4 : 0) : 1;
+      return { id: `form-${index}`, competition: "Test League", season: "2025", date: new Date(Date.UTC(2024, 0, 1 + index * 5)).toISOString(), homeTeam, awayTeam, homeGoals, awayGoals, result: homeGoals > awayGoals ? "H" : homeGoals < awayGoals ? "A" : "D", source: "test", importedAt: "2026-01-01T00:00:00Z" };
+    });
+    const input = { competition: "Test League", homeTeam: "A", awayTeam: "B", kickoff: new Date(Date.UTC(2025, 8, 1)).toISOString() };
+    const recent = estimateHistoricalGoals(history(true), input);
+    const stale = estimateHistoricalGoals(history(false), input);
+    expect(recent).not.toBeNull();
+    expect(stale).not.toBeNull();
+    expect(recent!.expectedHomeGoals).toBeGreaterThan(stale!.expectedHomeGoals);
+  });
+
   it("uses earlier matches only and leaves lineup models unavailable without timestamped data", () => {
     const teams = ["A", "B", "C", "D"];
     const matches: HistoricalMatch[] = Array.from({ length: 80 }, (_, index) => {
@@ -47,6 +66,8 @@ describe("historical ingestion and replay", () => {
       actualAwayGoals: expect.any(Number),
       actualOutcome: expect.stringMatching(/home|draw|away/),
     });
+    const exactReplay = runHistoricalBacktest(matches, { market: "over-1.5", threshold: 0.5, iterations: 50000, seed: "different-seed", trainingFraction: 0.6 });
+    expect(exactReplay.predictions.map((item) => item.probabilities)).toEqual(baseline.predictions.map((item) => item.probabilities));
   });
 
   it("uses past actual XIs for the 90-minute cohort and earlier XIs for projection coverage", () => {

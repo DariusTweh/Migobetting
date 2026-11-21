@@ -60,7 +60,7 @@ function MatchSimulator({ fixtures, providerErrors, fetchedAt }: { fixtures: Fix
       if (event.data.type === "result" && event.data.result) { setResult(event.data.result); setRunning(false); setProgress(1); worker.terminate(); }
     };
     worker.onerror = () => { setRunning(false); worker.terminate(); };
-    worker.postMessage({ homeTeam: fixture.home.shortName, awayTeam: fixture.away.shortName, expectedHomeGoals: expectedHome, expectedAwayGoals: expectedAway, iterations, seed, modelVersion: "migo-poisson-mc-0.2", scenario: modified ? "what-if" : "baseline" });
+    worker.postMessage({ homeTeam: fixture.home.shortName, awayTeam: fixture.away.shortName, expectedHomeGoals: expectedHome, expectedAwayGoals: expectedAway, lowScoreCorrelation: forecast.lowScoreCorrelation, iterations, seed, modelVersion: "migo-dixon-coles-mc-0.3", scenario: modified ? "what-if" : "baseline" });
   }
   function save() {
     if (!result) return;
@@ -88,7 +88,7 @@ function MatchSimulator({ fixtures, providerErrors, fetchedAt }: { fixtures: Fix
       </Panel>
       <Panel>
         <PanelHead title="Outcome summary" meta={result ? `${result.input.iterations.toLocaleString()} trials · seed ${result.input.seed}` : "Run a scenario to calculate"} action={result ? <button className="button button-small" onClick={save}><Save size={14} />{saved ? "Saved" : "Save locally"}</button> : undefined} />
-        {result ? <div className="outcome-summary"><Outcome label={result.input.homeTeam} value={result.outcomes.home} tone="home" /><Outcome label="Draw" value={result.outcomes.draw} tone="draw" /><Outcome label={result.input.awayTeam} value={result.outcomes.away} tone="away" /><div className="consistency-check"><Activity size={16} /><span>Analytical Poisson check</span><strong>max Δ {(result.analytical.maximumDelta * 100).toFixed(2)}pp</strong></div></div> : <div className="empty-state"><FlaskConical size={32} /><strong>No simulation yet</strong>Select a fixture and run the deterministic engine.</div>}
+        {result ? <div className="outcome-summary"><Outcome label={result.input.homeTeam} value={result.outcomes.home} tone="home" /><Outcome label="Draw" value={result.outcomes.draw} tone="draw" /><Outcome label={result.input.awayTeam} value={result.outcomes.away} tone="away" /><div className="consistency-check"><Activity size={16} /><span>Exact score-grid check</span><strong>max Δ {(result.analytical.maximumDelta * 100).toFixed(2)}pp</strong></div></div> : <div className="empty-state"><FlaskConical size={32} /><strong>No simulation yet</strong>Select a fixture and run the deterministic engine.</div>}
       </Panel>
     </div>
 
@@ -101,7 +101,7 @@ function MatchSimulator({ fixtures, providerErrors, fetchedAt }: { fixtures: Fix
       <Panel><PanelHead title="Coherent market matrix" meta="Every probability is computed from the same simulated score outcomes" /><div className="simulation-market-grid"><Market label="Home or draw" value={result.doubleChance.homeOrDraw} /><Market label="Away or draw" value={result.doubleChance.awayOrDraw} /><Market label="Over 0.5" value={result.totals.over05} /><Market label="Over 1.5" value={result.totals.over15} /><Market label="Over 2.5" value={result.totals.over25} /><Market label="Over 3.5" value={result.totals.over35} /><Market label="Home over 0.5" value={result.teamGoals.homeOver05} /><Market label="Away over 0.5" value={result.teamGoals.awayOver05} /><Market label="DNB home / push" value={result.drawNoBet.home} note={`${percent(result.drawNoBet.push)} push`} /></div></Panel>
     </> : null}
     {providerErrors.length ? <Notice>Some ESPN competitions failed: {providerErrors.join(" · ")}</Notice> : null}
-    <Notice>ESPN fixture and season-record inputs fetched {new Date(fetchedAt).toLocaleString()}. More trials reduce sampling noise, not real-world model error. First-half markets remain unavailable because no separate first-half model has been validated.</Notice>
+    <Notice>ESPN fixtures and recency-weighted local match history were checked {new Date(fetchedAt).toLocaleString()}. More trials reduce sampling noise, not real-world model error. First-half markets remain unavailable because no separate first-half model has been validated.</Notice>
   </div>;
 }
 

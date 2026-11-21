@@ -16,7 +16,7 @@ No Supabase project or account is required. Settings, builder legs, and paper be
 ## Current scope
 
 - Live fixtures across the Premier League, La Liga, Bundesliga, Serie A, Ligue 1, and Champions League
-- Transparent record-strength + analytical Poisson baseline probabilities
+- Transparent recency-weighted, opponent-adjusted goal ratings with a fitted low-score correction
 - Deterministic-seed 10K/30K/50K/100K Monte Carlo match simulations in a Web Worker
 - What-if attack assumptions, coherent market distributions, and bankroll-risk paths
 - Local IndexedDB ingestion for football-data.co.uk or compatible historical CSV files
@@ -51,7 +51,7 @@ Use Settings → Reset local data to remove browser-stored settings and paper be
 
 ## MLS, UWCL and historical parlays
 
-MLS (`usa.1`) and UEFA Women's Champions League (`uefa.wchampions`) appear in live fixtures, Simulation Lab, and the **same League selector** in Backtesting Lab as the five original domestic leagues. Select MLS or UEFA Women's Champions League and click **Run the historical test**; MIGO will automatically load three recent calendar years of ESPN final scores into the local historical store (when available), then run the standard historical replay with your selected market and threshold. These leagues are visible in the selector before any import, and once downloaded their matches are also included under **All leagues**. The top **Update data and test again** action refreshes the currently selected ESPN-backed league. No separate MLS/UWCL import panel is needed. ESPN coverage is not guaranteed complete; extra-time and penalty events are conservatively excluded when identifiable, and historical pre-match odds are not provided.
+MLS (`usa.1`) and UEFA Women's Champions League (`uefa.wchampions`) appear in live fixtures, Simulation Lab, and the **same League selector** in Backtesting Lab as the five original domestic leagues. The Backtesting Lab automatically accumulates three recent calendar years of MLS final scores alongside the five core domestic leagues; **Update data and test again** forces both sources to refresh when All leagues is selected. Selecting either ESPN-backed league and running the test still loads or refreshes that league directly. These leagues are visible in the selector before any import, and once downloaded their matches are also included under **All leagues**. No separate MLS/UWCL import panel is needed. ESPN coverage is not guaranteed complete; extra-time and penalty events are conservatively excluded when identifiable, and historical pre-match odds are not provided.
 
 The Historical Parlay Lab uses only the imported 1X2 and O/U 2.5 decimal prices where present. It forms one-selection-per-match daily cards from held-out predictions and can PASS entirely if odds or positive model edges are missing. These imported CSV prices have no independently verified publication timestamps: its reported returns are **hypothetical price-linked scenarios**, not verified executable profits. In particular, ESPN-only MLS and UWCL results cannot produce priced parlay returns without an independent market-odds source. A day-level barrier also prevents the model from learning an earlier match's result before predicting another fixture on that same date.
 
@@ -59,8 +59,9 @@ The Historical Parlay Lab uses only the imported 1X2 and O/U 2.5 decimal prices 
 ## Simulated match center, fixture predictions and parlays
 
 - Simulation Lab now has a **Live-style match** screen with a virtual 0–90-minute clock, play/pause/seek, live-updating synthetic score, passes, shots, cards, commentary and player statistics. It is NOT a real ESPN play-by-play feed. Simulated player statistics are fictional and must not be treated as player prop forecasts. Actual names are displayed only when ESPN supplies an eleven-player lineup; otherwise placeholders are used.
-- Match Intelligence, Dashboard and probability simulation use local historical home/away goals from IndexedDB when sufficient valid previous matches are available; otherwise they use the original season-record model. Model version, evidence and unmodeled lineup impacts are shown.
+- Match Intelligence, Dashboard, forward validation and historical replay share the same recency-weighted, opponent-adjusted goal engine once a league has enough earlier matches. New or promoted teams use a heavily shrunk fitted league prior instead of discarding that history; the original season-record fallback remains only when the league itself has insufficient history. A fitted Dixon–Coles-style low-score correction improves draw/low-score coherence. Model version, evidence and unmodeled lineup impacts are shown.
 - Command Center builds a Daily Double or Banger only when actual quotes match the ESPN fixtures and the price/quality criteria; otherwise it shows PASS. A quoted price is never represented as a guaranteed executable offer.
+- Each qualifying Command Center card is automatically locked once per Pacific calendar day as a $10 simulation-only ticket. Paper Performance keeps the original legs and prices, grades every leg from ESPN finals, and reports ticket return and simulated P/L. Cards are never reconstructed after results are known.
 - The Parlays & Builder page imports the exact suggested card legs and auto-fills their available bookmaker quotes. The user can manually update prices. The combined paper parlay is saved as ONE ticket and appears in Paper Performance.
 - The app grades paper parlay legs from ESPN final scores when reopened. This does not place or settle any real wager.
 - GitHub Actions verifies unit tests and the Next.js production build on main.
@@ -70,7 +71,7 @@ Update a local clone using git pull origin main and npm run dev. Use npm ci only
 
 ## Stable forecast versus match playback
 
-Live-style match playback runs a **separate seeded 30,000-trial Poisson forecast in a Web Worker** when you select a fixture or the underlying goal model inputs change. This displays home/draw/away probabilities, totals, BTTS and the five most frequent exact scores.
+Live-style match playback runs a **separate seeded 30,000-trial correlation-adjusted score forecast in a Web Worker** when you select a fixture or the underlying goal model inputs change. This displays home/draw/away probabilities, totals, BTTS and the five most frequent exact scores.
 
 - **Representative (default):** conditions the fictional 90-minute event timeline on the most common exact final score in those 30,000 trials. The clock, passes, goals, shots and player assignments are synthetic, not observations or player-prop projections. The most common exact score is not a guaranteed, or even majority-likely, result.
 - **Alternate:** draws an independent fictional result and event timeline for the selected playback seed.
@@ -82,7 +83,7 @@ This dual-display implementation does not add AI API credits, external paid sour
 
 ## 30,000-match simulation + free sportsbook odds (TheRundown)
 
-The Match Simulator now runs **30,000 independent Poisson goal samples** per fixture in the background. This reduces sampling noise relative to 10,000 but does not improve the underlying model's calibration. The displayed outcome distribution stays fixed when only the fictional playback seed changes.
+The Match Simulator now runs **30,000 samples from the fitted score grid** per fixture in the background, including the model's low-score correlation adjustment. This reduces sampling noise relative to 10,000 but does not improve the underlying model's calibration. The displayed outcome distribution stays fixed when only the fictional playback seed changes.
 
 For published bookmaker prices, MIGO uses **TheRundown V2 Free API** (prematch moneylines and main goal totals from DraftKings, FanDuel, and BetMGM, up to five minutes delayed) and falls back to limited ESPN-provided 1X2 prices where available.
 

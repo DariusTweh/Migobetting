@@ -23,7 +23,7 @@ export function LiveMatchSimulator({ fixtures }: { fixtures: Fixture[] }) {
   const history = useLocalMatchHistory();
   const [fixtureId, setFixtureId] = useState(fixtures.find((f) => f.status === "scheduled")?.id ?? fixtures[0]?.id ?? "");
   const [seed, setSeed] = useState("migo-matchday");
-  const [playbackMode, setPlaybackMode] = useState<PlaybackMode>("representative");
+  const [playbackMode, setPlaybackMode] = useState<PlaybackMode>("alternate");
   const [forecastResult, setForecastResult] = useState<SimulationResult | null>(null);
   const [forecastLoading, setForecastLoading] = useState(false);
   const [forecastProgress, setForecastProgress] = useState(0);
@@ -37,13 +37,13 @@ export function LiveMatchSimulator({ fixtures }: { fixtures: Fixture[] }) {
   const fixture = fixtures.find((f) => f.id === fixtureId);
   const forecast = useMemo(() => fixture ? forecastWithHistory(fixture, history) : null, [fixture, history]);
   const forecastSeed = fixture && forecast && forecast.dataQuality !== "insufficient"
-    ? forecastSeedForMatch(fixture.id, forecast.modelVersion, forecast.expectedHomeGoals, forecast.expectedAwayGoals)
+    ? forecastSeedForMatch(fixture.id, forecast.modelVersion, forecast.expectedHomeGoals, forecast.expectedAwayGoals, forecast.lowScoreCorrelation)
     : null;
   const prediction = forecastResult?.input.seed === forecastSeed ? forecastResult : null;
   const modalScore = prediction ? representativeFinalScore(prediction) : null;
 
-  // Do not use the user-editable playback seed here. A Web Worker runs 10K
-  // Poisson scenarios on every change to fixture/model goal expectations.
+  // Do not use the user-editable playback seed here. A Web Worker runs 30K
+  // correlation-adjusted score scenarios whenever model inputs change.
   useEffect(() => {
     setForecastResult(null);
     setForecastError("");
@@ -76,10 +76,11 @@ export function LiveMatchSimulator({ fixtures }: { fixtures: Fixture[] }) {
       homeTeam: fixture.home.shortName, awayTeam: fixture.away.shortName,
       expectedHomeGoals: forecast.expectedHomeGoals,
       expectedAwayGoals: forecast.expectedAwayGoals,
+      lowScoreCorrelation: forecast.lowScoreCorrelation,
       iterations: 30_000, seed: forecastSeed, modelVersion: forecast.modelVersion, scenario: "baseline",
     });
     return () => { cancelled = true; worker.terminate(); };
-  }, [forecastSeed, fixture?.home.shortName, fixture?.away.shortName, forecast?.expectedHomeGoals, forecast?.expectedAwayGoals, forecast?.modelVersion, forecast?.dataQuality]);
+  }, [forecastSeed, fixture?.home.shortName, fixture?.away.shortName, forecast?.expectedHomeGoals, forecast?.expectedAwayGoals, forecast?.lowScoreCorrelation, forecast?.modelVersion, forecast?.dataQuality]);
 
   useEffect(() => {
     const url = new URLSearchParams(window.location.search);
@@ -112,6 +113,7 @@ export function LiveMatchSimulator({ fixtures }: { fixtures: Fixture[] }) {
       seed: seed + ":" + fixture.id,
       homeName: fixture.home.shortName, awayName: fixture.away.shortName,
       expectedHomeGoals: forecast.expectedHomeGoals, expectedAwayGoals: forecast.expectedAwayGoals,
+      lowScoreCorrelation: forecast.lowScoreCorrelation,
       homeLineup: homeLineup?.length === 11 ? homeLineup : undefined,
       awayLineup: awayLineup?.length === 11 ? awayLineup : undefined,
       finalScoreOverride: playbackMode === "representative" ? modalScore ?? undefined : undefined,
@@ -164,15 +166,15 @@ export function LiveMatchSimulator({ fixtures }: { fixtures: Fixture[] }) {
       </> : !forecastLoading && !forecastError ? <div className="empty-state compact"><strong>Forecast unavailable</strong>Choose a fixture with sufficient scoring inputs.</div> : null}
     </Panel>
     <Panel>
-      <PanelHead title="Match playback controls" meta="Representative: most frequent final score with a synthetic timeline. Alternate: independently sampled match." />
+      <PanelHead title="Match playback controls" meta="Sampled match is the honest default; modal-score playback is available only as an illustration." />
       <div className="builder-form">
         <div className="field"><label>Fixture</label><select className="select" value={fixtureId} onChange={(event) => { setFixtureId(event.target.value); setPlaying(false); }}>{fixtures.map((f) => <option value={f.id} key={f.id}>{f.home.shortName} vs {f.away.shortName} · {f.league}</option>)}</select></div>
         <div className="form-grid">
           <div className="field"><label>Playback mode</label><select className="select" value={playbackMode} onChange={(event) => setPlaybackMode(event.target.value as PlaybackMode)}>
-            <option value="representative">Representative · modal score</option>
-            <option value="alternate">Alternate · random score</option>
+            <option value="alternate">Sampled match · full distribution</option>
+            <option value="representative">Illustration · modal score</option>
           </select></div>
-          <div className="field"><label>Playback seed · changes timeline only</label><input className="input" value={seed} onChange={(event) => setSeed(event.target.value)} /></div>
+          <div className="field"><label>Playback seed · {playbackMode === "alternate" ? "changes score and timeline" : "changes timeline only"}</label><input className="input" value={seed} onChange={(event) => setSeed(event.target.value)} /></div>
           <div className="field"><label>Playback speed</label><select className="select" value={speed} onChange={(event) => setSpeed(Number(event.target.value))}><option value="1">1×</option><option value="4">4×</option><option value="10">10×</option></select></div>
         </div>
         <p className="forecast-disclaimer">{playbackMode === "representative"

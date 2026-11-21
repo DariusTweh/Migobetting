@@ -1,4 +1,4 @@
-import { createSeededRandom, samplePoisson } from "./simulation";
+import { createSeededRandom, samplePoisson, sampleScore } from "./simulation";
 
 export type MatchSide = "home" | "away";
 export type SimEventKind = "goal" | "shot" | "save" | "yellow" | "foul" | "corner";
@@ -9,6 +9,7 @@ export type SimEvent = { id: string; minute: number; side: MatchSide; kind: SimE
 export type MinuteFrame = { minute: number; increments: Record<MatchSide, SimTeamStat>; playerIncrements: Record<string, SimPlayerStat>; events: SimEvent[] };
 export type MatchTape = {
   seed: string; homeName: string; awayName: string; expectedHomeGoals: number; expectedAwayGoals: number;
+  lowScoreCorrelation?: number;
   players: SimPlayer[]; frames: MinuteFrame[]; finalScore: { home: number; away: number };
 };
 export type MatchSnapshot = {
@@ -36,6 +37,7 @@ function makePlayers(side: MatchSide, teamName: string, observed?: Array<{ id: s
 
 export function generateMatchTape(input: {
   seed: string; homeName: string; awayName: string; expectedHomeGoals: number; expectedAwayGoals: number;
+  lowScoreCorrelation?: number;
   homeLineup?: Array<{ id: string; name: string; position: string }>;
   awayLineup?: Array<{ id: string; name: string; position: string }>;
   /** For representative playback only: condition this timeline on the modal simulated score. */
@@ -53,12 +55,10 @@ export function generateMatchTape(input: {
     ...makePlayers("home", input.homeName, input.homeLineup),
     ...makePlayers("away", input.awayName, input.awayLineup),
   ];
+  const sampledScore = sampleScore(input.expectedHomeGoals, input.expectedAwayGoals, input.lowScoreCorrelation ?? 0, random);
   const goals = input.finalScoreOverride
     ? { home: input.finalScoreOverride.home, away: input.finalScoreOverride.away }
-    : {
-        home: Math.min(9, samplePoisson(input.expectedHomeGoals, random)),
-        away: Math.min(9, samplePoisson(input.expectedAwayGoals, random)),
-      };
+    : { home: Math.min(9, sampledScore.home), away: Math.min(9, sampledScore.away) };
   const goalMinutes: Record<MatchSide, Map<number, number>> = { home: new Map(), away: new Map() };
   for (const side of sides) for (let g = 0; g < goals[side]; g++) {
     const minute = Math.floor(random() * 90) + 1;

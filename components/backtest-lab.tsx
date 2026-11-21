@@ -27,6 +27,7 @@ const ESPN_LEAGUES: Record<string, string> = {
 const HISTORY_LEAGUES = Object.entries(ESPN_HISTORY_COMPETITIONS) as Array<[EspnHistoryLeague, string]>;
 const espnHistoryId = (name: string) => HISTORY_LEAGUES.find(([, title]) => title === name)?.[0];
 const historicalYears = () => Array.from({ length: 3 }, (_, index) => new Date().getUTCFullYear() - 2 + index);
+const AUTOMATIC_ESPN_HISTORY = ["MLS"];
 const percent = (value: number | null) => value === null ? "—" : `${(value * 100).toFixed(1)}%`;
 
 export function BacktestLab() {
@@ -36,8 +37,8 @@ export function BacktestLab() {
   const [preset, setPreset] = useState(PRESETS[0].id);
   const [market, setMarket] = useState<BacktestMarket>("best-pick");
   const [threshold, setThreshold] = useState(68);
-  const [iterations, setIterations] = useState(10_000);
-  const [seed, setSeed] = useState("migo-backtest-1");
+  const iterations = 0;
+  const seed = "exact-score-grid-v1";
   const [competition, setCompetition] = useState("all");
   const [season, setSeason] = useState("all");
   const [running, setRunning] = useState(false);
@@ -90,6 +91,13 @@ export function BacktestLab() {
       let data = existing;
       try {
         data = await syncCoreHistory();
+        for (const league of AUTOMATIC_ESPN_HISTORY) {
+          try {
+            data = await ensureLeagueHistory(league, data);
+          } catch {
+            // Keep the five-league sync usable when ESPN history is temporarily unavailable.
+          }
+        }
       } catch (error) {
         if (!existing.length) throw error;
         setLoading(false);
@@ -112,7 +120,14 @@ export function BacktestLab() {
         if (!scoped.length) throw new Error("No historical matches for the selected season.");
         await evaluate(scoped);
       } else {
-        const data = await syncCoreHistory();
+        let data = await syncCoreHistory();
+        for (const league of AUTOMATIC_ESPN_HISTORY) {
+          try {
+            data = await ensureLeagueHistory(league, data, true);
+          } catch {
+            // The completed core sync remains valid if an auxiliary provider fails.
+          }
+        }
         const enriched = await enrichHistoricalLineups(data);
         const scoped = enriched.filter((item) => (competition === "all" || item.competition === competition) && (season === "all" || item.season === season));
         if (!scoped.length) throw new Error("No historical matches for the selected filters.");
@@ -162,7 +177,10 @@ export function BacktestLab() {
     const importedYears = new Set(
       existing.filter((item) => item.competition === name).map((item) => Number(item.date.slice(0, 4))),
     );
-    const years = historicalYears().filter((year) => force || !importedYears.has(year));
+    const currentYear = new Date().getUTCFullYear();
+    // Refresh the active calendar year so new finals accumulate instead of
+    // treating one earlier import as proof that the whole season is complete.
+    const years = historicalYears().filter((year) => force || year === currentYear || !importedYears.has(year));
     if (years.length === 0) return existing;
 
     setLoading(true);
@@ -257,8 +275,8 @@ export function BacktestLab() {
       <summary>Advanced settings, data controls, and statistical diagnostics</summary>
       <div className="advanced-backtest-body">
         <div className="backtest-layout">
-          <Panel><PanelHead title="Simulation settings" meta="More simulations reduce random sampling noise. They do not train MIGO or guarantee better predictions." /><div className="lab-form"><div className="form-grid"><div className="field"><label>Simulations per match</label><select className="select" value={iterations} onChange={(event) => { setIterations(Number(event.target.value)); setResult(null); }}><option value="10000">10,000</option><option value="50000">50,000</option></select></div><div className="field"><label>Reproducible random seed</label><input className="input" value={seed} onChange={(event) => { setSeed(event.target.value); setResult(null); }} /></div></div></div></Panel>
-          <Panel><PanelHead title="How cheating is prevented" meta="The prediction is frozen before MIGO sees the answer." /><div className="control-checks"><Check text="Matches are processed oldest to newest." /><Check text="Only matches played earlier can affect the prediction." /><Check text="Each team needs at least five earlier matches." /><Check text="The final score stays hidden until after prediction." /><Check text="The newest 40% of matches are reserved for the final test." /></div></Panel>
+          <Panel><PanelHead title="Exact probability engine" meta="No Monte Carlo sampling noise in historical evaluation." /><div className="lineup-explanation"><strong>Production-model replay:</strong> every past fixture uses the same recency-weighted, opponent-adjusted goal engine and low-score correction as today&apos;s live forecast. The complete score grid is evaluated directly.</div></Panel>
+          <Panel><PanelHead title="How cheating is prevented" meta="The prediction is frozen before MIGO sees the answer." /><div className="control-checks"><Check text="Matches are processed oldest to newest." /><Check text="Only matches played earlier can affect the prediction." /><Check text="The league needs at least 40 earlier matches; sparse team ratings are shrunk toward its average." /><Check text="The final score stays hidden until after prediction." /><Check text="The newest 40% of matches are reserved for the final test." /></div></Panel>
         </div>
         <Panel><PanelHead title="Optional manual data controls" meta="The automatic sync already handles this." /><div className="import-controls"><div className="field"><label>Single provider dataset</label><select className="select" value={preset} onChange={(event) => setPreset(event.target.value)}>{PRESETS.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</select></div><button className="button" disabled={loading} onClick={importPreset}><DatabaseZap size={16} />Import one season</button><label className="button file-button"><FileUp size={16} />Import your own CSV<input type="file" accept=".csv,text/csv" onChange={(event) => { const file = event.target.files?.[0]; if (file) void importFile(file); }} /></label><button className="button button-danger" onClick={clear} disabled={!matches.length}><RotateCcw size={15} />Delete local history</button></div></Panel>
       </div>

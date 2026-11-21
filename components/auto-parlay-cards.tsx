@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect } from "react";
 import { ArrowRight, Layers3, ShieldAlert } from "lucide-react";
-import { useLocalMatchHistory } from "@/lib/use-local-history";
+import { useLocalMatchHistoryStatus } from "@/lib/use-local-history";
 import { useOddsFeed } from "@/lib/use-odds-feed";
 import { buildPricedCard, type PricedCard } from "@/lib/priced-cards";
+import { snapshotAutoPaperParlays } from "@/lib/paper-parlays";
 import { formatAmerican } from "@/lib/odds";
 import type { Fixture } from "@/lib/types";
 import { Panel, PanelHead } from "./ui";
@@ -53,11 +55,14 @@ function Card({ card }: { card: PricedCard }) {
 }
 
 export function AutoParlayCards({ fixtures }: { fixtures: Fixture[] }) {
-  const history = useLocalMatchHistory();
+  const { matches: history, ready: historyReady } = useLocalMatchHistoryStatus();
   const { feed, loading, error } = useOddsFeed();
   const quotes = feed?.quotes ?? [];
   const double = buildPricedCard(fixtures, quotes, "daily-double", history);
   const banger = buildPricedCard(fixtures, quotes, "banger", history);
+  useEffect(() => {
+    if (!loading && feed && historyReady) snapshotAutoPaperParlays([double, banger]);
+  }, [loading, feed, historyReady, double, banger]);
   return <div className="stack">
     {loading ? <div className="notice">Loading published market prices for upcoming fixtures…</div> : null}
     {error ? <div className="notice">Odds connection unavailable: {error}</div> : null}
@@ -65,6 +70,7 @@ export function AutoParlayCards({ fixtures }: { fixtures: Fixture[] }) {
       Odds feed: {feed.provider} · {quotes.length} matching quoted selections · updated {new Date(feed.fetchedAt).toLocaleTimeString()}.
       {feed.setupRequired ? " Add THERUNDOWN_API_KEY to .env.local for free DraftKings, FanDuel and BetMGM pre-match odds." : " Free data is delayed about five minutes."}
       {feed.errors.length ? " Some competitions have no usable quotes." : ""}
+      {(double.legs.length || banger.legs.length) ? " Qualifying cards are automatically locked as $10 simulation tickets for forward grading." : ""}
     </div> : null}
     <Card card={double}/>
     <Card card={banger}/>

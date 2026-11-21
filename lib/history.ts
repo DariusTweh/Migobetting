@@ -1,4 +1,5 @@
-import { simulateMatch } from "./simulation";
+import { forecastFixture } from "./model";
+import type { Fixture } from "./types";
 
 export type HistoricalMatch = {
   id: string;
@@ -124,6 +125,130 @@ export function normalizeTeamName(name: string): string {
   return TEAM_ALIASES[key] ?? key;
 }
 
+export type HistoricalGoalEstimate = {
+  expectedHomeGoals: number;
+  expectedAwayGoals: number;
+  lowScoreCorrelation: number;
+  matches: number;
+  homeMatches: number;
+  awayMatches: number;
+  leagueHomeAverage: number;
+  leagueAwayAverage: number;
+  effectiveMatches: number;
+};
+
+type WeightedHistoricalMatch = HistoricalMatch & { weight: number; homeKey: string; awayKey: string };
+
+const bounded = (value: number, low: number, high: number) => Math.max(low, Math.min(high, value));
+const modelTeamKey = (name: string) => normalizeTeamName(name)
+  .replace(/^(fc|afc|cf) /, "").replace(/ (fc|afc|cf|sc)$/, "").trim();
+
+function fittedLowScoreCorrelation(
+  matches: WeightedHistoricalMatch[], attack: Map<string, number>, defense: Map<string, number>,
+  leagueHome: number, leagueAway: number,
+): number {
+  let bestRho = 0;
+  let bestScore = Number.NEGATIVE_INFINITY;
+  for (let step = -20; step <= 20; step += 1) {
+    const rho = step / 100;
+    let score = -40 * rho * rho;
+    let valid = true;
+    for (const match of matches) {
+      if (match.homeGoals > 1 || match.awayGoals > 1) continue;
+      const homeLambda = leagueHome * (attack.get(match.homeKey) ?? 1) * (defense.get(match.awayKey) ?? 1);
+      const awayLambda = leagueAway * (attack.get(match.awayKey) ?? 1) * (defense.get(match.homeKey) ?? 1);
+      let factor = 1;
+      if (match.homeGoals === 0 && match.awayGoals === 0) factor = 1 - homeLambda * awayLambda * rho;
+      else if (match.homeGoals === 0 && match.awayGoals === 1) factor = 1 + homeLambda * rho;
+      else if (match.homeGoals === 1 && match.awayGoals === 0) factor = 1 + awayLambda * rho;
+      else factor = 1 - rho;
+      if (factor <= 0) { valid = false; break; }
+      score += match.weight * Math.log(factor);
+    }
+    if (valid && score > bestScore) { bestScore = score; bestRho = rho; }
+  }
+  return bestRho;
+}
+
+/**
+ * Fits recency-weighted, opponent-adjusted attack and defense ratings using
+ * only matches available before the requested kickoff.
+ */
+export function estimateHistoricalGoals(matches: HistoricalMatch[], input: {
+  competition: string;
+  homeTeam: string;
+  awayTeam: string;
+  kickoff: string;
+  halfLifeDays?: number;
+}): HistoricalGoalEstimate | null {
+  const kickoff = Date.parse(input.kickoff);
+  if (!Number.isFinite(kickoff)) return null;
+  const halfLifeDays = bounded(input.halfLifeDays ?? 180, 60, 365);
+  const weighted: WeightedHistoricalMatch[] = matches.flatMap((match) => {
+    const playedAt = Date.parse(match.date);
+    if (match.competition !== input.competition || !Number.isFinite(playedAt) || playedAt >= kickoff || playedAt <= kickoff - 730 * 86400000) return [];
+    return [{
+      ...match,
+      weight: Math.exp(-Math.LN2 * ((kickoff - playedAt) / 86400000) / halfLifeDays),
+      homeKey: modelTeamKey(match.homeTeam),
+      awayKey: modelTeamKey(match.awayTeam),
+    }];
+  });
+  if (weighted.length < 40) return null;
+  const homeKey = modelTeamKey(input.homeTeam);
+  const awayKey = modelTeamKey(input.awayTeam);
+  const homeMatches = weighted.filter((match) => match.homeKey === homeKey || match.awayKey === homeKey).length;
+  const awayMatches = weighted.filter((match) => match.homeKey === awayKey || match.awayKey === awayKey).length;
+
+  const effectiveMatches = weighted.reduce((sum, match) => sum + match.weight, 0);
+  const leagueHome = weighted.reduce((sum, match) => sum + match.weight * match.homeGoals, 0) / effectiveMatches;
+  const leagueAway = weighted.reduce((sum, match) => sum + match.weight * match.awayGoals, 0) / effectiveMatches;
+  if (leagueHome < 0.3 || leagueAway < 0.3) return null;
+  const teams = new Set(weighted.flatMap((match) => [match.homeKey, match.awayKey]));
+  let attack = new Map([...teams].map((team) => [team, 1]));
+  let defense = new Map([...teams].map((team) => [team, 1]));
+  const priorGoals = 6 * (leagueHome + leagueAway) / 2;
+
+  for (let iteration = 0; iteration < 10; iteration += 1) {
+    const scored = new Map([...teams].map((team) => [team, 0]));
+    const scoringExpectation = new Map([...teams].map((team) => [team, 0]));
+    const conceded = new Map([...teams].map((team) => [team, 0]));
+    const concedingExpectation = new Map([...teams].map((team) => [team, 0]));
+    for (const match of weighted) {
+      scored.set(match.homeKey, (scored.get(match.homeKey) ?? 0) + match.weight * match.homeGoals);
+      scoringExpectation.set(match.homeKey, (scoringExpectation.get(match.homeKey) ?? 0) + match.weight * leagueHome * (defense.get(match.awayKey) ?? 1));
+      conceded.set(match.homeKey, (conceded.get(match.homeKey) ?? 0) + match.weight * match.awayGoals);
+      concedingExpectation.set(match.homeKey, (concedingExpectation.get(match.homeKey) ?? 0) + match.weight * leagueAway * (attack.get(match.awayKey) ?? 1));
+      scored.set(match.awayKey, (scored.get(match.awayKey) ?? 0) + match.weight * match.awayGoals);
+      scoringExpectation.set(match.awayKey, (scoringExpectation.get(match.awayKey) ?? 0) + match.weight * leagueAway * (defense.get(match.homeKey) ?? 1));
+      conceded.set(match.awayKey, (conceded.get(match.awayKey) ?? 0) + match.weight * match.homeGoals);
+      concedingExpectation.set(match.awayKey, (concedingExpectation.get(match.awayKey) ?? 0) + match.weight * leagueHome * (attack.get(match.homeKey) ?? 1));
+    }
+    const nextAttack = new Map<string, number>();
+    const nextDefense = new Map<string, number>();
+    for (const team of teams) {
+      nextAttack.set(team, bounded(((scored.get(team) ?? 0) + priorGoals) / ((scoringExpectation.get(team) ?? 0) + priorGoals), 0.4, 2.5));
+      nextDefense.set(team, bounded(((conceded.get(team) ?? 0) + priorGoals) / ((concedingExpectation.get(team) ?? 0) + priorGoals), 0.4, 2.5));
+    }
+    attack = nextAttack;
+    defense = nextDefense;
+  }
+
+  const expectedHomeGoals = bounded(leagueHome * (attack.get(homeKey) ?? 1) * (defense.get(awayKey) ?? 1), 0.25, 3.7);
+  const expectedAwayGoals = bounded(leagueAway * (attack.get(awayKey) ?? 1) * (defense.get(homeKey) ?? 1), 0.2, 3.4);
+  return {
+    expectedHomeGoals,
+    expectedAwayGoals,
+    lowScoreCorrelation: fittedLowScoreCorrelation(weighted, attack, defense, leagueHome, leagueAway),
+    matches: weighted.length,
+    homeMatches,
+    awayMatches,
+    leagueHomeAverage: leagueHome,
+    leagueAwayAverage: leagueAway,
+    effectiveMatches,
+  };
+}
+
 function parseDate(value: string): string | null {
   const parts = value.trim().split(/[/-]/).map(Number);
   if (parts.length !== 3 || parts.some((part) => !Number.isFinite(part))) return null;
@@ -175,23 +300,6 @@ export function parseHistoricalCsv(text: string, metadata: { season: string; sou
     });
   }
   return { matches, rejected };
-}
-
-type TeamStats = { played: number; goalsFor: number; goalsAgainst: number; homePlayed: number; homeFor: number; homeAgainst: number; awayPlayed: number; awayFor: number; awayAgainst: number };
-const emptyStats = (): TeamStats => ({ played: 0, goalsFor: 0, goalsAgainst: 0, homePlayed: 0, homeFor: 0, homeAgainst: 0, awayPlayed: 0, awayFor: 0, awayAgainst: 0 });
-const regularizedRate = (goals: number, matches: number, prior: number, weight = 5) => (goals + prior * weight) / (matches + weight);
-
-function estimateGoals(home: TeamStats, away: TeamStats, leagueHome: number, leagueAway: number) {
-  const leagueHomeSafe = Math.max(0.2, leagueHome);
-  const leagueAwaySafe = Math.max(0.2, leagueAway);
-  const homeScoring = regularizedRate(home.homeFor, home.homePlayed, leagueHomeSafe);
-  const homeConceding = regularizedRate(home.homeAgainst, home.homePlayed, leagueAwaySafe);
-  const awayScoring = regularizedRate(away.awayFor, away.awayPlayed, leagueAwaySafe);
-  const awayConceding = regularizedRate(away.awayAgainst, away.awayPlayed, leagueHomeSafe);
-  return {
-    home: Math.max(0.25, Math.min(3.8, leagueHomeSafe * (homeScoring / leagueHomeSafe) * (awayConceding / leagueHomeSafe))),
-    away: Math.max(0.2, Math.min(3.4, leagueAwaySafe * (awayScoring / leagueAwaySafe) * (homeConceding / leagueAwaySafe))),
-  };
 }
 
 type SelectionCandidate = readonly [MarketSelection, number, string];
@@ -255,28 +363,20 @@ function selectionLabel(selection: MarketSelection, match: HistoricalMatch) {
 
 export function runHistoricalBacktest(matches: HistoricalMatch[], config: BacktestConfig): BacktestResult {
   const sorted = [...matches].sort((a, b) => a.date.localeCompare(b.date));
-  const stats = new Map<string, TeamStats>();
-  const leagueHistory = new Map<string, { homeGoals: number; awayGoals: number; matches: number }>();
   const predictions: BacktestPrediction[] = [];
   const priorLineups = new Map<string, string[]>();
+  const committedMatches: HistoricalMatch[] = [];
   let excludedWarmup = 0;
   let lastDay = "";
   const pending: HistoricalMatch[] = [];
   function commitHistory(match: HistoricalMatch) {
     const homeKey = `${match.competition}:${normalizeTeamName(match.homeTeam)}`;
     const awayKey = `${match.competition}:${normalizeTeamName(match.awayTeam)}`;
-    const homeStats = stats.get(homeKey) ?? emptyStats();
-    const awayStats = stats.get(awayKey) ?? emptyStats();
-    const league = leagueHistory.get(match.competition) ?? { homeGoals: 0, awayGoals: 0, matches: 0 };
-    homeStats.played += 1; homeStats.goalsFor += match.homeGoals; homeStats.goalsAgainst += match.awayGoals; homeStats.homePlayed += 1; homeStats.homeFor += match.homeGoals; homeStats.homeAgainst += match.awayGoals;
-    awayStats.played += 1; awayStats.goalsFor += match.awayGoals; awayStats.goalsAgainst += match.homeGoals; awayStats.awayPlayed += 1; awayStats.awayFor += match.awayGoals; awayStats.awayAgainst += match.homeGoals;
-    stats.set(homeKey, homeStats); stats.set(awayKey, awayStats);
-    league.homeGoals += match.homeGoals; league.awayGoals += match.awayGoals; league.matches += 1;
-    leagueHistory.set(match.competition, league);
     if (match.lineup) {
       priorLineups.set(homeKey, match.lineup.home.starters.map((player) => player.id));
       priorLineups.set(awayKey, match.lineup.away.starters.map((player) => player.id));
     }
+    committedMatches.push(match);
   }
   function flushDay() { pending.forEach(commitHistory); pending.length = 0; }
   const splitIndex = Math.floor(sorted.length * Math.min(0.9, Math.max(0.1, config.trainingFraction)));
@@ -287,23 +387,44 @@ export function runHistoricalBacktest(matches: HistoricalMatch[], config: Backte
     lastDay = day;
     const homeKey = `${match.competition}:${normalizeTeamName(match.homeTeam)}`;
     const awayKey = `${match.competition}:${normalizeTeamName(match.awayTeam)}`;
-    const homeStats = stats.get(homeKey) ?? emptyStats();
-    const awayStats = stats.get(awayKey) ?? emptyStats();
-    const league = leagueHistory.get(match.competition) ?? { homeGoals: 0, awayGoals: 0, matches: 0 };
     const projectedLineupEligible = priorLineups.has(homeKey) && priorLineups.has(awayKey);
     const actualLineupEligible = match.lineup?.home.starters.length === 11 && match.lineup?.away.starters.length === 11;
-    if (matchIndex >= splitIndex && homeStats.played >= 5 && awayStats.played >= 5 && league.matches >= 20) {
-      const leagueHome = league.homeGoals / league.matches;
-      const leagueAway = league.awayGoals / league.matches;
-      const expected = estimateGoals(homeStats, awayStats, leagueHome, leagueAway);
-      const simulation = simulateMatch({ homeTeam: match.homeTeam, awayTeam: match.awayTeam, expectedHomeGoals: expected.home, expectedAwayGoals: expected.away, iterations: config.iterations, seed: `${config.seed}:${match.id}`, modelVersion: "historical-goals-0.2", scenario: "baseline" });
+    const expected = matchIndex >= splitIndex ? estimateHistoricalGoals(committedMatches, {
+      competition: match.competition,
+      homeTeam: match.homeTeam,
+      awayTeam: match.awayTeam,
+      kickoff: match.date,
+    }) : null;
+    if (matchIndex >= splitIndex && expected) {
+      const fixture: Fixture = {
+        id: match.id,
+        leagueId: "eng.1",
+        league: match.competition,
+        kickoff: match.date,
+        status: "scheduled",
+        statusLabel: "Historical fixture",
+        home: { id: homeKey, name: match.homeTeam, shortName: match.homeTeam, abbreviation: "H" },
+        away: { id: awayKey, name: match.awayTeam, shortName: match.awayTeam, abbreviation: "A" },
+        source: "ESPN",
+        sourceUpdatedAt: match.date,
+      };
+      const exact = forecastFixture(fixture, {
+        expectedHomeGoals: expected.expectedHomeGoals,
+        expectedAwayGoals: expected.expectedAwayGoals,
+        lowScoreCorrelation: expected.lowScoreCorrelation,
+        version: "migo-opponent-decay-dc-0.4",
+        quality: expected.homeMatches >= 16 && expected.awayMatches >= 16 ? "good" : "limited",
+        evidence: [],
+        risks: [],
+      });
+      const probability = (key: string) => exact.markets.find((item) => item.key === key)?.probability ?? 0;
       const probabilities: MarketProbabilities = {
-        home: simulation.outcomes.home, draw: simulation.outcomes.draw, away: simulation.outcomes.away,
-        homeOrDraw: simulation.doubleChance.homeOrDraw, awayOrDraw: simulation.doubleChance.awayOrDraw, homeOrAway: simulation.doubleChance.homeOrAway,
-        over15: simulation.totals.over15, under15: 1 - simulation.totals.over15,
-        over25: simulation.totals.over25, under25: 1 - simulation.totals.over25,
-        over35: simulation.totals.over35, under35: 1 - simulation.totals.over35,
-        btts: simulation.bothTeamsScore, bttsNo: 1 - simulation.bothTeamsScore,
+        home: exact.homeWin, draw: exact.draw, away: exact.awayWin,
+        homeOrDraw: exact.homeWin + exact.draw, awayOrDraw: exact.awayWin + exact.draw, homeOrAway: exact.homeWin + exact.awayWin,
+        over15: probability("over-1.5"), under15: 1 - probability("over-1.5"),
+        over25: probability("over-2.5"), under25: 1 - probability("over-2.5"),
+        over35: 1 - probability("under-3.5"), under35: probability("under-3.5"),
+        btts: probability("btts"), bttsNo: 1 - probability("btts"),
       };
       const selection = chooseBacktestSelection(config.market, probabilities, config.threshold);
       const actual = match.result === "H" ? [1, 0, 0] : match.result === "D" ? [0, 1, 0] : [0, 0, 1];
@@ -315,7 +436,7 @@ export function runHistoricalBacktest(matches: HistoricalMatch[], config: Backte
       const oddsUsed = selected ? selectionOdds(selected, match) : undefined;
       const selectedLabel = selected ? selectionLabel(selected, match) : null;
       const actualOutcome = match.result === "H" ? "home" : match.result === "A" ? "away" : "draw";
-      predictions.push({ matchId: match.id, date: match.date, competition: match.competition, homeTeam: match.homeTeam, awayTeam: match.awayTeam, actualHomeGoals: match.homeGoals, actualAwayGoals: match.awayGoals, actualOutcome, probabilities, selected, selectedMarket: selection?.[2] ?? null, selectedLabel, selectedProbability: selection?.[1] ?? 0, correct, brier, logLoss: -Math.log(Math.max(1e-9, actualProbability)), expectedHomeGoals: expected.home, expectedAwayGoals: expected.away, oddsUsed, profit: oddsUsed && correct !== null ? (correct ? oddsUsed - 1 : -1) : undefined, projectedLineupEligible, actualLineupEligible });
+      predictions.push({ matchId: match.id, date: match.date, competition: match.competition, homeTeam: match.homeTeam, awayTeam: match.awayTeam, actualHomeGoals: match.homeGoals, actualAwayGoals: match.awayGoals, actualOutcome, probabilities, selected, selectedMarket: selection?.[2] ?? null, selectedLabel, selectedProbability: selection?.[1] ?? 0, correct, brier, logLoss: -Math.log(Math.max(1e-9, actualProbability)), expectedHomeGoals: expected.expectedHomeGoals, expectedAwayGoals: expected.expectedAwayGoals, oddsUsed, profit: oddsUsed && correct !== null ? (correct ? oddsUsed - 1 : -1) : undefined, projectedLineupEligible, actualLineupEligible });
     } else if (matchIndex >= splitIndex) excludedWarmup += 1;
 
     pending.push(match);
@@ -346,7 +467,7 @@ export function runHistoricalBacktest(matches: HistoricalMatch[], config: Backte
     roi: priced.length && profit !== null ? profit / priced.length : null, profit, oddsCoverage: qualified.length ? priced.length / qualified.length : 0,
     evaluationStart: predictions[0]?.date, predictions, calibration, byCompetition, byMarket,
     modelComparison: [
-      { model: "Match history, without lineups", coverage: predictions.length ? 1 : 0, evaluated: predictions.length, brierScore: average("brier"), note: "Uses only results and goals from matches played earlier. It never sees this match's final score before predicting." },
+      { model: "Opponent-adjusted production model", coverage: predictions.length ? 1 : 0, evaluated: predictions.length, brierScore: average("brier"), note: "Uses the same recency-weighted attack/defense ratings and low-score correction as live forecasts, with only results available before kickoff." },
       { model: "Projected starters from earlier matches", coverage: predictions.length ? projectedEligible.length / predictions.length : 0, evaluated: projectedEligible.length, brierScore: subsetBrier(projectedEligible), note: projectedEligible.length ? "Uses real starting lineups from earlier matches to estimate who was likely to start. No made-up player boost is applied." : "Needs more mapped historical lineups before it can be tested." },
       { model: "Real historical starting XI", coverage: predictions.length ? actualEligible.length / predictions.length : 0, evaluated: actualEligible.length, brierScore: subsetBrier(actualEligible), note: actualEligible.length ? "Uses the real historical starters only in the 90-minute-before-kickoff test. It is never leaked into an earlier forecast." : "Needs more ESPN matches to be linked before it can be tested." },
     ],

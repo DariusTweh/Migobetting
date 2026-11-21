@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { createPaperParlay, gradePaperParlay } from "../lib/paper-parlays";
+import { createAutoPaperParlay, createPaperParlay, gradePaperParlay } from "../lib/paper-parlays";
 import type { LockedParlayLeg } from "../lib/paper-parlays";
+import type { PricedCard } from "../lib/priced-cards";
 
 const future = "2030-05-12T12:00:00Z";
 const now = Date.parse("2029-12-01T12:00:00Z");
@@ -19,6 +20,7 @@ describe("complete ticket paper parlays", () => {
     const card = createPaperParlay({ kind: "manual", legs: [leg("1", "Home win"), leg("2", "Over 1.5 goals")], stake: 20 }, now);
     const partial = gradePaperParlay(card, [{ fixtureId: "1", completed: true, homeGoals: 2, awayGoals: 1 }]);
     expect(partial.status).toBe("open");
+    expect(partial.legs[0].result).toEqual({ status: "won", homeGoals: 2, awayGoals: 1 });
     const winner = gradePaperParlay(card, [{ fixtureId: "1", completed: true, homeGoals: 2, awayGoals: 1 }, { fixtureId: "2", completed: true, homeGoals: 1, awayGoals: 1 }]);
     expect(winner.status).toBe("won");
     expect(winner.payout).toBeCloseTo(card.stake * card.decimalOdds);
@@ -26,5 +28,24 @@ describe("complete ticket paper parlays", () => {
   it("loses as soon as any settled leg loses", () => {
     const card = createPaperParlay({ kind: "manual", legs: [leg("1", "Home win"), leg("2", "Away win")], stake: 20 }, now);
     expect(gradePaperParlay(card, [{ fixtureId: "1", completed: true, homeGoals: 0, awayGoals: 1 }]).status).toBe("lost");
+  });
+  it("creates one immutable $10 auto-tracked Daily Double for the calendar day", () => {
+    const priced = {
+      kind: "daily-double",
+      legs: [
+        { ...leg("1", "Home win"), league: "Premier League", marketKey: "home", bookmaker: "DraftKings", bookKey: "dk", source: "TheRundown", updatedAt: "2029-12-01T11:55:00Z", probability: 0.7, impliedProbability: 0.55, modelEdge: 0.15 },
+        { ...leg("2", "Over 1.5 goals"), league: "Premier League", marketKey: "over-1.5", bookmaker: "DraftKings", bookKey: "dk", source: "TheRundown", updatedAt: "2029-12-01T11:55:00Z", probability: 0.75, impliedProbability: 0.55, modelEdge: 0.2 },
+      ],
+      bookmaker: "DraftKings", bookKey: "dk", combinedAmerican: 264, combinedDecimal: 3.64,
+      jointProbability: 0.525, notes: [],
+    } as PricedCard;
+    const tracked = createAutoPaperParlay(priced, now);
+    expect(tracked).toMatchObject({
+      id: "migo-auto:daily-double:2029-12-01",
+      origin: "migo-auto",
+      stake: 10,
+      status: "open",
+    });
+    expect(tracked?.legs).toHaveLength(2);
   });
 });

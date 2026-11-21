@@ -29,4 +29,18 @@ describe("baseline model", () => {
     const mass = Array.from({ length: 15 }, (_, goals) => poisson(1.5, goals)).reduce((sum, value) => sum + value, 0);
     expect(mass).toBeCloseTo(1, 7);
   });
+
+  it("applies a normalized low-score correlation correction", () => {
+    const independent = forecastFixture(fixture, {
+      expectedHomeGoals: 1.4, expectedAwayGoals: 1.1, lowScoreCorrelation: 0,
+      version: "test", quality: "good", evidence: [], risks: [],
+    });
+    const corrected = forecastFixture(fixture, {
+      expectedHomeGoals: 1.4, expectedAwayGoals: 1.1, lowScoreCorrelation: -0.1,
+      version: "test", quality: "good", evidence: [], risks: [],
+    });
+    expect(corrected.draw).toBeGreaterThan(independent.draw);
+    expect(corrected.homeWin + corrected.draw + corrected.awayWin).toBeCloseTo(1, 10);
+    expect(corrected.markets.every((market) => market.probability > 0 && market.probability < 1)).toBe(true);
+  });
 });

@@ -1,10 +1,7 @@
 import type { Fixture } from "./types";
-import { forecastFixture } from "./model";
+import { forecastFixture, scoreProbability } from "./model";
 
 export type ParlayLeg = { fixtureId: string; market: string };
-
-function factorial(value: number) { let result = 1; for (let index = 2; index <= value; index += 1) result *= index; return result; }
-function poisson(lambda: number, goals: number) { return Math.exp(-lambda) * lambda ** goals / factorial(goals); }
 
 export function marketWins(market: string, homeGoals: number, awayGoals: number): boolean {
   const normalized = market.toLowerCase();
@@ -26,7 +23,7 @@ function sameMatchJointProbability(fixture: Fixture, markets: string[]): number 
   let mass = 0;
   for (let home = 0; home <= 12; home += 1) {
     for (let away = 0; away <= 12; away += 1) {
-      const probability = poisson(forecast.expectedHomeGoals, home) * poisson(forecast.expectedAwayGoals, away);
+      const probability = scoreProbability(forecast.expectedHomeGoals, forecast.expectedAwayGoals, home, away, forecast.lowScoreCorrelation);
       mass += probability;
       if (markets.every((market) => marketWins(market, home, away))) joint += probability;
     }

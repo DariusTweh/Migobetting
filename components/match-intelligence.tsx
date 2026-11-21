@@ -14,6 +14,7 @@ export function MatchIntelligence({ fixture, lineups }: { fixture: Fixture; line
   const [tab, setTab] = useState<"overview" | "lineups">("overview");
   const history = useLocalMatchHistory();
   const model = useMemo(() => forecastWithHistory(fixture, history), [fixture, history]);
+  const trainedHistoryModel = model.modelVersion === "migo-opponent-decay-dc-0.4";
   const date = new Date(fixture.kickoff);
   return <>
     <Link href="/" className="back-link"><ArrowLeft size={15} />Back to fixtures</Link>
@@ -42,7 +43,7 @@ export function MatchIntelligence({ fixture, lineups }: { fixture: Fixture; line
           </div>
         </Panel>
         <Panel>
-          <PanelHead title="Market matrix" meta="Derived from one coherent Poisson score distribution" />
+          <PanelHead title="Market matrix" meta="Derived from one coherent correlation-adjusted score distribution" />
           <div className="market-table">
             <div className="table-head"><span>Market</span><span>Model</span><span>Fair price</span></div>
             {model.markets.map((market) => <div className="table-row" key={market.key}><strong>{market.label}</strong><span>{Math.round(market.probability * 100)}%</span><b>{formatAmerican(market.fairAmerican)}</b></div>)}
@@ -52,11 +53,11 @@ export function MatchIntelligence({ fixture, lineups }: { fixture: Fixture; line
       <div className="stack">
         <Panel>
           <PanelHead title="Expected score" meta="Most likely scorelines" />
-          <div className="expected-score"><strong>{model.expectedHomeGoals.toFixed(2)}</strong><span>xG baseline</span><strong>{model.expectedAwayGoals.toFixed(2)}</strong></div>
+          <div className="expected-score"><strong>{model.expectedHomeGoals.toFixed(2)}</strong><span>modeled goals</span><strong>{model.expectedAwayGoals.toFixed(2)}</strong></div>
           <div className="scoreline-list">{model.scorelines.map((item) => <div key={item.score}><strong>{item.score}</strong><span>{Math.round(item.probability * 100)}%</span></div>)}</div>
         </Panel>
         <Panel>
-          <PanelHead title="MIGO Analyst" meta="Evidence check · deterministic fallback" action={<BrainCircuit size={19} className="lime" />} />
+          <PanelHead title="MIGO Analyst" meta={trainedHistoryModel ? "Evidence check · trained history model active" : "Evidence check · season-record fallback active"} action={<BrainCircuit size={19} className="lime" />} />
           <div className="analyst-body">
             <div className="evidence-block positive"><h3><CheckCircle2 size={16} />Supporting evidence</h3>{model.evidence.map((item) => <p key={item}>{item}</p>)}</div>
             <div className="evidence-block risk"><h3><ShieldAlert size={16} />Why it could fail</h3>{model.risks.map((item) => <p key={item}>{item}</p>)}</div>

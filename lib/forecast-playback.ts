@@ -3,11 +3,11 @@ import type { SimulationResult } from "./simulation";
 export type PlaybackMode = "representative" | "alternate";
 
 /** Match-model inputs determine the Monte Carlo results, never the playback seed. */
-export function forecastSeedForMatch(fixtureId: string, modelVersion: string, expectedHomeGoals: number, expectedAwayGoals: number): string {
-  if (![expectedHomeGoals, expectedAwayGoals].every((x) => Number.isFinite(x) && x >= 0)) {
+export function forecastSeedForMatch(fixtureId: string, modelVersion: string, expectedHomeGoals: number, expectedAwayGoals: number, lowScoreCorrelation = 0): string {
+  if (![expectedHomeGoals, expectedAwayGoals, lowScoreCorrelation].every((x) => Number.isFinite(x)) || expectedHomeGoals < 0 || expectedAwayGoals < 0) {
     throw new Error("Invalid pre-match scoring parameters");
   }
-  return ["migo-forecast-30000-v2", fixtureId, modelVersion, expectedHomeGoals.toFixed(6), expectedAwayGoals.toFixed(6)].join(":");
+  return ["migo-forecast-30000-v3", fixtureId, modelVersion, expectedHomeGoals.toFixed(6), expectedAwayGoals.toFixed(6), lowScoreCorrelation.toFixed(4)].join(":");
 }
 
 /**

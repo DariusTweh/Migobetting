@@ -29,7 +29,7 @@ describe("scoring-based fixture forecasts", () => {
   it("uses imported prior scores rather than future outcomes", () => {
     const matches = buildHistory();
     const baseline = forecastWithHistory(fixture, matches);
-    expect(baseline.modelVersion).toBe("migo-local-history-0.3");
+    expect(baseline.modelVersion).toBe("migo-opponent-decay-dc-0.4");
     const future: HistoricalMatch = { ...matches[0], id: "future", date: "2027-01-01T00:00:00Z", homeGoals: 40, awayGoals: 40 };
     const altered = forecastWithHistory(fixture, [...matches, future]);
     expect(altered.expectedHomeGoals).toBe(baseline.expectedHomeGoals);
@@ -37,5 +37,16 @@ describe("scoring-based fixture forecasts", () => {
   });
   it("falls back when there is no imported history", () => {
     expect(forecastWithHistory(fixture, []).modelVersion).toBe("migo-baseline-0.1");
+  });
+  it("keeps the trained league prior for a new team instead of reverting to the record baseline", () => {
+    const promotedFixture: Fixture = {
+      ...fixture,
+      home: { ...fixture.home, id: "new", name: "Promoted Town FC", shortName: "Promoted Town" },
+    };
+    const forecast = forecastWithHistory(promotedFixture, buildHistory());
+    expect(forecast.modelVersion).toBe("migo-opponent-decay-dc-0.4");
+    expect(forecast.dataQuality).toBe("limited");
+    expect(forecast.evidence).toEqual(expect.arrayContaining([expect.stringMatching(/^Promoted Town: 0 previous matches; Chelsea: \d+\.$/)]));
+    expect(forecast.risks[0]).toContain("heavily shrunk");
   });
 });

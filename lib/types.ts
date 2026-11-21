@@ -41,6 +41,7 @@ export type Forecast = {
   dataQuality: "good" | "limited" | "insufficient";
   expectedHomeGoals: number;
   expectedAwayGoals: number;
+  lowScoreCorrelation: number;
   homeWin: number;
   draw: number;
   awayWin: number;

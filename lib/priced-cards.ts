@@ -7,6 +7,7 @@ import { americanToDecimal, decimalToAmerican, impliedProbability } from "./odds
 export type PricedLeg = MarketQuote & {
   fixtureLabel: string;
   league: string;
+  leagueId: Fixture["leagueId"];
   kickoff: string;
   market: string;
   probability: number;
@@ -32,7 +33,7 @@ const marketText: Record<MarketKey, string> = {
 };
 export const MIN_ACCEPTED_AMERICAN = -350;
 export const MIN_ACCEPTED_PROBABILITY = 0.60;
-// Raw Poisson models are uncalibrated; model edge is a research filter,
+// Raw correlation-adjusted goal models are uncalibrated; model edge is a research filter,
 // never a demonstrated profitable advantage.
 export const MIN_INDICATIVE_EDGE = 0.01;
 
@@ -59,7 +60,7 @@ export function pricedCandidates(
     if (edge < MIN_INDICATIVE_EDGE) continue;
     candidates.push({
       ...quote, fixtureLabel: fixture.home.shortName + " vs " + fixture.away.shortName,
-      league: fixture.league, kickoff: fixture.kickoff, market: marketText[quote.marketKey],
+      league: fixture.league, leagueId: fixture.leagueId, kickoff: fixture.kickoff, market: marketText[quote.marketKey],
       probability: market.probability, impliedProbability: implied, modelEdge: edge,
     });
   }

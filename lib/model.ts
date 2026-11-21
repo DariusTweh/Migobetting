@@ -30,11 +30,26 @@ function market(key: string, label: string, probability: number): MarketProbabil
 export type ForecastOverrides = {
   expectedHomeGoals: number;
   expectedAwayGoals: number;
+  lowScoreCorrelation?: number;
   version: string;
   quality: Forecast["dataQuality"];
   evidence: string[];
   risks: string[];
 };
+
+export function lowScoreFactor(home: number, away: number, homeLambda: number, awayLambda: number, rho: number): number {
+  if (home === 0 && away === 0) return 1 - homeLambda * awayLambda * rho;
+  if (home === 0 && away === 1) return 1 + homeLambda * rho;
+  if (home === 1 && away === 0) return 1 + awayLambda * rho;
+  if (home === 1 && away === 1) return 1 - rho;
+  return 1;
+}
+
+export function scoreProbability(homeLambda: number, awayLambda: number, home: number, away: number, rho = 0): number {
+  const boundedRho = Math.max(-0.2, Math.min(0.2, rho));
+  return poisson(homeLambda, home) * poisson(awayLambda, away) *
+    Math.max(0.01, lowScoreFactor(home, away, homeLambda, awayLambda, boundedRho));
+}
 
 export function forecastFixture(fixture: Fixture, overrides?: ForecastOverrides): Forecast {
   const homeRecord = parseRecord(fixture.home.record);
@@ -45,6 +60,7 @@ export function forecastFixture(fixture: Fixture, overrides?: ForecastOverrides)
   const strengthGap = Math.max(-1.5, Math.min(1.5, homePpg - awayPpg));
   const expectedHomeGoals = overrides?.expectedHomeGoals ?? Math.max(0.45, Math.min(3.1, 1.45 + 0.22 + strengthGap * 0.42));
   const expectedAwayGoals = overrides?.expectedAwayGoals ?? Math.max(0.35, Math.min(2.7, 1.2 - strengthGap * 0.34));
+  const rho = Math.max(-0.2, Math.min(0.2, overrides?.lowScoreCorrelation ?? 0));
   let homeWin = 0;
   let draw = 0;
   let awayWin = 0;
@@ -54,7 +70,7 @@ export function forecastFixture(fixture: Fixture, overrides?: ForecastOverrides)
 
   for (let home = 0; home <= 8; home += 1) {
     for (let away = 0; away <= 8; away += 1) {
-      const probability = poisson(expectedHomeGoals, home) * poisson(expectedAwayGoals, away);
+      const probability = scoreProbability(expectedHomeGoals, expectedAwayGoals, home, away, rho);
       if (home > away) homeWin += probability;
       else if (home === away) draw += probability;
       else awayWin += probability;
@@ -70,6 +86,9 @@ export function forecastFixture(fixture: Fixture, overrides?: ForecastOverrides)
   homeWin /= probabilityMass;
   draw /= probabilityMass;
   awayWin /= probabilityMass;
+  btts /= probabilityMass;
+  totals.forEach((value, index) => { totals[index] = value / probabilityMass; });
+  scores.forEach((score) => { score.probability /= probabilityMass; });
   const markets = [
     market("home", `${fixture.home.shortName} win`, homeWin),
     market("draw", "Draw", draw),
@@ -96,6 +115,7 @@ export function forecastFixture(fixture: Fixture, overrides?: ForecastOverrides)
     dataQuality: overrides?.quality ?? (insufficient ? "insufficient" : homeRecord!.played < 6 || awayRecord!.played < 6 ? "limited" : "good"),
     expectedHomeGoals,
     expectedAwayGoals,
+    lowScoreCorrelation: rho,
     homeWin,
     draw,
     awayWin,
