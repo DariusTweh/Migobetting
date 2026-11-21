@@ -73,8 +73,8 @@ Update a local clone using git pull origin main and npm run dev. Use npm ci only
 
 Live-style match playback runs a **separate seeded 30,000-trial correlation-adjusted score forecast in a Web Worker** when you select a fixture or the underlying goal model inputs change. This displays home/draw/away probabilities, totals, BTTS and the five most frequent exact scores.
 
-- **Representative (default):** conditions the fictional 90-minute event timeline on the most common exact final score in those 30,000 trials. The clock, passes, goals, shots and player assignments are synthetic, not observations or player-prop projections. The most common exact score is not a guaranteed, or even majority-likely, result.
-- **Alternate:** draws an independent fictional result and event timeline for the selected playback seed.
+- **Representative (optional illustration):** conditions the fictional 90-minute event timeline on the most common exact final score in those 30,000 trials. The clock, passes, goals, shots and player assignments are synthetic, not observations or player-prop projections. The most common exact score is not a guaranteed, or even majority-likely, result.
+- **Sampled match (default):** draws an independent fictional result and event timeline from the complete model score distribution for the selected playback seed.
 - **Changing the playback seed:** changes the fictional timeline but NOT the underlying model probabilities. In representative mode the final score stays fixed to the modal score; in alternate mode the final score can change.
 - **Changing fixtures or imported model evidence:** recomputes the 30,000-trial probabilities and the representative score. Forecasts are not live in-game predictions, and do not use the real current match score.
 
@@ -115,3 +115,15 @@ TheRundown V2 is the primary supported feed. It uses `X-TheRundown-Key`, request
 Automatic Daily Double / Banger slips require published prices from **the same sportsbook**, no more than one market per match, no leg priced shorter than -350, a positive model-implied margin (not a verified market edge), and combined quoted odds of at least +100 / +400 respectively. When those criteria are not met, the app shows PASS. ESPN 1X2 prices are an optional limited fallback without a separate API key. Unverified odds are never synthesized.
 
 The app cannot authenticate to TheRundown from GitHub Actions because the actual secret stays local, so unit tests validate the documented response schema and CI verifies TypeScript/build; a real key is required to confirm live quotes.
+
+
+## 2026–27 scoring coverage, score calibration and complete fixtures
+
+- **Current domestic seasons included:** automatic history sync now imports 2026–27 results and odds files from Football-Data.co.uk for Premier League, La Liga, Bundesliga, Serie A and Ligue 1, alongside older seasons. The browser checks for missing current-season records and refreshes the core archive after 12 hours. This supplies recent goal form instead of reusing stale 2025–26-only scores.
+- **MLS and UEFA Women's Champions League history:** the main app will attempt to import the previous and current calendar years of completed ESPN scores when these competitions lack a sufficient local historical sample. These feeds may be incomplete; when adequate verified results are absent, predictions remain explicitly limited or based on the original generic W-D-L fallback.
+- **Goal calibration diagnostics:** Backtesting Lab now reports held-out predicted versus actual average home/away/total goals, the Over 2.5 rate, draw rate, and the frequency of exact 1–0 / 1–1 scores, including goal averages by league. Any detected bias is shown, **not silently corrected using the test matches**; training a new adjustment on a separate validation set and confirming it on untouched future matches is still required.
+- **Score-distribution display:** Fixture Intelligence and the 30K simulator distinguish the most frequent *individual* exact score from the total probability of 0–1 goals, 2–3 goals, and 4+ goals. A recurring 1–1 mode is often a 10–15% event, not a majority prediction. The sampled-match playback is the default; modal-score playback remains an optional illustration.
+- **Fixture coverage:** ESPN's undated scoreboard often omits upcoming soccer games. The app now requests dated scoreboards across the next 10 days, plus yesterday's results, deduplicates results while retaining fresh live statuses, and displays **all returned fixtures** instead of silently limiting the Command Center to 30. A league genuinely without games in the requested window may still have no fixtures.
+- ESPN APIs are undocumented and sometimes incomplete; fixture coverage is broader, not a guaranteed complete official league schedule. The app still uses available ESPN fixture IDs for detail views.
+
+To inspect scoring calibration, open **/backtest**, select a league (or All), and run the historical test. To see full fixtures, open Command Center and choose All Matches. The goal model should not be altered merely to produce more 3–0 or 4–1 scores without evidence of genuine underprediction.
