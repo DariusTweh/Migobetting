@@ -606,3 +606,29 @@ main { padding: 34px; max-width: 1510px; margin: 0 auto; }
   .forecast-scorelines { padding:0 12px 15px; }
   .forecast-disclaimer { padding:0 12px 15px; }
 }
+
+
+/* Historical-goal calibration versus actual results */
+.goal-calibration-intro { padding:16px 18px; font-size:13px; line-height:1.65; color:var(--muted); }
+.goal-calibration-table { padding:0 18px 14px; overflow-x:auto; }
+.goal-calibration-row { display:grid; grid-template-columns:minmax(160px,2fr) repeat(3,minmax(100px,1fr)); gap:10px; min-width:545px; align-items:center; border-bottom:1px solid var(--line-soft); padding:12px 8px; font-variant-numeric:tabular-nums; font-size:12px; }
+.goal-calibration-row>span:not(:first-child), .goal-calibration-row>b { text-align:right; }
+.goal-calibration-row.goal-calibration-head { text-transform:uppercase; font-weight:800; color:var(--muted); font-size:10px; letter-spacing:.03em; }
+.goal-calibration-leagues { padding:8px 18px 18px; color:var(--muted); }
+.goal-calibration-leagues summary { cursor:pointer; font-size:12px; font-weight:700; }
+.goal-forecast-explainer { margin:14px 18px; padding:12px 14px; background:#162024; border:1px solid #314044; border-radius:9px; }
+.goal-forecast-explainer strong { display:block; font-size:13px; }
+.goal-forecast-explainer p { font-size:12px; line-height:1.6; color:var(--muted); margin:8px 0 0; }
+.goal-range-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; padding:0 18px 16px; }
+.goal-range-grid>div { min-width:0; border:1px solid var(--line-soft); padding:11px 12px; border-radius:8px; display:grid; gap:9px; background:#111a20; }
+.goal-range-grid small { font-size:10px; color:var(--muted); }
+.goal-range-grid strong { font-size:19px; font-variant-numeric:tabular-nums; }
+.goal-range-grid .prob-track { height:4px; }
+.goal-ranges-simulation { padding:4px 20px 16px; }
+.fixture-day-heading { color:var(--muted); font-size:11px; letter-spacing:.08em; text-transform:uppercase; margin:16px 14px 9px; padding-bottom:8px; border-bottom:1px solid var(--line-soft); }
+@media(max-width:620px) {
+  .goal-range-grid { gap:6px; padding:0 10px 13px; }
+  .goal-range-grid>div { padding:9px 6px; }
+  .goal-range-grid strong { font-size:16px; }
+  .goal-calibration-intro { padding:12px; }
+}
