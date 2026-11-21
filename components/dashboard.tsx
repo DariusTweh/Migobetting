@@ -15,10 +15,19 @@ type Data = { fixtures: Fixture[]; errors: string[]; fetchedAt: string };
 
 export function Dashboard({ initialData }: { initialData: Data }) {
   const [data, setData] = useState(initialData);
-  const { matches: history, ready: historyReady } = useLocalMatchHistoryStatus();
+  const { matches: history, ready: historyReady, syncing: historySyncing, error: historyError } = useLocalMatchHistoryStatus();
   const [league, setLeague] = useState("all");
   const [loading, setLoading] = useState(false);
   const fixtures = useMemo(() => league === "all" ? data.fixtures : data.fixtures.filter((fixture) => fixture.leagueId === league), [data.fixtures, league]);
+  const fixturesByDay = useMemo(() => {
+    const groups = new Map<string, Fixture[]>();
+    const formatter = new Intl.DateTimeFormat("en-US", { timeZone: "America/Los_Angeles", weekday: "long", month: "short", day: "numeric", year: "numeric" });
+    for (const fixture of fixtures) {
+      const label = formatter.format(new Date(fixture.kickoff));
+      groups.set(label, [...(groups.get(label) ?? []), fixture]);
+    }
+    return [...groups.entries()];
+  }, [fixtures]);
   const forecasts = fixtures
     .filter((fixture) => fixture.status === "scheduled" && Date.parse(fixture.kickoff) > Date.now())
     .map((fixture) => ({ fixture, forecast: forecastWithHistory(fixture, history) }));
@@ -60,11 +69,16 @@ export function Dashboard({ initialData }: { initialData: Data }) {
       </div>
 
       {data.errors.length > 0 && <Notice>Some providers did not respond: {data.errors.join(" · ")}. Available competitions are still shown.</Notice>}
+      {historySyncing ? <Notice>Loading completed-match scoring records for stronger league-specific predictions…</Notice> :
+        historyError ? <Notice>Historical scoring update was unavailable: {historyError}. Cached results are used when possible; otherwise model estimates are limited.</Notice> : null}
       <div className="grid-2 dashboard-grid">
         <Panel>
-          <PanelHead title="Fixture intelligence" meta={`${fixtures.length} fixtures · yesterday + current ESPN window`} action={<span className="freshness"><Satellite size={13} /> updated {new Date(data.fetchedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</span>} />
+          <PanelHead title="Fixture intelligence" meta={`${fixtures.length} fixtures · yesterday through the next 10 days · all returned matches shown`} action={<span className="freshness"><Satellite size={13} /> updated {new Date(data.fetchedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</span>} />
           <div className="fixture-list">
-            {fixtures.length > 0 ? fixtures.slice(0, 30).map((fixture) => <FixtureCard key={fixture.id} fixture={fixture} />) : <div className="empty-state"><strong>No fixtures returned</strong>ESPN has no matches from yesterday or its current scoreboard window for this competition.</div>}
+            {fixturesByDay.length > 0 ? fixturesByDay.map(([day, events]) => <div key={day}>
+              <h3 className="fixture-day-heading">{day} · {events.length} {events.length === 1 ? "match" : "matches"}</h3>
+              {events.map((fixture) => <FixtureCard key={fixture.id} fixture={fixture} forecast={forecastWithHistory(fixture, history)} />)}
+            </div>) : <div className="empty-state"><strong>No fixtures returned</strong>ESPN did not list a match for this competition in the requested dates. Try refreshing or a later schedule window.</div>}
           </div>
         </Panel>
         <div className="stack">
