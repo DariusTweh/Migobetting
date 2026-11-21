@@ -77,7 +77,7 @@ export function Dashboard({ initialData }: { initialData: Data }) {
           <div className="fixture-list">
             {fixturesByDay.length > 0 ? fixturesByDay.map(([day, events]) => <div key={day}>
               <h3 className="fixture-day-heading">{day} · {events.length} {events.length === 1 ? "match" : "matches"}</h3>
-              {events.map((fixture) => <FixtureCard key={fixture.id} fixture={fixture} forecast={forecastWithHistory(fixture, history)} />)}
+              <div className="fixture-day-games">{events.map((fixture) => <FixtureCard key={fixture.id} fixture={fixture} forecast={forecastWithHistory(fixture, history)} />)}</div>
             </div>) : <div className="empty-state"><strong>No fixtures returned</strong>ESPN did not list a match for this competition in the requested dates. Try refreshing or a later schedule window.</div>}
           </div>
         </Panel>
