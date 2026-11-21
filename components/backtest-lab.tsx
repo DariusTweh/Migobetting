@@ -29,6 +29,7 @@ const espnHistoryId = (name: string) => HISTORY_LEAGUES.find(([, title]) => titl
 const historicalYears = () => Array.from({ length: 3 }, (_, index) => new Date().getUTCFullYear() - 2 + index);
 const AUTOMATIC_ESPN_HISTORY = ["MLS"];
 const percent = (value: number | null) => value === null ? "—" : `${(value * 100).toFixed(1)}%`;
+const goalMetric = (value: number, unit: "goals" | "rate") => unit === "rate" ? (value * 100).toFixed(1) + "%" : value.toFixed(2);
 
 export function BacktestLab() {
   const [matches, setMatches] = useState<HistoricalMatch[]>([]);
@@ -293,6 +294,28 @@ function BacktestResults({ result }: { result: BacktestResult }) {
   const marketLabel = marketLabels[result.config.market];
   return <div className="stack backtest-results">
     <Panel className="plain-summary"><div className="plain-summary-copy"><span className="eyebrow">What happened · {marketLabel}</span><h2>MIGO made {result.qualified.toLocaleString()} picks. {result.correct.toLocaleString()} won and {result.incorrect.toLocaleString()} lost.</h2><p>It predicted {result.evaluated.toLocaleString()} later matches after learning team history from the older matches. A pick only counted when confidence reached {threshold}%; everything else was a pass.</p></div><div className="plain-result-metrics"><div><span>Picks made</span><strong>{result.qualified.toLocaleString()}</strong></div><div><span>Won</span><strong className="result-win">{result.correct.toLocaleString()}</strong></div><div><span>Lost</span><strong className="result-loss">{result.incorrect.toLocaleString()}</strong></div><div><span>Accuracy</span><strong>{percent(result.hitRate)}</strong></div><div><span>Money result</span><strong className={result.profit !== null && result.profit >= 0 ? "result-win" : "result-loss"}>{unitResult ?? "No valid prices"}</strong><small>{result.roi === null ? "ROI hidden without matching odds" : `${percent(result.roi)} return at 1 unit per pick`}</small></div></div></Panel>
+
+
+    {result.goalCalibration ? <Panel>
+      <PanelHead title="Are MIGO's goal and exact-score predictions calibrated?" meta={result.goalCalibration.sampleSize.toLocaleString() + " held-out fixtures · predictions compared with real results"} />
+      <div className="goal-calibration-intro">This checks whether MIGO repeatedly predicts too few goals or too many 1–0 / 1–1 matches. Unlike displaying only the modal score, it compares the <strong>full forecast distribution</strong> with actual completed matches. Observed values were not used to generate these predictions.</div>
+      <div className="goal-calibration-table">
+        <div className="goal-calibration-row goal-calibration-head"><span>Statistic</span><span>MIGO predicted</span><span>Actually happened</span><span>Actual minus predicted</span></div>
+        {result.goalCalibration.rows.map((row) => <div className="goal-calibration-row" key={row.key}>
+          <strong>{row.label}</strong>
+          <span>{goalMetric(row.predicted, row.unit)}</span>
+          <span>{goalMetric(row.observed, row.unit)}</span>
+          <b>{row.difference > 0 ? "+" : ""}{row.unit === "rate" ? (row.difference * 100).toFixed(1) + " pp" : row.difference.toFixed(2)}</b>
+        </div>)}
+      </div>
+      <div className="lineup-explanation"><strong>Scoring-bias assessment: </strong>{result.goalCalibration.verdict} This is a diagnostic, not an automatic adjustment trained on future results.</div>
+      {result.goalsByCompetition.length ? <details className="goal-calibration-leagues"><summary>Show scoring bias by competition</summary><div className="competition-table">
+        {result.goalsByCompetition.map((item) => {
+          const total = item.calibration.rows.find((row) => row.key === "total-goals");
+          return <div key={item.competition}><strong>{item.competition}</strong><span>{item.calibration.sampleSize} matches</span><span>{total ? total.predicted.toFixed(2) + " predicted goals" : "—"}</span><b>{total ? total.observed.toFixed(2) + " actual" : "—"}</b></div>;
+        })}
+      </div></details> : null}
+    </Panel> : null}
 
     {result.config.market === "best-pick" ? <Panel><PanelHead title="Markets MIGO chose automatically" meta="This shows which side had the highest model probability in each match. High confidence is not the same as betting value." /><div className="competition-table">{result.byMarket.map((item) => <div key={item.market}><strong>{item.market}</strong><span>{item.qualified} picks</span><span>{item.correct} won</span><b>{percent(item.hitRate)}</b></div>)}</div></Panel> : null}
 
