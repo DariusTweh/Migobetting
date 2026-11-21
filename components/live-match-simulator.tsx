@@ -41,6 +41,11 @@ export function LiveMatchSimulator({ fixtures }: { fixtures: Fixture[] }) {
     : null;
   const prediction = forecastResult?.input.seed === forecastSeed ? forecastResult : null;
   const modalScore = prediction ? representativeFinalScore(prediction) : null;
+  const goalRanges = prediction ? [
+    { label: "0–1 goals", probability: prediction.goalDistribution.filter((item) => item.goals < 2).reduce((sum, item) => sum + item.probability, 0) },
+    { label: "2–3 goals", probability: prediction.goalDistribution.filter((item) => item.goals >= 2 && item.goals < 4).reduce((sum, item) => sum + item.probability, 0) },
+    { label: "4+ goals", probability: prediction.goalDistribution.filter((item) => item.goals >= 4).reduce((sum, item) => sum + item.probability, 0) },
+  ] : [];
 
   // Do not use the user-editable playback seed here. A Web Worker runs 30K
   // correlation-adjusted score scenarios whenever model inputs change.
@@ -162,7 +167,17 @@ export function LiveMatchSimulator({ fixtures }: { fixtures: Fixture[] }) {
         <div className="forecast-scorelines">
           {prediction.scorelines.map((item) => <span key={item.score}>{item.score} · {(item.probability * 100).toFixed(1)}%</span>)}
         </div>
-        <p className="forecast-disclaimer">Pre-match model distribution, not live odds or a guaranteed result. Most frequent exact score does not mean that score is likely to happen most of the time. Lineup-specific player impact is not modeled in these probabilities.</p>
+        <div className="goal-range-grid goal-ranges-simulation">
+          {goalRanges.map((range) => <div key={range.label}>
+            <small>{range.label}</small>
+            <strong>{(range.probability * 100).toFixed(1)}%</strong>
+            <div className="prob-track"><i className="home" style={{ width: (range.probability * 100).toFixed(1) + "%" }} /></div>
+          </div>)}
+        </div>
+        <p className="forecast-disclaimer">
+          The most frequent exact score represents only {prediction.scorelines[0] ? (prediction.scorelines[0].probability * 100).toFixed(1) : "0"}% of 30,000 trials. Different scores are collectively much more likely.
+          These are pre-match model scenarios, not live odds, observed match events, or a guarantee. Lineup-specific player impact is not modeled in these probabilities.
+        </p>
       </> : !forecastLoading && !forecastError ? <div className="empty-state compact"><strong>Forecast unavailable</strong>Choose a fixture with sufficient scoring inputs.</div> : null}
     </Panel>
     <Panel>
