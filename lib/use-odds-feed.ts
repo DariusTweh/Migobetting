@@ -20,7 +20,7 @@ async function loadOdds(force = false): Promise<OddsFeed> {
   return pending;
 }
 
-export function useOddsFeed() {
+export function useOddsFeed(enabled = true) {
   const [feed, setFeed] = useState<OddsFeed | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -30,6 +30,9 @@ export function useOddsFeed() {
     catch (e) { setError(e instanceof Error ? e.message : "Could not load odds"); }
     finally { setLoading(false); }
   }, []);
-  useEffect(() => { void refresh(); }, [refresh]);
+  useEffect(() => {
+    if (enabled) void refresh();
+    else setLoading(false);
+  }, [enabled, refresh]);
   return { feed, loading, error, refresh };
 }
