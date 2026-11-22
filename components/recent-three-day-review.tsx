@@ -10,6 +10,10 @@ import type { Fixture } from "@/lib/types";
 import type { ForwardPrediction } from "@/lib/forward-store";
 import type { StrongestPickRecord } from "@/lib/strongest-record";
 import { Panel, PanelHead } from "./ui";
+import {
+  historicalReplayStats, readHistoricalReplayRecords, snapshotHistoricalReplayRecords,
+  HISTORICAL_REPLAY_CHANGE_EVENT, type HistoricalReplayRecord,
+} from "@/lib/historical-replay-record";
 
 type Mode = "all" | "recorded" | "replay";
 const recordType = (item: RecentGameReview) => {
@@ -31,6 +35,13 @@ export function RecentThreeDayReview({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [filter, setFilter] = useState<Mode>("all");
+  const [replayLedger, setReplayLedger] = useState<HistoricalReplayRecord[]>([]);
+  useEffect(() => {
+    const load = () => setReplayLedger(readHistoricalReplayRecords());
+    load();
+    window.addEventListener(HISTORICAL_REPLAY_CHANGE_EVENT, load);
+    return () => window.removeEventListener(HISTORICAL_REPLAY_CHANGE_EVENT, load);
+  }, []);
 
   async function refreshRecent() {
     setLoading(true); setError("");
@@ -50,6 +61,12 @@ export function RecentThreeDayReview({
   const reviews = useMemo(() =>
     buildRecentGameReviews(fixtures, history, strongest, forward),
     [fixtures, history, strongest, forward]);
+  useEffect(() => {
+    if (historyReady) snapshotHistoricalReplayRecords(reviews);
+  }, [historyReady, reviews]);
+  const stats = useMemo(() => historicalReplayStats(replayLedger), [replayLedger]);
+  const currentReplayStats = useMemo(() => historicalReplayStats(replayLedger.filter((item) =>
+    recentPacificDays().includes(pacificDayKey(item.kickoff)))), [replayLedger]);
   const displayed = reviews.filter((item) => filter === "all" ||
     (filter === "recorded" && (item.review === "strongest" || item.review === "forward")) ||
     (filter === "replay" && (item.review === "replay" || item.review === "unavailable")));
@@ -80,6 +97,37 @@ export function RecentThreeDayReview({
       <div><small>Saved picks correct</small><strong>{saved.length ? savedWins + " / " + saved.length : "—"}</strong></div>
       <div><small>Historical replays</small><strong>{replayed.length}</strong></div>
     </div>
+    <section className="historical-replay-scorecard" aria-label="Cumulative historical replay record">
+      <div className="historical-replay-title">
+        <strong>Historical Replay W–L</strong><span>Cumulative · retrospective only</span>
+      </div>
+      <div className="recent-review-summary historical-replay-metrics">
+        <div><small>Wins</small><strong>{stats.wins}</strong></div>
+        <div><small>Losses</small><strong>{stats.losses}</strong></div>
+        <div><small>Hit rate</small><strong>{stats.hitRate === null ? "—" : (stats.hitRate * 100).toFixed(1) + "%"}</strong></div>
+        <div><small>Last 3 days</small><strong>{currentReplayStats.wins}–{currentReplayStats.losses}</strong></div>
+      </div>
+      <details className="historical-replay-history">
+        <summary>View {stats.graded} saved replay results</summary>
+        {stats.graded ? <div className="historical-replay-rows">
+          {replayLedger.slice().sort((a, b) => b.kickoff.localeCompare(a.kickoff)).map((record) => (
+            <div className="recent-review-item" key={record.id}>
+              <div className="recent-review-primary">
+                <strong>{record.fixtureLabel}</strong>
+                <small>{record.league} · {new Date(record.kickoff).toLocaleDateString()} · HISTORICAL REPLAY</small>
+                <span>{record.market} · {(record.modelProbability * 100).toFixed(1)}% model</span>
+              </div>
+              <div className="recent-review-result">
+                <strong>{record.finalScore}</strong>
+                <span className={"badge " + (record.status === "won" ? "badge-good" : "badge-insufficient")}>
+                  {record.status.toUpperCase()}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div> : <p className="recent-review-help">No qualified retrospective picks recorded yet.</p>}
+      </details>
+    </section>
     <div className="lab-tabs recent-review-tabs">
       <button className={filter === "all" ? "active" : ""} onClick={() => setFilter("all")}>All games</button>
       <button className={filter === "recorded" ? "active" : ""} onClick={() => setFilter("recorded")}>Previously saved</button>
@@ -117,7 +165,7 @@ export function RecentThreeDayReview({
     <p className="recent-review-help">
       SAVED = a real pre-kickoff model snapshot in this browser. REPLAY = an after-the-fact model test
       trained on older results only, <strong>never counted as an originally made pick</strong>.
-      Older predictions cannot be recovered if they were never saved. The W–L record above stays separate.
+      Historical replays maintain their own cumulative W–L in this browser, separate from the authentic Strongest Pick Record.
     </p>
   </Panel>;
 }
