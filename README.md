@@ -4,10 +4,10 @@ Soccer fixture research, statistical match forecasts, simulation and paper-parla
 
 ## Dashboard
 
-- **Strongest Model Pick:** one upcoming selection (next 72 hours), showing match, market, estimated probability and a bookmaker quote when available. When no eligible quote exists, it is explicitly labeled **Model Lean** rather than a priced bet. When the data is inadequate, MIGO shows **PASS**.
+- **Strongest Model Pick:** one upcoming selection (next 72 hours), showing match, market, estimated probability and a bookmaker quote when available. When no eligible quote exists, it is explicitly labeled **Model Lean** rather than a priced bet. When the data is inadequate, MIGO shows **PASS**. Opening Command Center before kickoff automatically records its top selection.
 - **Daily Double / Banger:** priced research slips using markets quoted by one bookmaker, targeting at least +100 / +400 combined American odds. Automatic picks reject legs shorter than -350 and avoid multiple selections from the same match.
 - **Fixtures:** ESPN soccer scoreboards for the five major European domestic leagues, men's Champions League, MLS and UEFA Women's Champions League, including dated schedule requests across the next 10 days.
-- **Pick Builder / Paper:** edit legs and odds, save paper parlays, and track completed results. No wager is placed.
+- **Fixture details / Paper:** every eligible upcoming fixture shows its strongest model market immediately below the matchup. Visiting it before kickoff locks the first available selection for that fixture. For a finished match, only a previously recorded pick is shown; the app refuses to backfill results as if they were predictions. Paper Performance displays a dedicated Strongest Pick Record with W–L, accuracy, model probabilities, available prices, final scores and a Refresh results control. Singles and parlays remain separate. No wager is placed.
 
 ## Predictions and simulation
 
@@ -34,6 +34,6 @@ TheRundown free pre-match quotes are delayed and may not include every competiti
 
 ## Data and scope
 
-- Browser storage holds historical imports, local settings and paper results; there is no automatic betting.
+- The strongest-pick ledger is a **browser-local forward record**, not a tamper-proof server audit: a pick is saved only when a user visits the Command Center or a fixture before kickoff. Grading checks ESPN final scores when Paper Performance is opened or refreshed. No retroactive entries, automatic betting, background grading while the app is closed, or cross-device sync. Clearing local site data loses the record.
 - Predictions are **uncalibrated statistical estimates**. Quoted odds can change, may not be available in your jurisdiction, and do not prove an edge.
 - ESPN schedule and results endpoints are unofficial and can omit games. Fixture coverage is expanded but not guaranteed complete.
