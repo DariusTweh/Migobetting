@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   buildStrongestPickRecord, gradeStrongestPick, readStrongestPicks,
-  snapshotStrongestPick, strongestMarketWins,
+  snapshotStrongestPick, snapshotStrongestPicks, strongestMarketWins,
 } from "../lib/strongest-record";
 import type { StrongestPick } from "../lib/strongest-pick";
 import type { Fixture } from "../lib/types";
@@ -51,6 +51,32 @@ describe("prospective strongest model pick tracking", () => {
     expect(strongestMarketWins("under-3.5", 2, 1)).toBe(true);
     expect(strongestMarketWins("btts", 2, 0)).toBe(false);
   });
+  it("records every future match's strongest market once and preserves it across refreshes", () => {
+    const data = new Map<string, string>();
+    const dispatchEvent = vi.fn();
+    vi.stubGlobal("localStorage", {
+      getItem: (key: string) => data.get(key) ?? null,
+      setItem: (key: string, value: string) => { data.set(key, value); },
+    });
+    vi.stubGlobal("window", { dispatchEvent });
+    const other: Fixture = {
+      ...fixture, id: "match-002", kickoff: new Date(now + 48 * 3600000).toISOString(),
+    };
+    const selections = [
+      { fixture, pick, source: "command-center" as const },
+      { fixture: other, pick: { ...pick, fixtureId: other.id, marketKey: "home",
+          market: "Arsenal win", probability: 0.7 }, source: "command-center" as const },
+    ];
+    expect(snapshotStrongestPicks(selections, now)).toBe(2);
+    expect(readStrongestPicks().length).toBe(2);
+    expect(dispatchEvent).toHaveBeenCalledTimes(1);
+    expect(snapshotStrongestPicks(selections.map((entry) => ({
+      ...entry, pick: { ...entry.pick, market: "Changed after refresh" },
+    })), now + 100000)).toBe(0);
+    expect(readStrongestPicks().find((p) => p.fixtureId === fixture.id)?.market).toBe("Over 1.5 goals");
+    expect(snapshotStrongestPicks(selections, now + 72 * 3600000)).toBe(0);
+  });
+
   it("locks one original pick per fixture and never changes its price or market", () => {
     const map = new Map<string, string>();
     vi.stubGlobal("localStorage", {
