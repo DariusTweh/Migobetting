@@ -10,6 +10,7 @@ import type { Fixture } from "@/lib/types";
 import { americanToDecimal, decimalToAmerican, formatAmerican, impliedProbability } from "@/lib/odds";
 import { useLocalMatchHistory } from "@/lib/use-local-history";
 import { createPaperParlay, savePaperParlay } from "@/lib/paper-parlays";
+import { AIReasoning } from "./ai-reasoning";
 
 type Leg = { id: string; fixtureId: string; market: string; odds: number | null; bookKey?: string; bookmaker?: string; quoteSource?: string; quoteUpdatedAt?: string };
 type CardKind = "daily-double" | "banger" | "manual";
@@ -53,6 +54,42 @@ export function PickBuilder({ fixtures }: { fixtures: Fixture[] }) {
     }
     return { probability };
   }, [legs, fixtureMap, history]);
+
+  const draftAIContext = useMemo(() => ({
+    analysisType: "parlay" as const,
+    draft: true,
+    cardKind: kind,
+    legCount: legs.length,
+    bookmakerStatus: [...new Set(legs.map((leg) => leg.bookmaker || "Manual/unverified"))],
+    quotedCombinedAmerican: combined,
+    uncalibratedModelJointProbability: modelEstimate?.probability ?? null,
+    legs: legs.slice(0, 12).map((leg) => {
+      const fixture = fixtureMap.get(leg.fixtureId);
+      const marketKey = Object.entries(MARKET_KEYS).find(([, value]) => value === leg.market)?.[0];
+      const prediction = fixture && marketKey ?
+        forecastWithHistory(fixture, history).markets.find((market) => market.key === marketKey) : null;
+      return {
+        fixtureId: leg.fixtureId,
+        match: fixture ? fixture.home.shortName + " vs " + fixture.away.shortName : "Unmatched fixture",
+        kickoff: fixture?.kickoff ?? null,
+        competition: fixture?.league ?? null,
+        selectedMarket: leg.market,
+        enteredAmericanPrice: leg.odds,
+        bookmaker: leg.bookmaker ?? null,
+        source: leg.quoteSource ?? "User-entered price, not verified by provider",
+        providerUpdatedAt: leg.quoteUpdatedAt ?? null,
+        modelMarketProbability: prediction?.probability ?? null,
+        modelVersion: fixture ? forecastWithHistory(fixture, history).modelVersion : null,
+      };
+    }),
+    omittedLegCount: Math.max(0, legs.length - 12),
+    caveats: [
+      "The model is not calibrated. Quoted odds may be delayed or unavailable locally.",
+      "Manually edited odds are not independently verified.",
+      "Leg independence and combined probability may be inaccurate.",
+      "Do not infer real edge from uncalibrated model-vs-book differences.",
+    ],
+  }), [kind, legs, fixtureMap, history, combined, modelEstimate]);
 
   function autoBuild(target: "daily-double" | "banger") {
     const proposed = buildPricedCard(fixtures, feed?.quotes ?? [], target, history);
@@ -195,6 +232,11 @@ export function PickBuilder({ fixtures }: { fixtures: Fixture[] }) {
             <div><span>Potential gross return</span><strong>{payout === null ? "—" : "$" + payout.toFixed(2)}</strong></div>
           </div>
           {kind === "daily-double" && combined !== null && combined < 100 ? <div className="model-warning"><TriangleAlert size={14}/>Actual entered prices do not reach the +100 Daily Double target.</div> : null}
+          <AIReasoning
+            kind="parlay"
+            context={draftAIContext}
+            fingerprint={kind + ":" + JSON.stringify(legs.map((leg) => [leg.fixtureId, leg.market, leg.odds, leg.quoteUpdatedAt]))}
+          />
           <button className="button button-primary full-button" disabled={!allPriced || duplicateFixture || saved || (kind === "daily-double" && combined !== null && combined < 100)} onClick={save}><Save size={16}/>{saved ? "Saved to paper parlays" : "Lock complete paper parlay"}</button>
         </div> : <div className="empty-state"><Calculator size={30}/><strong>Pick a research card</strong>Generate a Daily Double or Banger above, or build manually. MIGO never invents bookmaker prices.</div>}
       </Panel>
