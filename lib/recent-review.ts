@@ -58,6 +58,7 @@ export function earliestForwardByFixture(items: ForwardPrediction[]): Map<string
 
 export type RecentGameReview = {
   fixtureId: string;
+  leagueId: Fixture["leagueId"];
   fixtureLabel: string;
   league: string;
   kickoff: string;
@@ -93,6 +94,7 @@ export function buildRecentGameReviews(
       ? fixture.home.score + "–" + fixture.away.score : "—";
     const base = {
       fixtureId: fixture.id,
+      leagueId: fixture.leagueId,
       fixtureLabel: fixture.home.shortName + " vs " + fixture.away.shortName,
       league: fixture.league,
       kickoff: fixture.kickoff,
