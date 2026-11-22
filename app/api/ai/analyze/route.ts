@@ -1,6 +1,6 @@
 import { createHash, timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
-import { isAIAnalysis, type AIAnalysis } from "@/lib/ai-analysis";
+import { isAIAnalysis, type AIAnalysis } from "../../../../lib/ai-analysis";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
