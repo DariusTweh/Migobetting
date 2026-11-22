@@ -97,6 +97,32 @@ export function snapshotStrongestPick(
   } catch { return null; }
 }
 
+/**
+ * Lock every visible, eligible fixture's actual strongest market in one local
+ * storage transaction. This is not a retroactive backfill; buildStrongestPickRecord
+ * rejects started/final matches. Existing locked selections always take priority.
+ */
+export function snapshotStrongestPicks(
+  selections: Array<{ pick: StrongestPick; fixture: Fixture; source: StrongestPickRecord["source"] }>,
+  now = Date.now(),
+): number {
+  if (typeof window === "undefined") return 0;
+  const saved = readStrongestPicks();
+  const known = new Set(saved.map((item) => item.id));
+  const additions: StrongestPickRecord[] = [];
+  for (const entry of selections) {
+    const record = buildStrongestPickRecord(entry.pick, entry.fixture, entry.source, now);
+    if (!record || known.has(record.id)) continue;
+    known.add(record.id);
+    additions.push(record);
+  }
+  if (!additions.length) return 0;
+  try {
+    write([...additions, ...saved]);
+    return additions.length;
+  } catch { return 0; }
+}
+
 /** Grade the selected canonical market against actual ESPN full-time scores. */
 export function strongestMarketWins(key: MarketKey, home: number, away: number): boolean {
   switch (key) {
