@@ -18,6 +18,7 @@ export function strongestUnpricedMarket(forecast: Forecast): MarketProbability |
 
 export type StrongestPick = {
   fixtureId: string;
+  marketKey: string;
   fixtureLabel: string;
   league: string;
   kickoff: string;
@@ -57,7 +58,7 @@ export function strongestModelPick(
   if (priced.length) {
     const { candidate, forecast } = priced[0];
     return {
-      fixtureId: candidate.fixtureId, fixtureLabel: candidate.fixtureLabel,
+      fixtureId: candidate.fixtureId, marketKey: candidate.marketKey, fixtureLabel: candidate.fixtureLabel,
       league: candidate.league, kickoff: candidate.kickoff,
       market: forecast.markets.find((market) => market.key === candidate.marketKey)?.label ?? candidate.market,
       probability: candidate.probability, quality: forecast.dataQuality,
@@ -81,7 +82,7 @@ export function strongestModelPick(
   if (!unpriced.length) return null;
   const { fixture, forecast, market } = unpriced[0];
   return {
-    fixtureId: fixture.id, fixtureLabel: fixture.home.shortName + " vs " + fixture.away.shortName,
+    fixtureId: fixture.id, marketKey: market.key, fixtureLabel: fixture.home.shortName + " vs " + fixture.away.shortName,
     league: fixture.league, kickoff: fixture.kickoff, market: market.label,
     probability: market.probability, quality: forecast.dataQuality,
     modelVersion: forecast.modelVersion, evidence: forecast.evidence[0] ?? "Model scoring estimate",
