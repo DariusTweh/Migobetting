@@ -639,31 +639,22 @@ main { padding: 34px; max-width: 1510px; margin: 0 auto; }
 .fixture-day-games .fixture-card { display:block; }
 @media(max-width:1180px) { .fixture-day-games { grid-template-columns:1fr; } }
 
-
-/* On-demand, access-locked OpenAI reasoning panel (never modifies model scores). */
-.migo-ai-panel { border:1px solid #354a47; border-radius:12px; background:linear-gradient(130deg,#101d23,#0e161c); margin:12px 0; overflow:hidden; }
-.migo-ai-head { padding:14px 16px; display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; border-bottom:1px solid var(--line-soft); }
-.migo-ai-head>div { display:flex; align-items:center; gap:9px; color:var(--lime); }
-.migo-ai-head>div strong { font-size:14px; }
-.migo-ai-head>span { color:var(--muted); font-size:10px; text-transform:uppercase; letter-spacing:.07em; }
-.migo-ai-info { padding:12px 16px 3px; margin:0; color:var(--muted); font-size:12px; line-height:1.6; }
-.migo-ai-actions { display:flex; align-items:end; flex-wrap:wrap; padding:10px 16px 15px; gap:10px; }
-.migo-ai-actions>.button { white-space:nowrap; min-height:38px; }
-.migo-ai-access { display:grid; gap:7px; flex:1; min-width:170px; }
-.migo-ai-access>span { color:var(--muted); font-size:11px; }
-.migo-ai-access>.input { min-height:38px; }
-.migo-ai-result { padding:4px 16px 15px; display:grid; gap:12px; }
-.migo-ai-verdict { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
-.migo-ai-verdict strong { font-size:14px; }
-.migo-ai-columns { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
-.migo-ai-columns>div { background:#0d181e; border:1px solid var(--line-soft); border-radius:9px; padding:12px 13px; }
-.migo-ai-columns>div>strong { font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); }
-.migo-ai-columns p { margin:9px 0 0; color:var(--text); font-size:12px; line-height:1.5; }
-.migo-ai-missing { display:flex; gap:9px; align-items:start; color:#eccb8b; font-size:12px; }
-.migo-ai-missing svg { flex:none; margin-top:2px; }
-.migo-ai-conclusion { border-left:3px solid var(--lime); padding:8px 13px; margin:0; background:#18221b; color:var(--text); line-height:1.6; font-size:12px; }
-.migo-ai-foot { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; }
-.migo-ai-foot small { color:var(--muted); font-size:11px; }
-.migo-ai-error { margin:0 16px 12px; display:flex; gap:9px; align-items:start; font-size:12px; color:#f6aca8; }
-.migo-ai-disclaimer { display:block; font-size:10px; line-height:1.5; padding:10px 16px 13px; border-top:1px solid var(--line-soft); color:var(--faint); }
-@media(max-width:650px) { .migo-ai-columns { grid-template-columns:1fr; } .migo-ai-head { align-items:start; } }
+.top-pick { padding:16px 18px; display:grid; gap:12px; }
+.top-pick-top { display:flex; align-items:center; justify-content:space-between; gap:10px; color:var(--muted); font-size:11px; }
+.top-pick-match { display:block; font-size:clamp(18px,2.2vw,23px); line-height:1.25; }
+.top-pick-selection { color:var(--lime); font-size:17px; font-weight:800; }
+.top-pick-numbers { display:grid; grid-template-columns:1fr 1fr; gap:9px; }
+.top-pick-numbers>div { display:grid; gap:4px; background:#101c20; border:1px solid var(--line-soft); border-radius:8px; padding:10px 12px; }
+.top-pick-numbers small { color:var(--muted); font-size:11px; }
+.top-pick-numbers strong { font-variant-numeric:tabular-nums; font-size:24px; }
+.top-pick-evidence { color:var(--muted); font-size:12px; line-height:1.55; margin:0; }
+.top-pick-bottom { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; }
+.top-pick-bottom>span, .top-pick-note { color:var(--muted); font-size:11px; }
+.top-pick-note { padding:0 2px; line-height:1.6; }
+.card-body-compact { min-height:initial; padding:14px 17px; }
+.card-body-compact p { margin:0 0 8px; }
+.model-notes { border:1px solid var(--line-soft); background:var(--panel); border-radius:10px; }
+.model-notes summary { cursor:pointer; font-size:12px; font-weight:700; padding:14px 16px; }
+.model-notes-content { padding:0 16px 14px; color:var(--muted); font-size:12px; line-height:1.6; }
+.model-notes-content strong { color:var(--text); display:block; margin-top:8px; }
+.model-notes-content p { margin:5px 0; }
