@@ -164,7 +164,9 @@ export function PickBuilder({ fixtures }: { fixtures: Fixture[] }) {
       <button onClick={() => autoBuild("banger")}><Layers3 size={16}/> Generate Banger</button>
       <button onClick={() => { setLegs([]); setKind("manual"); setSaved(false); setNotice(""); }}>Clear card</button>
     </div>
-    <div className="notice">Odds provider: {oddsLoading ? "Loading…" : feed?.provider ?? "Unavailable"}. {feed?.setupRequired ? "TheRundown free key not yet configured." : "Only currently quoted prices are used for automatic parlays."}{oddsError ? " " + oddsError : ""}</div>
+    {(oddsLoading || oddsError || feed?.setupRequired) ? <div className="notice">
+      {oddsLoading ? "Loading odds…" : oddsError ? "Odds unavailable · " + oddsError : "No odds API key · manual pricing available."}
+    </div> : null}
     {notice ? <div className="lineup-explanation">{notice}</div> : null}
     <div className="builder-layout">
       <Panel>
@@ -199,6 +201,6 @@ export function PickBuilder({ fixtures }: { fixtures: Fixture[] }) {
         </div> : <div className="empty-state"><Calculator size={30}/><strong>Pick a research card</strong>Generate a Daily Double or Banger above, or build manually. MIGO never invents bookmaker prices.</div>}
       </Panel>
     </div>
-    <Notice>Paper only · quotes can change · manual odds are unverified.</Notice>
+    <Notice>Paper only. Check prices before using.</Notice>
   </>;
 }
