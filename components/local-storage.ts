@@ -28,6 +28,6 @@ export function setBankroll(value: number) {
 }
 
 export function resetLocalData() {
-  [BET_KEY, BANKROLL_KEY, "migo:leagues:v1", "migo:confidence:v1", "migo:paper-parlays:v1", "migo:forward-predictions:v1", "migo:strongest-picks:v1"].forEach((key) => localStorage.removeItem(key));
+  [BET_KEY, BANKROLL_KEY, "migo:leagues:v1", "migo:confidence:v1", "migo:paper-parlays:v1", "migo:forward-predictions:v1", "migo:strongest-picks:v1", "migo:historical-replay-record:v1"].forEach((key) => localStorage.removeItem(key));
   window.dispatchEvent(new Event("migo:storage"));
 }
