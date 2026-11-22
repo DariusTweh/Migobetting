@@ -7,6 +7,8 @@ import { useMemo, useState } from "react";
 import { useLocalMatchHistory } from "@/lib/use-local-history";
 import { forecastWithHistory } from "@/lib/historical-forecast";
 import { describeScoreUncertainty } from "@/lib/score-context";
+import { fixtureAIContext } from "@/lib/ai-analysis";
+import { AIReasoning } from "./ai-reasoning";
 import { formatAmerican } from "@/lib/odds";
 import type { Fixture, LineupIntelligence, TeamLineup } from "@/lib/types";
 import { Notice, Panel, PanelHead } from "./ui";
@@ -77,7 +79,13 @@ export function MatchIntelligence({ fixture, lineups }: { fixture: Fixture; line
             <div className="verdict"><span>Current verdict</span><strong>{model.qualified ? "RESEARCH SHORTLIST" : "PASS"}</strong><p>{model.qualified ? "The probability clears the baseline threshold, but a quoted price is still needed to assess value." : "The evidence is not strong enough for a qualified selection."}</p></div>
           </div>
         </Panel>
-        <Notice>AI narrative generation is intentionally inactive until a server-side OpenAI key is configured. All text shown here is deterministic and grounded in visible model inputs.</Notice>
+        <AIReasoning
+          kind="fixture"
+          context={fixtureAIContext(fixture, model, lineups)}
+          fingerprint={[fixture.id, model.modelVersion, model.expectedHomeGoals.toFixed(4),
+            model.expectedAwayGoals.toFixed(4), lineups.checkedAt].join(":")}
+        />
+        <Notice>The numerical predictions above remain deterministic; OpenAI produces a separate evidence-based audit on request. It does not recalculate the model or verify outside news.</Notice>
       </div>
     </div> : <LineupView fixture={fixture} lineups={lineups} baselineHome={model.expectedHomeGoals} baselineAway={model.expectedAwayGoals} />}
   </>;
