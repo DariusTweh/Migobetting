@@ -4,7 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { Clock3 } from "lucide-react";
 import { forecastFixture } from "@/lib/model";
-import { formatAmerican } from "@/lib/odds";
 import type { Fixture, Forecast } from "@/lib/types";
 
 function percent(value: number) { return `${Math.round(value * 100)}%`; }
@@ -12,10 +11,12 @@ function percent(value: number) { return `${Math.round(value * 100)}%`; }
 export function FixtureCard({ fixture, forecast: suppliedForecast }: { fixture: Fixture; forecast?: Forecast }) {
   const forecast = suppliedForecast ?? forecastFixture(fixture);
   const date = new Date(fixture.kickoff);
-  const best = forecast.markets[0];
+  const best = forecast.markets.find((item) => item.probability >= 0.62 && item.probability <= 0.78 &&
+    ["home", "away", "over-1.5", "over-2.5", "under-3.5", "btts"].includes(item.key));
   const hasScore = (fixture.status === "live" || fixture.status === "final") &&
     fixture.home.score !== undefined && fixture.away.score !== undefined;
   const isResult = fixture.status === "final";
+  const isPlaying = fixture.status === "live";
   const badge = fixture.status === "live" ? "Live" : isResult ? "Final" : forecast.dataQuality;
   const badgeTone = fixture.status === "live" ? "live" : isResult ? "good" : forecast.dataQuality;
   return (
@@ -36,7 +37,9 @@ export function FixtureCard({ fixture, forecast: suppliedForecast }: { fixture: 
         </div>
       </div>
       <div className="forecast-strip">
-        {isResult ? <><div><small>Match result</small><strong>{fixture.statusLabel}</strong></div>{hasScore ? <div className="forecast-value"><strong>{fixture.home.score}–{fixture.away.score}</strong><small>reported score</small></div> : null}</> : forecast.dataQuality === "insufficient" ? <span>Insufficient data for a qualified forecast</span> : <><div><small>Model lean</small><strong>{best.label}</strong></div><div className="forecast-value"><strong>{percent(best.probability)}</strong><small>fair {formatAmerican(best.fairAmerican)}</small></div></>}
+        {isResult || isPlaying ? <><div><small>{isResult ? "Full time" : "Live score"}</small><strong>{fixture.statusLabel}</strong></div>{hasScore ? <div className="forecast-value"><strong>{fixture.home.score}–{fixture.away.score}</strong><small>ESPN</small></div> : null}</> :
+          best ? <><div><small>Model lean</small><strong>{best.label}</strong></div><div className="forecast-value"><strong>{percent(best.probability)}</strong><small>{forecast.dataQuality} data</small></div></> :
+          <span>{forecast.dataQuality === "insufficient" ? "Not enough match data" : "View model forecast"}</span>}
       </div>
     </Link>
   );
