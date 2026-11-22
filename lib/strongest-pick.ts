@@ -1,4 +1,4 @@
-import type { Fixture, Forecast } from "./types";
+import type { Fixture, Forecast, MarketProbability } from "./types";
 import type { HistoricalMatch } from "./history";
 import type { MarketQuote } from "./market-odds";
 import { pricedCandidates } from "./priced-cards";
@@ -6,6 +6,15 @@ import { forecastWithHistory } from "./historical-forecast";
 
 const HORIZON_MS = 72 * 60 * 60 * 1000;
 const UNPRICED_MARKETS = new Set(["home", "away", "over-1.5", "over-2.5", "under-3.5", "btts"]);
+
+/** Same moderate-probability market filter for dashboard and match detail pages. */
+export function strongestUnpricedMarket(forecast: Forecast): MarketProbability | null {
+  if (forecast.dataQuality === "insufficient") return null;
+  return forecast.markets.find((market) =>
+    UNPRICED_MARKETS.has(market.key) &&
+    market.probability >= 0.62 && market.probability <= 0.78
+  ) ?? null;
+}
 
 export type StrongestPick = {
   fixtureId: string;
@@ -26,11 +35,12 @@ export type StrongestPick = {
 
 export function strongestModelPick(
   fixtures: Fixture[], quotes: MarketQuote[], history: HistoricalMatch[] = [], now = Date.now(),
+  horizonMs = HORIZON_MS,
 ): StrongestPick | null {
   const fixtureById = new Map(fixtures.map((fixture) => [fixture.id, fixture]));
   const withinHorizon = (kickoff: string) => {
     const time = Date.parse(kickoff);
-    return Number.isFinite(time) && time > now && time <= now + HORIZON_MS;
+    return Number.isFinite(time) && time > now && time - now <= horizonMs;
   };
   const priced = pricedCandidates(fixtures, quotes, history, now)
     .filter((candidate) => withinHorizon(candidate.kickoff))
@@ -62,11 +72,8 @@ export function strongestModelPick(
   const unpriced = fixtures.filter((f) => f.status === "scheduled" && withinHorizon(f.kickoff))
     .flatMap((fixture) => {
       const forecast = forecastWithHistory(fixture, history);
-      if (forecast.dataQuality === "insufficient") return [];
-      return forecast.markets
-        .filter((market) => UNPRICED_MARKETS.has(market.key) &&
-          market.probability >= 0.62 && market.probability <= 0.78)
-        .map((market) => ({ fixture, forecast, market }));
+      const market = strongestUnpricedMarket(forecast);
+      return market ? [{ fixture, forecast, market }] : [];
     }).sort((a, b) =>
       Number(b.forecast.dataQuality === "good") - Number(a.forecast.dataQuality === "good") ||
       b.market.probability - a.market.probability ||
