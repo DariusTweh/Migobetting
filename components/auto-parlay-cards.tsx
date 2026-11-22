@@ -7,6 +7,7 @@ import { useLocalMatchHistoryStatus } from "@/lib/use-local-history";
 import { useOddsFeed } from "@/lib/use-odds-feed";
 import { buildPricedCard, type PricedCard } from "@/lib/priced-cards";
 import { strongestModelPick } from "@/lib/strongest-pick";
+import { snapshotStrongestPick } from "@/lib/strongest-record";
 import { snapshotAutoPaperParlays } from "@/lib/paper-parlays";
 import { formatAmerican } from "@/lib/odds";
 import type { Fixture } from "@/lib/types";
@@ -23,8 +24,13 @@ function StrongestPick({ fixtures, quotes, history, ready }: {
   ready: boolean;
 }) {
   const pick = useMemo(() => ready ? strongestModelPick(fixtures, quotes, history) : null, [ready, fixtures, quotes, history]);
+  useEffect(() => {
+    if (!ready || !pick) return;
+    const fixture = fixtures.find((item) => item.id === pick.fixtureId);
+    if (fixture) snapshotStrongestPick(pick, fixture, "command-center");
+  }, [ready, pick, fixtures]);
   return <Panel>
-    <PanelHead title="Strongest Model Pick" meta="Next 72 hours · one selection" />
+    <PanelHead title="Strongest Model Pick" meta="Next 72 hours · recorded before kickoff" />
     {!ready ? <div className="empty-state compact">Loading match data and odds…</div> :
       pick ? <div className="top-pick">
         <div className="top-pick-top">
