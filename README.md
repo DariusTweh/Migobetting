@@ -37,4 +37,3 @@ TheRundown free pre-match quotes are delayed and may not include every competiti
 - Browser storage holds historical imports, local settings and paper results; there is no automatic betting.
 - Predictions are **uncalibrated statistical estimates**. Quoted odds can change, may not be available in your jurisdiction, and do not prove an edge.
 - ESPN schedule and results endpoints are unofficial and can omit games. Fixture coverage is expanded but not guaranteed complete.
-- No OpenAI API integration or paid model calls are part of this app.
