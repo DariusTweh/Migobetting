@@ -10,9 +10,11 @@ import { strongestModelPick } from "@/lib/strongest-pick";
 import { snapshotAutoPaperParlays } from "@/lib/paper-parlays";
 import { formatAmerican } from "@/lib/odds";
 import type { Fixture } from "@/lib/types";
+import type { MarketQuote } from "@/lib/market-odds";
 import { Panel, PanelHead } from "./ui";
 
 const pct = (p: number) => (p * 100).toFixed(1) + "%";
+const EMPTY_QUOTES: MarketQuote[] = [];
 
 function StrongestPick({ fixtures, quotes, history, ready }: {
   fixtures: Fixture[];
@@ -23,7 +25,7 @@ function StrongestPick({ fixtures, quotes, history, ready }: {
   const pick = useMemo(() => ready ? strongestModelPick(fixtures, quotes, history) : null, [ready, fixtures, quotes, history]);
   return <Panel>
     <PanelHead title="Strongest Model Pick" meta="Next 72 hours · one selection" />
-    {!ready ? <div className="empty-state compact">Checking match history…</div> :
+    {!ready ? <div className="empty-state compact">Loading match data and odds…</div> :
       pick ? <div className="top-pick">
         <div className="top-pick-top">
           <span className={"badge " + (pick.pricing === "quoted" ? "badge-good" : "badge-limited")}>
@@ -83,7 +85,7 @@ function Card({ card }: { card: PricedCard }) {
 export function AutoParlayCards({ fixtures }: { fixtures: Fixture[] }) {
   const { matches: history, ready: historyReady } = useLocalMatchHistoryStatus();
   const { feed, loading, error } = useOddsFeed();
-  const quotes = feed?.quotes ?? [];
+  const quotes = feed?.quotes ?? EMPTY_QUOTES;
   const double = useMemo(() => buildPricedCard(fixtures, quotes, "daily-double", history), [fixtures, quotes, history]);
   const banger = useMemo(() => buildPricedCard(fixtures, quotes, "banger", history), [fixtures, quotes, history]);
   useEffect(() => {
