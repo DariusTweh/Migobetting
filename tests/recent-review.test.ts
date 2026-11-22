@@ -69,6 +69,31 @@ describe("recent three-day review (real snapshots versus reconstructed replays)"
     expect(validPreKickoffSnapshot("2026-11-21T20:00:00Z", lastFriday.kickoff)).toBe(false);
   });
 
+  it("shows saved goals-market and independent 1X2 selections on the same completed fixture", () => {
+    // Bologna–Udinese-style case: 1–1 wins Over 1.5 but loses the home 1X2 lean.
+    const bologna = match("bologna", lastFriday.kickoff, 1, 1);
+    const savedGoals: StrongestPickRecord = {
+      ...strongest, fixtureId: "bologna", leagueId: "eng.1",
+      marketKey: "over-1.5", market: "Over 1.5 goals", probability: 0.76,
+    };
+    const saved1x2: ForwardPrediction = {
+      ...forward, fixtureId: "bologna", kickoff: bologna.kickoff,
+      lockedAt: "2026-11-20T10:00:00Z",
+      predictedOutcome: "home",
+      probabilities: { ...forward.probabilities, home: 0.515 },
+    };
+    const result = buildRecentGameReviews([bologna], [], [savedGoals], [saved1x2], now);
+    expect(result).toHaveLength(1);
+    expect(result[0]).toMatchObject({
+      review: "strongest", market: "Over 1.5 goals", verdict: "won",
+      additional1X2: { market: "Arsenal win", probability: 0.515, verdict: "lost" },
+    });
+    // Without an original strongest-market snapshot we must NOT replace it with 1X2.
+    const onlyOutcome = buildRecentGameReviews([bologna], [], [], [saved1x2], now);
+    expect(onlyOutcome[0]).toMatchObject({ review: "forward", verdict: "lost" });
+    expect(onlyOutcome[0].additional1X2).toBeUndefined();
+  });
+
   it("excludes invalid post-kickoff forward records and keeps only the earliest saved pre-kickoff version", () => {
     const earlier = { ...forward, lockedAt: "2026-11-18T14:00:00Z", id: "earlier" };
     const after = { ...forward, lockedAt: "2026-11-21T14:00:00Z", id: "after" };
