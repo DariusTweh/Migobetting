@@ -29,7 +29,7 @@ function StrongestPick({ fixtures, quotes, history, ready }: {
     const fixture = fixtures.find((item) => item.id === pick.fixtureId);
     if (fixture) snapshotStrongestPick(pick, fixture, "command-center");
   }, [ready, pick, fixtures]);
-  return <Panel>
+  return <Panel className="strongest-spotlight">
     <PanelHead title="Strongest Model Pick" meta="Next 72 hours · recorded before kickoff" />
     {!ready ? <div className="empty-state compact">Loading match data and odds…</div> :
       pick ? <div className="top-pick">
@@ -46,11 +46,10 @@ function StrongestPick({ fixtures, quotes, history, ready }: {
           <div><small>{pick.pricing === "quoted" ? "Quoted American odds" : "Bookmaker odds"}</small>
             <strong>{pick.quotedAmerican !== null ? formatAmerican(pick.quotedAmerican) : "Unavailable"}</strong></div>
         </div>
-        <p className="top-pick-evidence">{pick.evidence}</p>
         <div className="top-pick-bottom">
           <span>{pick.pricing === "quoted" ? pick.bookmaker + " · " + pick.quality + " data" :
             "No qualifying quote · " + pick.quality + " data"}</span>
-          <Link className="button" href={"/matches/" + pick.fixtureId}>Match breakdown <ArrowRight size={14}/></Link>
+          <Link className="button" href={"/matches/" + pick.fixtureId}>View match <ArrowRight size={14}/></Link>
         </div>
       </div> : <div className="empty-state compact">
         <strong>PASS</strong>No supported pick in the next 72 hours.
@@ -63,7 +62,7 @@ function Card({ card }: { card: PricedCard }) {
   const payload = encodeURIComponent(JSON.stringify(card.legs.map((leg) => ({
     fixtureId: leg.fixtureId, marketKey: leg.marketKey, bookKey: leg.bookKey,
   }))));
-  return <Panel>
+  return <Panel className="parlay-preview">
     <PanelHead title={title} meta={card.kind === "daily-double" ? "+100 target" : "+400 target"} />
     {card.legs.length ? <div className="suggested-card">
       <div className="suggested-card-summary">
@@ -97,12 +96,11 @@ export function AutoParlayCards({ fixtures }: { fixtures: Fixture[] }) {
   useEffect(() => {
     if (!loading && feed && historyReady) snapshotAutoPaperParlays([double, banger]);
   }, [loading, feed, historyReady, double, banger]);
-  return <div className="stack">
+  return <section className="migo-highlights" aria-label="MIGO picks and parlays">
     <StrongestPick fixtures={fixtures} quotes={quotes} history={history} ready={historyReady && !loading} />
     {error ? <div className="notice">Odds unavailable · model-only picks shown.</div> :
       feed?.setupRequired ? <div className="notice">Add TheRundown key for quoted picks.</div> : null}
-    <Card card={double} />
-    <Card card={banger} />
+    <div className="parlay-preview-grid"><Card card={double} /><Card card={banger} /></div>
     <small className="top-pick-note">Model estimates are not calibrated win rates. Quotes may change; no bet is placed.</small>
-  </div>;
+  </section>;
 }
