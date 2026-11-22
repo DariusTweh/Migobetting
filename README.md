@@ -127,3 +127,25 @@ The app cannot authenticate to TheRundown from GitHub Actions because the actual
 - ESPN APIs are undocumented and sometimes incomplete; fixture coverage is broader, not a guaranteed complete official league schedule. The app still uses available ESPN fixture IDs for detail views.
 
 To inspect scoring calibration, open **/backtest**, select a league (or All), and run the historical test. To see full fixtures, open Command Center and choose All Matches. The goal model should not be altered merely to produce more 3–0 or 4–1 scores without evidence of genuine underprediction.
+
+## MIGO AI — OpenAI reasoning, protected and on demand
+
+Match Intelligence and quoted Command Center Daily Double/Banger cards now include an **Analyze with OpenAI** button. The AI audits the exact deterministic model evidence and available bookmaker quotes, without changing numerical probabilities, selected legs, paper tickets or sportsbook prices. It does not claim to have outside injury/news verification.
+
+### Configure on Vercel
+
+1. Create a dedicated project API key in the OpenAI Platform; configure API project usage limits. ChatGPT subscriptions and OpenAI API credits are billed separately.
+2. In Vercel, open your MIGO project > Settings > Environment Variables. Add **OPENAI_API_KEY** (the OpenAI project key), **MIGO_AI_ACCESS_TOKEN** (a separate unique random passphrase at least 16 characters long), and optionally **OPENAI_MODEL** (default: gpt-6.1-sol). To generate an access passphrase on your device: run `openssl rand -hex 24`. Never reuse the actual OpenAI API key as the passphrase.
+3. Apply secrets to **Production** (Preview only if you want that environment enabled) and redeploy the project.
+4. Open a fixture or a priced Daily Double/Banger card. Enter the exact MIGO_AI_ACCESS_TOKEN in the **Private MIGO access passphrase** field and click **Analyze with OpenAI**. That passphrase is kept in this browser tab's sessionStorage only; no OpenAI key reaches the browser.
+5. GET /api/ai/analyze reports only available/protected/model/mode for configuration checks, and never returns secrets.
+
+### Charges and security
+
+Every Analyze click can incur API charges; no auto-running requests occur on page load, simulation, daily paper picks or dashboard refresh. Requests use OpenAI Responses API with store:false, medium reasoning, max 2,400 output tokens, strict structured JSON, timeout, and best-effort 5-request-per-minute protection. The in-memory rate cap is not shared across Vercel serverless instances: add durable Vercel WAF/rate limits or deployment protection before distributing access, and use OpenAI project spending limits. Only the user's separate MIGO passphrase is sent by the browser; the server holds the OpenAI API key.
+
+This is a **summary of evidence, risks and missing data**, not hidden internal chain-of-thought, an internet search, proof of profitable odds, or a bet placement system. AI verdicts are editorial and never replace the tested statistical engine.
+
+### Local development
+
+Create .env.local beside package.json using .env.example. Put OPENAI_API_KEY, MIGO_AI_ACCESS_TOKEN, and optionally OPENAI_MODEL in the file. Restart npm run dev. Never commit .env.local or actual secrets.
