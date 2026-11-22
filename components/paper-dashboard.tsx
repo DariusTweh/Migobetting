@@ -10,6 +10,7 @@ import type { PaperBet } from "@/lib/types";
 import { applyPaperParlayResults, readPaperParlays, type PaperParlay } from "@/lib/paper-parlays";
 import { applyFinalResults, readForwardPredictions, type ForwardPrediction } from "@/lib/forward-store";
 import { applyStrongestPickResults, readStrongestPicks, type StrongestPickRecord } from "@/lib/strongest-record";
+import { RecentThreeDayReview } from "./recent-three-day-review";
 
 export function PaperDashboard() {
   const [bets, setBets] = useState<PaperBet[]>([]);
@@ -97,6 +98,7 @@ export function PaperDashboard() {
       <Metric label="Graded selections" value={String(gradedCount)} sub={gradedCount ? `${Math.round(totalWon / gradedCount * 100)}% hit rate` : "no results yet"} />
       <Metric label="Simulated P/L" value={gradedCount ? `${totalProfit >= 0 ? "+" : "-"}$${Math.abs(totalProfit).toFixed(2)}` : "—"} sub="graded singles and parlays" tone={totalProfit > 0 ? "green" : "default"} />
     </div>
+    <RecentThreeDayReview strongest={strongest} forward={forward} />
     <Panel className="strongest-ledger">
       <PanelHead title="Strongest Pick Record" meta="Pre-match picks · checked against ESPN final scores"
         action={<button className="button" disabled={checkingResults} onClick={() => void refreshPaperResults()}>
