@@ -4,7 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, CalendarClock, CheckCircle2, ShieldAlert } from "lucide-react";
 import { useMemo, useState } from "react";
-import { useLocalMatchHistory } from "@/lib/use-local-history";
+import { useLocalMatchHistoryStatus } from "@/lib/use-local-history";
+import { FixtureStrongestPick } from "./fixture-strongest-pick";
 import { forecastWithHistory } from "@/lib/historical-forecast";
 import { describeScoreUncertainty } from "@/lib/score-context";
 import { formatAmerican } from "@/lib/odds";
@@ -13,7 +14,7 @@ import { Notice, Panel, PanelHead } from "./ui";
 
 export function MatchIntelligence({ fixture, lineups }: { fixture: Fixture; lineups: LineupIntelligence }) {
   const [tab, setTab] = useState<"overview" | "lineups">("overview");
-  const history = useLocalMatchHistory();
+  const { matches: history, ready: historyReady } = useLocalMatchHistoryStatus();
   const model = useMemo(() => forecastWithHistory(fixture, history), [fixture, history]);
   const scoreContext = useMemo(() => describeScoreUncertainty(model), [model]);
   const date = new Date(fixture.kickoff);
@@ -32,6 +33,8 @@ export function MatchIntelligence({ fixture, lineups }: { fixture: Fixture; line
         <Link href="/builder?mode=daily-double" className="button">Build Daily Double / Banger</Link>
       </div>
     </div>
+
+    <div className="fixture-strongest-placement"><FixtureStrongestPick fixture={fixture} history={history} historyReady={historyReady} /></div>
 
     <div className="match-tabs"><button className={tab === "overview" ? "active" : ""} onClick={() => setTab("overview")}>Match overview</button><button className={tab === "lineups" ? "active" : ""} onClick={() => setTab("lineups")}>Lineup intelligence <span className={`badge ${lineups.home.status === "CONFIRMED" && lineups.away.status === "CONFIRMED" ? "badge-good" : "badge-limited"}`}>{lineups.home.status === lineups.away.status ? lineups.home.status : "MIXED"}</span></button></div>
 
