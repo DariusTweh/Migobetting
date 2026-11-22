@@ -12,8 +12,13 @@ import { formatDayLabel, localDateKey, todayKey } from "@/lib/date-time";
 import { useLocalMatchHistoryStatus } from "@/lib/use-local-history";
 import type { Fixture } from "@/lib/types";
 import { applyFinalResults, readForwardPredictions, snapshotUpcomingFixtures } from "@/lib/forward-store";
+import { useOddsFeed } from "@/lib/use-odds-feed";
+import { strongestModelPick, type StrongestPick } from "@/lib/strongest-pick";
+import { readStrongestPicks, snapshotStrongestPicks, type StrongestPickRecord } from "@/lib/strongest-record";
+import type { MarketQuote } from "@/lib/market-odds";
 
 type Data = { fixtures: Fixture[]; errors: string[]; fetchedAt: string };
+const EMPTY_QUOTES: MarketQuote[] = [];
 const COUNTRY: Record<string, string> = { "eng.1": "England", "esp.1": "Spain", "ger.1": "Germany", "ita.1": "Italy", "fra.1": "France", "usa.1": "United States", "uefa.champions": "Europe", "uefa.wchampions": "Europe" };
 
 export function Dashboard({ initialData }: { initialData: Data }) {
@@ -23,6 +28,42 @@ export function Dashboard({ initialData }: { initialData: Data }) {
   const [selectedDate, setSelectedDate] = useState(todayKey());
   const [view, setView] = useState<MatchView>("date");
   const [loading, setLoading] = useState(false);
+  const { feed: oddsFeed, loading: oddsLoading } = useOddsFeed();
+  const quotes = oddsFeed?.quotes ?? EMPTY_QUOTES;
+  const [lockedStrongest, setLockedStrongest] = useState<StrongestPickRecord[]>([]);
+  useEffect(() => {
+    const sync = () => setLockedStrongest(readStrongestPicks());
+    sync();
+    window.addEventListener("migo:strongest", sync);
+    return () => window.removeEventListener("migo:strongest", sync);
+  }, []);
+
+  // The match rows and the saved strongest-pick ledger use ONE selector.
+  // Wait for historical scores and quotes before locking a market, so a cheap
+  // preliminary display cannot silently overwrite the eventual priced pick.
+  const fixturePicks = useMemo(() => {
+    const picks = new Map<string, StrongestPick>();
+    if (!historyReady || oddsLoading) return picks;
+    const now = Date.now();
+    for (const fixture of data.fixtures) {
+      if (fixture.status !== "scheduled" || Date.parse(fixture.kickoff) <= now) continue;
+      const pick = strongestModelPick([fixture], quotes, history, now, Number.POSITIVE_INFINITY);
+      if (pick) picks.set(fixture.leagueId + ":" + fixture.id, pick);
+    }
+    return picks;
+  }, [data.fixtures, history, historyReady, quotes, oddsLoading]);
+
+  useEffect(() => {
+    if (!historyReady || oddsLoading || !fixturePicks.size) return;
+    snapshotStrongestPicks(data.fixtures.flatMap((fixture) => {
+      const pick = fixturePicks.get(fixture.leagueId + ":" + fixture.id);
+      return pick ? [{ fixture, pick, source: "command-center" as const }] : [];
+    }));
+  }, [fixturePicks, data.fixtures, historyReady, oddsLoading]);
+
+  const lockedByFixture = useMemo(() =>
+    new Map(lockedStrongest.map((item) => [item.leagueId + ":" + item.fixtureId, item])),
+    [lockedStrongest]);
   const filtered = useMemo(() => data.fixtures.filter((fixture) =>
     (league === "all" || fixture.leagueId === league) &&
     (view === "all" || (view === "live" ? fixture.status === "live" : localDateKey(fixture.kickoff) === selectedDate))
@@ -67,12 +108,20 @@ export function Dashboard({ initialData }: { initialData: Data }) {
     <AutoParlayCards fixtures={data.fixtures}/>
     <section id="matches" className="match-browser" aria-live="polite">
       <div className="match-browser-heading"><div><span>{view === "live" ? "Live now" : view === "all" ? "Schedule" : formatDayLabel(selectedDate)}</span><strong>{filtered.length} {filtered.length === 1 ? "match" : "matches"}</strong></div><small>{historyReady ? "Model ready" : "Loading model history"} · ESPN updated {new Date(data.fetchedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</small></div>
-      {loading ? <div className="match-skeletons">{Array.from({ length: 6 }, (_, index) => <div className="match-skeleton" key={index}/>)}</div> : days.length ? days.map(([day, fixtures]) => <DayGroup key={day} day={day} fixtures={fixtures} history={history} showDay={view !== "date"}/>) : <div className="empty-state compact"><strong>No matches here</strong>{view === "live" ? "There are no live matches in the selected competitions." : "Choose another date or league."}</div>}
+      {loading ? <div className="match-skeletons">{Array.from({ length: 6 }, (_, index) => <div className="match-skeleton" key={index}/>)}</div> : days.length ? days.map(([day, fixtures]) => <DayGroup key={day} day={day} fixtures={fixtures} history={history} strongestPicks={fixturePicks} lockedPicks={lockedByFixture} picksReady={historyReady && !oddsLoading} showDay={view !== "date"}/>) : <div className="empty-state compact"><strong>No matches here</strong>{view === "live" ? "There are no live matches in the selected competitions." : "Choose another date or league."}</div>}
     </section>
   </div>;
 }
 
-function DayGroup({ day, fixtures, history, showDay }: { day: string; fixtures: Fixture[]; history: ReturnType<typeof useLocalMatchHistoryStatus>["matches"]; showDay: boolean }) {
+function DayGroup({ day, fixtures, history, strongestPicks, lockedPicks, picksReady, showDay }: {
+  day: string;
+  fixtures: Fixture[];
+  history: ReturnType<typeof useLocalMatchHistoryStatus>["matches"];
+  strongestPicks: Map<string, StrongestPick>;
+  lockedPicks: Map<string, StrongestPickRecord>;
+  picksReady: boolean;
+  showDay: boolean;
+}) {
   const groups = [...fixtures.reduce((map, fixture) => {
     map.set(fixture.leagueId, [...(map.get(fixture.leagueId) ?? []), fixture]);
     return map;
@@ -81,7 +130,10 @@ function DayGroup({ day, fixtures, history, showDay }: { day: string; fixtures: 
     {showDay ? <h2>{formatDayLabel(day)}<span>{fixtures.length} matches</span></h2> : null}
     {groups.map(([leagueId, events]) => <details className="league-section" open key={leagueId}>
       <summary><span className="league-emblem">{events[0].league.slice(0, 1)}</span><span><strong>{events[0].league}</strong><small>{COUNTRY[leagueId] ?? "International"}</small></span><b>{events.length}</b></summary>
-      <div>{events.map((fixture) => <FixtureCard key={fixture.id} fixture={fixture} forecast={forecastWithHistory(fixture, history)}/>)}</div>
+      <div>{events.map((fixture) => <FixtureCard key={fixture.id} fixture={fixture} forecast={forecastWithHistory(fixture, history)}
+            strongest={lockedPicks.get(fixture.leagueId + ":" + fixture.id) ??
+              strongestPicks.get(fixture.leagueId + ":" + fixture.id) ?? null}
+            picksReady={picksReady} />)}</div>
     </details>)}
   </div>;
 }
