@@ -7,7 +7,6 @@ import { DateStrip, type MatchView } from "./date-strip";
 import { FixtureCard } from "./fixture-card";
 import { Notice } from "./ui";
 import { LEAGUES } from "@/lib/leagues";
-import { forecastWithHistory } from "@/lib/historical-forecast";
 import { formatDayLabel, localDateKey, todayKey } from "@/lib/date-time";
 import { useLocalMatchHistoryStatus } from "@/lib/use-local-history";
 import type { Fixture } from "@/lib/types";
@@ -108,15 +107,14 @@ export function Dashboard({ initialData }: { initialData: Data }) {
     <AutoParlayCards fixtures={data.fixtures}/>
     <section id="matches" className="match-browser" aria-live="polite">
       <div className="match-browser-heading"><div><span>{view === "live" ? "Live now" : view === "all" ? "Schedule" : formatDayLabel(selectedDate)}</span><strong>{filtered.length} {filtered.length === 1 ? "match" : "matches"}</strong></div><small>{historyReady ? "Model ready" : "Loading model history"} · ESPN updated {new Date(data.fetchedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</small></div>
-      {loading ? <div className="match-skeletons">{Array.from({ length: 6 }, (_, index) => <div className="match-skeleton" key={index}/>)}</div> : days.length ? days.map(([day, fixtures]) => <DayGroup key={day} day={day} fixtures={fixtures} history={history} strongestPicks={fixturePicks} lockedPicks={lockedByFixture} picksReady={historyReady && !oddsLoading} showDay={view !== "date"}/>) : <div className="empty-state compact"><strong>No matches here</strong>{view === "live" ? "There are no live matches in the selected competitions." : "Choose another date or league."}</div>}
+      {loading ? <div className="match-skeletons">{Array.from({ length: 6 }, (_, index) => <div className="match-skeleton" key={index}/>)}</div> : days.length ? days.map(([day, fixtures]) => <DayGroup key={day} day={day} fixtures={fixtures} strongestPicks={fixturePicks} lockedPicks={lockedByFixture} picksReady={historyReady && !oddsLoading} showDay={view !== "date"}/>) : <div className="empty-state compact"><strong>No matches here</strong>{view === "live" ? "There are no live matches in the selected competitions." : "Choose another date or league."}</div>}
     </section>
   </div>;
 }
 
-function DayGroup({ day, fixtures, history, strongestPicks, lockedPicks, picksReady, showDay }: {
+function DayGroup({ day, fixtures, strongestPicks, lockedPicks, picksReady, showDay }: {
   day: string;
   fixtures: Fixture[];
-  history: ReturnType<typeof useLocalMatchHistoryStatus>["matches"];
   strongestPicks: Map<string, StrongestPick>;
   lockedPicks: Map<string, StrongestPickRecord>;
   picksReady: boolean;
@@ -130,7 +128,7 @@ function DayGroup({ day, fixtures, history, strongestPicks, lockedPicks, picksRe
     {showDay ? <h2>{formatDayLabel(day)}<span>{fixtures.length} matches</span></h2> : null}
     {groups.map(([leagueId, events]) => <details className="league-section" open key={leagueId}>
       <summary><span className="league-emblem">{events[0].league.slice(0, 1)}</span><span><strong>{events[0].league}</strong><small>{COUNTRY[leagueId] ?? "International"}</small></span><b>{events.length}</b></summary>
-      <div>{events.map((fixture) => <FixtureCard key={fixture.id} fixture={fixture} forecast={forecastWithHistory(fixture, history)}
+      <div>{events.map((fixture) => <FixtureCard key={fixture.id} fixture={fixture}
             strongest={lockedPicks.get(fixture.leagueId + ":" + fixture.id) ??
               strongestPicks.get(fixture.leagueId + ":" + fixture.id) ?? null}
             picksReady={picksReady} />)}</div>
