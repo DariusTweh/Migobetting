@@ -8,6 +8,8 @@ import { useOddsFeed } from "@/lib/use-odds-feed";
 import { buildPricedCard, type PricedCard } from "@/lib/priced-cards";
 import { snapshotAutoPaperParlays } from "@/lib/paper-parlays";
 import { formatAmerican } from "@/lib/odds";
+import { parlayAIContext } from "@/lib/ai-analysis";
+import { AIReasoning } from "./ai-reasoning";
 import type { Fixture } from "@/lib/types";
 import { Panel, PanelHead } from "./ui";
 
@@ -42,6 +44,12 @@ function Card({ card }: { card: PricedCard }) {
         <strong>{card.jointProbability !== null ? pct(card.jointProbability) : "—"}</strong>
       </div>
       <div className="model-warning"><ShieldAlert size={14}/><span>These are published bookmaker quotes, not guaranteed available at your location. Confirm prices before paper-locking. Model edge is not proven.</span></div>
+      <AIReasoning
+        kind="parlay"
+        context={parlayAIContext(card)}
+        fingerprint={card.kind + ":" + card.bookKey + ":" + JSON.stringify(card.legs.map((leg) =>
+          [leg.fixtureId, leg.marketKey, leg.americanOdds, leg.updatedAt]))}
+      />
       <Link className="button button-primary full-button" href={"/builder?mode=" + card.kind + "&selections=" + payload}>
         <Layers3 size={16}/> Open this priced slip <ArrowRight size={16}/>
       </Link>
