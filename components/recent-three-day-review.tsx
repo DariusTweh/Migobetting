@@ -18,7 +18,7 @@ import {
 type Mode = "all" | "recorded" | "replay";
 const recordType = (item: RecentGameReview) => {
   if (item.review === "strongest") return "SAVED STRONGEST";
-  if (item.review === "forward") return "SAVED 1X2";
+  if (item.review === "forward") return "SAVED 1X2 · NOT STRONGEST";
   if (item.review === "replay") return "HISTORICAL REPLAY";
   if (item.review === "live") return "LIVE";
   return "NO PAST FORECAST";
@@ -80,9 +80,13 @@ export function RecentThreeDayReview({
     }
     return [...map].filter(([, items]) => items.length);
   }, [displayed]);
-  const saved = reviews.filter((item) => item.review === "strongest" || item.review === "forward");
+  const strongestSaved = reviews.filter((item) => item.review === "strongest");
+  const outcomes1X2 = reviews.flatMap((item) =>
+    item.review === "forward" ? [{ verdict: item.verdict }] :
+    item.additional1X2 ? [{ verdict: item.additional1X2.verdict }] : []);
   const replayed = reviews.filter((item) => item.review === "replay");
-  const savedWins = saved.filter((item) => item.verdict === "won").length;
+  const strongestWins = strongestSaved.filter((item) => item.verdict === "won").length;
+  const outcomes1X2Wins = outcomes1X2.filter((item) => item.verdict === "won").length;
 
   return <Panel>
     <PanelHead title="Last 3 Days · Match Review"
@@ -93,8 +97,8 @@ export function RecentThreeDayReview({
       </button>} />
     <div className="recent-review-summary">
       <div><small>Finished games</small><strong>{reviews.filter((item) => item.status === "final").length}</strong></div>
-      <div><small>Saved pre-match</small><strong>{saved.length}</strong></div>
-      <div><small>Saved picks correct</small><strong>{saved.length ? savedWins + " / " + saved.length : "—"}</strong></div>
+      <div><small>Strongest W–L</small><strong>{strongestWins}–{strongestSaved.length - strongestWins}</strong></div>
+      <div><small>Separate 1X2 W–L</small><strong>{outcomes1X2Wins}–{outcomes1X2.length - outcomes1X2Wins}</strong></div>
       <div><small>Historical replays</small><strong>{replayed.length}</strong></div>
     </div>
     <section className="historical-replay-scorecard" aria-label="Cumulative historical replay record">
@@ -150,6 +154,13 @@ export function RecentThreeDayReview({
           <small>{item.league} · {recordType(item)}</small>
           {item.market ? <span>{item.market}{item.probability !== null ? " · " + (item.probability * 100).toFixed(1) + "% model" : ""}</span> :
             <span>{item.review === "unavailable" ? "No qualified historical replay" : "Match in progress"}</span>}
+          {item.additional1X2 ? <div className="recent-review-secondary">
+            <small>ALSO SAVED · 1X2 OUTCOME ONLY (SEPARATE MODEL TEST)</small>
+            <span>{item.additional1X2.market} · {(item.additional1X2.probability * 100).toFixed(1)}% model</span>
+            <b className={item.additional1X2.verdict === "won" ? "secondary-won" : "secondary-lost"}>
+              {item.additional1X2.verdict.toUpperCase()}
+            </b>
+          </div> : null}
         </div>
         <div className="recent-review-result">
           <strong>{item.score}</strong>
@@ -163,9 +174,9 @@ export function RecentThreeDayReview({
       </div>)}
     </div>)}
     <p className="recent-review-help">
-      SAVED = a real pre-kickoff model snapshot in this browser. REPLAY = an after-the-fact model test
-      trained on older results only, <strong>never counted as an originally made pick</strong>.
-      Historical replays maintain their own cumulative W–L in this browser, separate from the authentic Strongest Pick Record.
+      SAVED STRONGEST tracks the actual selected market, including goal totals.
+      SAVED 1X2 is a <strong>separate</strong> home/draw/away prediction and must never replace or be counted as a strongest-market pick.
+      REPLAY means a retrospective test, not a pre-match saved pick. Each record uses its own W–L totals.
     </p>
   </Panel>;
 }
