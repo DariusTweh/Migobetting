@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, Dices, FlaskConical, LayoutDashboard, Menu, Settings, ShieldCheck, SlidersHorizontal, X } from "lucide-react";
+import { BarChart3, Dices, FlaskConical, LayoutDashboard, Menu, Settings, SlidersHorizontal, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
 const nav = [
@@ -28,7 +28,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div><strong>MIGO</strong><span>Soccer Intelligence</span></div>
           <button className="icon-button close-menu" onClick={() => setOpen(false)} aria-label="Close menu"><X size={20} /></button>
         </div>
-        <div className="workspace-label">Research workspace</div>
         <nav className="side-nav" aria-label="Primary navigation">
           {nav.map(({ href, label, icon: Icon }) => (
             <Link key={href} href={href} className={active(href) ? "active" : ""}>
@@ -38,9 +37,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </nav>
         <div className="sidebar-status">
           <div className="status-line"><span className="status-dot live" />Local workspace</div>
-          <p>No account. No cloud database. Your paper ledger stays in this browser.</p>
+          <p>Paper results stay in this browser.</p>
         </div>
-        <div className="responsible-note"><ShieldCheck size={17} /><span>Research only<br />Never a guarantee</span></div>
       </aside>
       {open && <button className="sidebar-scrim" aria-label="Close navigation" onClick={() => setOpen(false)} />}
       <div className="main-frame">
@@ -49,7 +47,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className="mobile-wordmark">MIGO <span>/ INTELLIGENCE</span></div>
           <div className="topbar-right">
             <span className="paper-pill"><span /> PAPER MODE</span>
-            <span className="model-pill">MIGO v0.1</span>
           </div>
         </header>
         <main>{children}</main>
