@@ -69,6 +69,13 @@ export type RecentGameReview = {
   probability: number | null;
   verdict: "won" | "lost" | "pending" | "not-scored";
   modelVersion: string | null;
+  /** A separate saved 1X2 record can coexist with this match's strongest-market selection. */
+  additional1X2?: {
+    market: string;
+    probability: number;
+    verdict: "won" | "lost";
+    modelVersion: string;
+  };
 };
 
 /**
@@ -108,20 +115,26 @@ export function buildRecentGameReviews(
     const home = fixture.home.score!;
     const away = fixture.away.score!;
     const strongestRecord = realStrongest.get(key);
+    const forwardRecord = realForward.get(key);
+    const actual1X2 = home > away ? "home" : home < away ? "away" : "draw";
+    const forward1X2 = forwardRecord ? {
+      market: forwardRecord.predictedOutcome === "home" ? fixture.home.shortName + " win" :
+        forwardRecord.predictedOutcome === "away" ? fixture.away.shortName + " win" : "Draw",
+      probability: forwardRecord.probabilities[forwardRecord.predictedOutcome],
+      verdict: (forwardRecord.predictedOutcome === actual1X2 ? "won" : "lost") as "won" | "lost",
+      modelVersion: forwardRecord.modelVersion,
+    } : null;
     if (strongestRecord) {
       const correct = strongestMarketWins(strongestRecord.marketKey, home, away);
       return { ...base, review: "strongest", market: strongestRecord.market,
         probability: strongestRecord.probability,
-        verdict: correct ? "won" : "lost", modelVersion: strongestRecord.modelVersion };
+        verdict: correct ? "won" : "lost", modelVersion: strongestRecord.modelVersion,
+        additional1X2: forward1X2 ?? undefined };
     }
-    const forwardRecord = realForward.get(key);
-    if (forwardRecord) {
-      const actual = home > away ? "home" : home < away ? "away" : "draw";
-      const market = forwardRecord.predictedOutcome === "home" ? fixture.home.shortName + " win" :
-        forwardRecord.predictedOutcome === "away" ? fixture.away.shortName + " win" : "Draw";
-      return { ...base, review: "forward", market, probability: forwardRecord.probabilities[forwardRecord.predictedOutcome],
-        verdict: forwardRecord.predictedOutcome === actual ? "won" : "lost",
-        modelVersion: forwardRecord.modelVersion };
+    if (forward1X2) {
+      return { ...base, review: "forward", market: forward1X2.market,
+        probability: forward1X2.probability,
+        verdict: forward1X2.verdict, modelVersion: forward1X2.modelVersion };
     }
     // football-data.co.uk has date-only timestamps at 12:00 UTC. Use the
     // START of the UTC match day to exclude all same-day results from training.
