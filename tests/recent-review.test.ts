@@ -49,8 +49,9 @@ const history: HistoricalMatch[] = Array.from({ length: 140 }, (_, i) => ({
 describe("recent three-day review (real snapshots versus reconstructed replays)", () => {
   it("uses Pacific calendar days including DST instead of rolling 72-hour window", () => {
     expect(recentPacificDays(now)).toEqual(["2026-11-21", "2026-11-20", "2026-11-19"]);
+    // 07:30 UTC is 00:30 PDT on March 9, after the DST transition.
     expect(recentPacificDays(Date.parse("2026-03-09T07:30:00Z"))).toEqual([
-      "2026-03-08", "2026-03-07", "2026-03-06",
+      "2026-03-09", "2026-03-08", "2026-03-07",
     ]);
     expect(pacificDayKey(lastThursday.kickoff)).toBe("2026-11-19");
     expect(recentGames([lastThursday, lastFriday, lastSaturday, oldWednesday, futureSunday], now).map(m => m.id))
