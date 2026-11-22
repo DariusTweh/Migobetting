@@ -133,18 +133,19 @@ async function fetchLeagueScoreboard(leagueId: LeagueId, date?: string): Promise
   return Array.isArray(object(data).events) ? (object(data).events as unknown[]) : [];
 }
 
-type ScoreboardOptions = { includeYesterday?: boolean; now?: Date; daysAhead?: number };
+type ScoreboardOptions = { includeYesterday?: boolean; now?: Date; daysAhead?: number; daysBack?: number };
 
 export async function getLeagueFixtures(leagueId: LeagueId, options: ScoreboardOptions = {}): Promise<Fixture[]> {
   const fetchedAt = new Date().toISOString();
   const anchor = options.now ?? new Date();
   const daysAhead = Math.max(0, Math.min(14, Math.floor(options.daysAhead ?? UPCOMING_FIXTURE_DAYS)));
-  // ESPN may file Pacific-evening matches under the following Eastern day.
-  // Query the dates individually; its multi-day date-range behavior varies.
-  const explicitDates = [
-    ...(options.includeYesterday ? [espnDateKey(anchor, -1)] : []),
-    ...Array.from({ length: daysAhead + 2 }, (_, index) => espnDateKey(anchor, index)),
-  ];
+  const daysBack = Math.max(0, Math.min(7, Math.floor(options.daysBack ?? (options.includeYesterday ? 1 : 0))));
+  // Explicit date queries include the prior two Pacific dates for the recent-results
+  // view. The following day catches ESPN's Eastern date assignment near midnight.
+  const explicitDates = Array.from(
+    { length: daysBack + daysAhead + 2 },
+    (_, index) => espnDateKey(anchor, index - daysBack),
+  );
   const settled = await Promise.allSettled([
     fetchLeagueScoreboard(leagueId),
     ...[...new Set(explicitDates)].map((date) => fetchLeagueScoreboard(leagueId, date)),
