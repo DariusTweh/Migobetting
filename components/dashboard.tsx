@@ -28,10 +28,6 @@ export function Dashboard({ initialData }: { initialData: Data }) {
     }
     return [...groups.entries()];
   }, [fixtures]);
-  const forecasts = fixtures
-    .filter((fixture) => fixture.status === "scheduled" && Date.parse(fixture.kickoff) > Date.now())
-    .map((fixture) => ({ fixture, forecast: forecastWithHistory(fixture, history) }));
-  const qualified = forecasts.filter((item) => item.forecast.qualified && item.forecast.dataQuality !== "insufficient");
 
   useEffect(() => {
     if (!historyReady) return;
@@ -55,12 +51,12 @@ export function Dashboard({ initialData }: { initialData: Data }) {
 
   return (
     <>
-      <PageHeader eyebrow="Live research terminal" title="Command Center" description="Yesterday's results, upcoming fixtures, transparent model signals, and paper-tested decisions—without the noise." action={<button className="button" onClick={refresh} disabled={loading}><RefreshCw size={15} className={loading ? "spin" : ""} />{loading ? "Refreshing" : "Refresh data"}</button>} />
+      <PageHeader eyebrow="Live research terminal" title="Command Center" description="Fixtures, strongest lean, and paper parlays." action={<button className="button" onClick={refresh} disabled={loading}><RefreshCw size={15} className={loading ? "spin" : ""} />{loading ? "Refreshing" : "Refresh data"}</button>} />
       <div className="metrics-grid">
-        <Metric label="Upcoming fixtures" value={String(fixtures.filter((f) => f.status === "scheduled").length)} sub="selected competitions" />
-        <Metric label="Qualified signals" value={String(qualified.length)} sub="baseline threshold ≥68%" tone="green" />
-        <Metric label="Live now" value={String(fixtures.filter((f) => f.status === "live").length)} sub="ESPN match status" tone={fixtures.some((f) => f.status === "live") ? "orange" : "default"} />
-        <Metric label="Paper bankroll" value="$1,000" sub="set locally in Settings" />
+        <Metric label="Upcoming" value={String(fixtures.filter((f) => f.status === "scheduled").length)} sub="fixtures" />
+        <Metric label="Live" value={String(fixtures.filter((f) => f.status === "live").length)} sub="matches" tone={fixtures.some((f) => f.status === "live") ? "orange" : "default"} />
+        <Metric label="Leagues" value={String(new Set(fixtures.map((f) => f.leagueId)).size)} sub="with fixtures" />
+        <Metric label="History" value={historyReady ? "Ready" : "Syncing"} sub="model data" />
       </div>
 
       <div className="league-tabs" role="tablist" aria-label="Filter by league">
@@ -68,32 +64,20 @@ export function Dashboard({ initialData }: { initialData: Data }) {
         {LEAGUES.map((item) => <button key={item.id} className={league === item.id ? "active" : ""} onClick={() => setLeague(item.id)}>{item.short}</button>)}
       </div>
 
-      {data.errors.length > 0 && <Notice>Some providers did not respond: {data.errors.join(" · ")}. Available competitions are still shown.</Notice>}
-      {historySyncing ? <Notice>Loading completed-match scoring records for stronger league-specific predictions…</Notice> :
-        historyError ? <Notice>Historical scoring update was unavailable: {historyError}. Cached results are used when possible; otherwise model estimates are limited.</Notice> : null}
+      {data.errors.length > 0 && <Notice>Some fixtures unavailable. {data.errors.slice(0, 2).join(" · ")}</Notice>}
+      {historyError && !historySyncing ? <Notice>History sync incomplete. Cached scores used where available.</Notice> : null}
       <div className="grid-2 dashboard-grid">
         <Panel>
-          <PanelHead title="Fixture intelligence" meta={`${fixtures.length} fixtures · yesterday through the next 10 days · all returned matches shown`} action={<span className="freshness"><Satellite size={13} /> updated {new Date(data.fetchedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</span>} />
+          <PanelHead title="Fixture intelligence" meta={`${fixtures.length} matches · next 10 days`} action={<span className="freshness"><Satellite size={13} /> updated {new Date(data.fetchedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</span>} />
           <div className="fixture-list">
             {fixturesByDay.length > 0 ? fixturesByDay.map(([day, events]) => <div key={day}>
               <h3 className="fixture-day-heading">{day} · {events.length} {events.length === 1 ? "match" : "matches"}</h3>
               <div className="fixture-day-games">{events.map((fixture) => <FixtureCard key={fixture.id} fixture={fixture} forecast={forecastWithHistory(fixture, history)} />)}</div>
-            </div>) : <div className="empty-state"><strong>No fixtures returned</strong>ESPN did not list a match for this competition in the requested dates. Try refreshing or a later schedule window.</div>}
+            </div>) : <div className="empty-state"><strong>No fixtures returned</strong>No matches returned for these dates.</div>}
           </div>
         </Panel>
         <div className="stack">
           <AutoParlayCards fixtures={fixtures} />
-          <Panel>
-            <PanelHead title="Strongest model signals" meta="Not recommendations · baseline model" />
-            <div className="signal-list">
-              {qualified.slice(0, 5).map(({ fixture, forecast }, index) => {
-                const best = forecast.markets[0];
-                return <div className="signal-row" key={fixture.id}><span className="signal-rank">{String(index + 1).padStart(2, "0")}</span><div><strong>{best.label}</strong><small>{fixture.home.shortName} vs {fixture.away.shortName}</small></div><b>{Math.round(best.probability * 100)}%</b></div>;
-              })}
-              {qualified.length === 0 && <div className="empty-state compact"><strong>No qualified signals</strong>That is a valid model outcome.</div>}
-            </div>
-          </Panel>
-          <Notice>MIGO uses recency-weighted, opponent-adjusted historical goals with a fitted low-score correction when available; season W-D-L is the fallback. Probabilities remain uncalibrated and are not evidence of real-money betting value.</Notice>
         </div>
       </div>
     </>
