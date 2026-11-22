@@ -48,7 +48,8 @@ export function strongestModelPick(
     const { candidate, forecast } = priced[0];
     return {
       fixtureId: candidate.fixtureId, fixtureLabel: candidate.fixtureLabel,
-      league: candidate.league, kickoff: candidate.kickoff, market: candidate.market,
+      league: candidate.league, kickoff: candidate.kickoff,
+      market: forecast.markets.find((market) => market.key === candidate.marketKey)?.label ?? candidate.market,
       probability: candidate.probability, quality: forecast.dataQuality,
       modelVersion: forecast.modelVersion, evidence: forecast.evidence[0] ?? "Model scoring estimate",
       pricing: "quoted", quotedAmerican: candidate.americanOdds, bookmaker: candidate.bookmaker,
