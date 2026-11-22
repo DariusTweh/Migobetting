@@ -805,3 +805,13 @@ main{padding:24px 28px 54px;max-width:1320px}
 }
 @media(max-width:340px){.bottom-nav a{font-size:8px}.match-row-model strong{max-width:135px}.top-pick-numbers{grid-template-columns:1fr}.performance-metrics{grid-template-columns:1fr 1fr}.metric{padding:11px}.metric strong{font-size:19px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+
+/* Distinguish a saved 1X2 forecast from the match's saved strongest market. */
+.recent-review-secondary{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:5px 12px;
+  margin-top:8px;padding:9px 10px;border:1px solid var(--line-soft);
+  background:rgba(255,255,255,.025);border-radius:8px}
+.recent-review-secondary small{grid-column:1/-1;color:var(--muted);font-size:9px;letter-spacing:.03em}
+.recent-review-secondary span{font-size:11px;color:var(--text);line-height:1.35}
+.recent-review-secondary b{font-size:10px;align-self:center}
+.recent-review-secondary .secondary-won{color:#5fd3a4}
+.recent-review-secondary .secondary-lost{color:#ef9595}
