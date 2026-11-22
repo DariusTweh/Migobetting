@@ -27,9 +27,10 @@ afterEach(() => vi.unstubAllGlobals());
 
 describe("cumulative historical replay W-L record", () => {
   it("counts wins losses and hit rate without conflating missing data", () => {
-    const records = [
-      { id:"1", status:"won" }, { id:"2", status:"lost" }, { id:"3", status:"won" },
-    ] as Parameters<typeof historicalReplayStats>[0];
+    browser();
+    const records = snapshotHistoricalReplayRecords([
+      replay("one", "won"), replay("two", "lost"), replay("three", "won"),
+    ]);
     expect(historicalReplayStats(records)).toMatchObject({
       wins: 2, losses: 1, graded: 3,
     });
