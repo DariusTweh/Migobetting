@@ -4,23 +4,20 @@ import Image from "next/image";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { formatKickoffTime } from "@/lib/date-time";
-import { forecastFixture } from "@/lib/model";
 import type { Fixture, Forecast } from "@/lib/types";
 import type { StrongestPick } from "@/lib/strongest-pick";
 import type { StrongestPickRecord } from "@/lib/strongest-record";
 
-export function FixtureCard({ fixture, forecast: suppliedForecast, strongest, picksReady = false }: {
+export function FixtureCard({ fixture, strongest, picksReady = false }: {
   fixture: Fixture;
   forecast?: Forecast;
   strongest?: StrongestPick | StrongestPickRecord | null;
   picksReady?: boolean;
 }) {
-  const forecast = suppliedForecast ?? forecastFixture(fixture);
-  const modelMarket = forecast.markets.find((item) =>
-    item.probability >= 0.62 && item.probability <= 0.78 &&
-    ["home", "away", "over-1.5", "over-2.5", "under-3.5", "btts"].includes(item.key));
-  const displayedMarket = strongest?.market ?? (!picksReady ? modelMarket?.label : undefined);
-  const displayedProbability = strongest?.probability ?? (!picksReady ? modelMarket?.probability : undefined);
+  // Never show a provisional pick from a different selector while odds load.
+  // Match list and historical tracking use the same saved selection.
+  const displayedMarket = strongest?.market;
+  const displayedProbability = strongest?.probability;
   const isTracked = strongest && "lockedAt" in strongest;
   const hasScore = (fixture.status === "live" || fixture.status === "final") && fixture.home.score !== undefined && fixture.away.score !== undefined;
   const status = fixture.status === "live" ? fixture.statusLabel : fixture.status === "final" ? "FT" : fixture.status === "scheduled" ? formatKickoffTime(fixture.kickoff) : fixture.statusLabel;
