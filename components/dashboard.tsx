@@ -67,7 +67,7 @@ export function Dashboard({ initialData }: { initialData: Data }) {
       {data.errors.length > 0 && <Notice>Some fixtures unavailable. {data.errors.slice(0, 2).join(" · ")}</Notice>}
       {historyError && !historySyncing ? <Notice>History sync incomplete. Cached scores used where available.</Notice> : null}
       <div className="grid-2 dashboard-grid">
-        <div className="stack"><AutoParlayCards fixtures={fixtures} /></div>
+        <div className="stack"><AutoParlayCards fixtures={data.fixtures} /></div>
         <Panel>
           <PanelHead title="Fixture intelligence" meta={`${fixtures.length} matches · next 10 days`} action={<span className="freshness"><Satellite size={13} /> updated {new Date(data.fetchedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</span>} />
           <div className="fixture-list">
