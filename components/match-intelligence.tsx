@@ -2,13 +2,11 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, BrainCircuit, CalendarClock, CheckCircle2, ShieldAlert } from "lucide-react";
+import { ArrowLeft, CalendarClock, CheckCircle2, ShieldAlert } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useLocalMatchHistory } from "@/lib/use-local-history";
 import { forecastWithHistory } from "@/lib/historical-forecast";
 import { describeScoreUncertainty } from "@/lib/score-context";
-import { fixtureAIContext } from "@/lib/ai-analysis";
-import { AIReasoning } from "./ai-reasoning";
 import { formatAmerican } from "@/lib/odds";
 import type { Fixture, LineupIntelligence, TeamLineup } from "@/lib/types";
 import { Notice, Panel, PanelHead } from "./ui";
@@ -17,7 +15,6 @@ export function MatchIntelligence({ fixture, lineups }: { fixture: Fixture; line
   const [tab, setTab] = useState<"overview" | "lineups">("overview");
   const history = useLocalMatchHistory();
   const model = useMemo(() => forecastWithHistory(fixture, history), [fixture, history]);
-  const trainedHistoryModel = model.modelVersion === "migo-opponent-decay-dc-0.4";
   const scoreContext = useMemo(() => describeScoreUncertainty(model), [model]);
   const date = new Date(fixture.kickoff);
   return <>
@@ -41,13 +38,13 @@ export function MatchIntelligence({ fixture, lineups }: { fixture: Fixture; line
     {tab === "overview" ? <div className="match-layout">
       <div className="stack">
         <Panel>
-          <PanelHead title="Outcome probability" meta={`${model.modelVersion} · ${model.dataQuality} data quality`} />
+          <PanelHead title="Match probabilities" meta={`${model.dataQuality} data · ${model.modelVersion}`} />
           <div className="outcome-bars">
             {[[fixture.home.shortName, model.homeWin], ["Draw", model.draw], [fixture.away.shortName, model.awayWin]].map(([label, value], index) => <div className="outcome" key={String(label)}><div><span>{label}</span><strong>{Math.round(Number(value) * 100)}%</strong></div><div className="prob-track"><i style={{ width: `${Number(value) * 100}%` }} className={index === 0 ? "home" : index === 2 ? "away" : "draw"} /></div></div>)}
           </div>
         </Panel>
         <Panel>
-          <PanelHead title="Market matrix" meta="Derived from one coherent correlation-adjusted score distribution" />
+          <PanelHead title="Model markets" meta="Estimated probabilities · not sportsbook prices" />
           <div className="market-table">
             <div className="table-head"><span>Market</span><span>Model</span><span>Fair price</span></div>
             {model.markets.map((market) => <div className="table-row" key={market.key}><strong>{market.label}</strong><span>{Math.round(market.probability * 100)}%</span><b>{formatAmerican(market.fairAmerican)}</b></div>)}
@@ -56,11 +53,11 @@ export function MatchIntelligence({ fixture, lineups }: { fixture: Fixture; line
       </div>
       <div className="stack">
         <Panel>
-          <PanelHead title="Goal forecast" meta="Expected goals and the full score distribution — not a guaranteed exact final score" />
+          <PanelHead title="Goal forecast" meta="Projected goals and score ranges" />
           <div className="expected-score"><strong>{model.expectedHomeGoals.toFixed(2)}</strong><span>modeled goals</span><strong>{model.expectedAwayGoals.toFixed(2)}</strong></div>
           <div className="goal-forecast-explainer">
             <strong>Most frequent exact score: {scoreContext.modalScore}</strong>
-            <p>Only {(scoreContext.modalProbability * 100).toFixed(1)}% of modeled matches finish at that score. {(scoreContext.probabilityOtherScores * 100).toFixed(1)}% finish differently. Repeated 1–0 or 1–1 modes do not mean MIGO predicts them with certainty.</p>
+            <p>{(scoreContext.modalProbability * 100).toFixed(1)}% exact-score chance · {(scoreContext.probabilityOtherScores * 100).toFixed(1)}% other results</p>
           </div>
           <div className="goal-range-grid">
             {scoreContext.goalRanges.map((range) => <div key={range.label}>
@@ -71,21 +68,15 @@ export function MatchIntelligence({ fixture, lineups }: { fixture: Fixture; line
           </div>
           <div className="scoreline-list">{model.scorelines.map((item) => <div key={item.score}><strong>{item.score}</strong><span>{Math.round(item.probability * 100)}%</span></div>)}</div>
         </Panel>
-        <Panel>
-          <PanelHead title="MIGO Analyst" meta={trainedHistoryModel ? "Evidence check · trained history model active" : "Evidence check · season-record fallback active"} action={<BrainCircuit size={19} className="lime" />} />
-          <div className="analyst-body">
-            <div className="evidence-block positive"><h3><CheckCircle2 size={16} />Supporting evidence</h3>{model.evidence.map((item) => <p key={item}>{item}</p>)}</div>
-            <div className="evidence-block risk"><h3><ShieldAlert size={16} />Why it could fail</h3>{model.risks.map((item) => <p key={item}>{item}</p>)}</div>
-            <div className="verdict"><span>Current verdict</span><strong>{model.qualified ? "RESEARCH SHORTLIST" : "PASS"}</strong><p>{model.qualified ? "The probability clears the baseline threshold, but a quoted price is still needed to assess value." : "The evidence is not strong enough for a qualified selection."}</p></div>
+        <details className="model-notes">
+          <summary>Model details · {model.dataQuality} data</summary>
+          <div className="model-notes-content">
+            <strong>Evidence</strong>
+            {model.evidence.slice(0, 4).map((item, index) => <p key={index}>{item}</p>)}
+            <strong>Limitations</strong>
+            {model.risks.slice(0, 3).map((item, index) => <p key={index}>{item}</p>)}
           </div>
-        </Panel>
-        <AIReasoning
-          kind="fixture"
-          context={fixtureAIContext(fixture, model, lineups)}
-          fingerprint={[fixture.id, model.modelVersion, model.expectedHomeGoals.toFixed(4),
-            model.expectedAwayGoals.toFixed(4), lineups.checkedAt].join(":")}
-        />
-        <Notice>The numerical predictions above remain deterministic; OpenAI produces a separate evidence-based audit on request. It does not recalculate the model or verify outside news.</Notice>
+        </details>
       </div>
     </div> : <LineupView fixture={fixture} lineups={lineups} baselineHome={model.expectedHomeGoals} baselineAway={model.expectedAwayGoals} />}
   </>;
