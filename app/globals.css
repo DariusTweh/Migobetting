@@ -724,3 +724,15 @@ main { padding: 34px; max-width: 1510px; margin: 0 auto; }
  .recent-review-result>strong{font-size:17px}
  .recent-review-result .badge{max-width:120px;text-align:center;white-space:normal}
 }
+
+
+/* A separate permanent retrospective hit-rate, never added to pre-match records. */
+.historical-replay-scorecard{border-top:1px solid var(--line-soft);border-bottom:1px solid var(--line-soft);background:#0d171d}
+.historical-replay-title{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:15px 16px 3px}
+.historical-replay-title strong{font-size:14px}
+.historical-replay-title span{font-size:10px;color:var(--muted)}
+.historical-replay-metrics{padding-top:10px}
+.historical-replay-history{border-top:1px solid var(--line-soft)}
+.historical-replay-history summary{cursor:pointer;font-size:12px;font-weight:700;padding:13px 16px;color:var(--lime)}
+.historical-replay-rows{max-height:460px;overflow:auto}
+@media(max-width:650px){.historical-replay-title{padding:12px 10px 4px}}
