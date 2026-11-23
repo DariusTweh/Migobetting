@@ -287,14 +287,23 @@ export function parseHistoricalCsv(text: string, metadata: { season: string; sou
     const awayTeam = (row[index("AwayTeam")] ?? "").trim();
     if (!date || !homeTeam || !awayTeam || !Number.isInteger(homeGoals) || !Number.isInteger(awayGoals) || !["H", "D", "A"].includes(result)) { rejected += 1; continue; }
     const competitionCode = (row[index("Div")] ?? "Unknown").trim();
-    const halfHome = Number(row[index("HTHG")]);
-    const halfAway = Number(row[index("HTAG")]);
+    // Blank HT fields must NOT be interpreted as a 0–0 half-time score:
+    // Number("") === 0 and would seriously bias the first-half model.
+    const halfScore = (column: string, fullTime: number): number | undefined => {
+      const raw = (row[index(column)] ?? "").trim();
+      if (!/^\d+$/.test(raw)) return undefined;
+      const value = Number(raw);
+      return Number.isSafeInteger(value) && value <= fullTime ? value : undefined;
+    };
+    const halfHome = halfScore("HTHG", homeGoals);
+    const halfAway = halfScore("HTAG", awayGoals);
     const id = [competitionCode, date.slice(0, 10), normalizeTeamName(homeTeam), normalizeTeamName(awayTeam)].join(":");
     matches.push({
       id, competition: DIVISION_NAMES[competitionCode] ?? competitionCode, season: metadata.season, date,
       homeTeam, awayTeam, homeGoals, awayGoals,
-      halfTimeHomeGoals: Number.isInteger(halfHome) ? halfHome : undefined,
-      halfTimeAwayGoals: Number.isInteger(halfAway) ? halfAway : undefined,
+      // A pair is valid together or absent together. Never invent one side.
+      halfTimeHomeGoals: halfHome !== undefined && halfAway !== undefined ? halfHome : undefined,
+      halfTimeAwayGoals: halfHome !== undefined && halfAway !== undefined ? halfAway : undefined,
       result,
       odds: {
         home: decimal(headers, row, "AvgH", "B365H"), draw: decimal(headers, row, "AvgD", "B365D"), away: decimal(headers, row, "AvgA", "B365A"),
