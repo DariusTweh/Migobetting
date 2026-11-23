@@ -118,7 +118,7 @@ export function estimateFirstHalf(
     notes: [
       "Uses " + training.length + " verified earlier half-time scores from " + fixture.league + ".",
       "Venue-specific team attack/defense rates, 180-day decay and league-average shrinkage.",
-      "Pre-match Poisson estimates only; no first-half bookmaker prices or independent calibration.",
+      "Pre-match Poisson estimates only; not yet calibrated and no verified first-half bookmaker prices.",
     ],
   };
 }
