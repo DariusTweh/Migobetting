@@ -6,6 +6,8 @@ import { ArrowLeft, CheckCircle2, Play, ShieldAlert } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useLocalMatchHistoryStatus } from "@/lib/use-local-history";
 import { FixtureStrongestPick } from "./fixture-strongest-pick";
+import { FormHistoryPanel } from "./form-history-panel";
+import { FirstHalfPanel } from "./first-half-panel";
 import { forecastWithHistory } from "@/lib/historical-forecast";
 import { describeScoreUncertainty } from "@/lib/score-context";
 import { formatMatchDateTime } from "@/lib/date-time";
@@ -13,7 +15,7 @@ import { formatAmerican } from "@/lib/odds";
 import type { Fixture, LineupIntelligence, TeamLineup } from "@/lib/types";
 import { Notice, Panel, PanelHead } from "./ui";
 
-type DetailTab = "overview" | "markets" | "lineups" | "simulation" | "history";
+type DetailTab = "overview" | "markets" | "first-half" | "form" | "lineups" | "simulation" | "history";
 
 export function MatchIntelligence({ fixture, lineups }: { fixture: Fixture; lineups: LineupIntelligence }) {
   const [tab, setTab] = useState<DetailTab>("overview");
@@ -36,7 +38,13 @@ export function MatchIntelligence({ fixture, lineups }: { fixture: Fixture; line
     <FixtureStrongestPick fixture={fixture} history={history} historyReady={historyReady}/>
 
     <div className="match-tabs" role="tablist" aria-label="Match details">
-      {(["overview", "markets", "lineups", "simulation", "history"] as DetailTab[]).map((item) => <button role="tab" aria-selected={tab === item} className={tab === item ? "active" : ""} onClick={() => setTab(item)} key={item}>{item}</button>)}
+      {(["overview", "markets", "first-half", "form", "lineups", "simulation", "history"] as DetailTab[]).map((item) =>
+        <button role="tab" aria-selected={tab === item}
+          className={tab === item ? "active" : ""}
+          onClick={() => setTab(item)} key={item}>
+          {item === "first-half" ? "1st Half" : item === "form" ? "Form / H2H" :
+            item === "history" ? "Model Notes" : item}
+        </button>)}
     </div>
 
     {tab === "overview" ? <div className="match-layout">
@@ -44,6 +52,8 @@ export function MatchIntelligence({ fixture, lineups }: { fixture: Fixture; line
       <GoalForecast fixture={fixture} model={model} scoreContext={scoreContext}/>
     </div> : null}
     {tab === "markets" ? <Panel><PanelHead title="Model markets" meta="One coherent score distribution · not sportsbook prices"/><div className="market-table"><div className="table-head"><span>Market</span><span>Model</span><span>Fair price</span></div>{model.markets.map((market) => <div className="table-row" key={market.key}><strong>{market.label}</strong><span>{Math.round(market.probability * 100)}%</span><b>{formatAmerican(market.fairAmerican)}</b></div>)}</div></Panel> : null}
+    {tab === "first-half" ? <FirstHalfPanel fixture={fixture} history={history} ready={historyReady}/> : null}
+    {tab === "form" ? <FormHistoryPanel fixture={fixture} history={history} ready={historyReady}/> : null}
     {tab === "lineups" ? <LineupView fixture={fixture} lineups={lineups} baselineHome={model.expectedHomeGoals} baselineAway={model.expectedAwayGoals}/> : null}
     {tab === "simulation" ? <Panel className="simulation-cta"><Play size={30}/><div><h2>30,000-match simulation</h2><p>Explore the full forecast distribution or play a clearly labeled synthetic match.</p></div><Link className="button button-primary" href={`/simulation?view=live&fixture=${encodeURIComponent(fixture.id)}`}>Open simulation</Link></Panel> : null}
     {tab === "history" ? <Panel><PanelHead title="Model history and limits" meta={`${model.modelVersion} · ${model.dataQuality} data`}/><div className="model-history-grid"><div><strong>Supporting evidence</strong>{model.evidence.map((item) => <p key={item}>{item}</p>)}</div><div><strong>What is not modeled</strong>{model.risks.map((item) => <p key={item}>{item}</p>)}</div></div></Panel> : null}
