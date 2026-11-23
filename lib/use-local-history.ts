@@ -7,7 +7,7 @@ import { ESPN_HISTORY_COMPETITIONS, type EspnHistoryLeague } from "./espn-histor
 
 const CORE = ["Premier League", "La Liga", "Bundesliga", "Serie A", "Ligue 1"];
 const MIN_MATCHES_PER_LEAGUE = 40;
-const CORE_SYNC_KEY = "migo:core-history-updated:v2";
+const CORE_SYNC_KEY = "migo:core-history-updated:v3"; // refresh once for corrected missing-HT parsing
 const CORE_SYNC_MAX_AGE_MS = 12 * 3600000;
 const currentSeason = () => {
   const now = new Date();
