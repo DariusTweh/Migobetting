@@ -80,7 +80,7 @@ export function parseNflCsv(input: string, required: string[]): Array<Record<str
   if (row.some((item) => item.trim())) rows.push(row);
   if (!rows.length) throw Error("Empty nflverse CSV");
   const header = rows.shift()!.map((part) => part.trim());
-  if (!required.every((part) => header.includes(part))) throw Error("Unexpected nflverse CSV schema");
+  if (!required.every((part) => header.includes(part))) throw Error("Unexpected nflverse CSV schema: " + required.filter((part) => !header.includes(part)).join(",") + " missing; columns=" + header.slice(0,24).join(","));
   return rows.filter((parts) => parts.length === header.length).map((parts) =>
     Object.fromEntries(header.map((key, i) => [key, parts[i]])));
 }
