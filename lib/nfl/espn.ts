@@ -169,8 +169,8 @@ export async function getNflPreview(game: NflGame, now = new Date()) {
   const boxes = allIds.flatMap((id, index) => {
     const item = summaries[index];
     if (item.status !== "fulfilled") return [];
-    const date = str(obj(obj(item.value).header).competitions &&
-      str(obj(arr(obj(obj(item.value).header).competitions)[0]).date)) || "";
+    const competition = obj(arr(obj(obj(item.value).header).competitions)[0]);
+    const date = str(competition.date);
     if (!date || Date.parse(date) >= cutoff) return [];
     return [{ gameId: id, date, rows: parseNflBoxscore(item.value, id, date) }];
   });
