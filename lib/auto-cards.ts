@@ -22,7 +22,12 @@ export type SuggestedCard = {
   notes: string[];
 };
 
-const supported = new Set(["home", "away", "home-draw", "away-draw", "over-1.5", "over-2.5", "under-3.5", "btts"]);
+const supported = new Set([
+  "home", "away", "home-draw", "away-draw", "btts",
+  "over-0.5", "over-1.5", "over-2.5", "over-3.5",
+  "under-1.5", "under-2.5", "under-3.5", "under-4.5",
+  "home-over-0.5", "away-over-0.5", "home-over-1.5", "away-over-1.5",
+]);
 
 export function researchCandidates(fixtures: Fixture[], cutoff = Date.now(), history: HistoricalMatch[] = []): SuggestedLeg[] {
   return fixtures.flatMap((fixture) => {
@@ -30,7 +35,8 @@ export function researchCandidates(fixtures: Fixture[], cutoff = Date.now(), his
     const forecast = forecastWithHistory(fixture, history);
     if (forecast.dataQuality === "insufficient") return [];
     const eligible = forecast.markets
-      .filter((item) => supported.has(item.key) && Number.isFinite(item.probability) && item.probability >= 0.68)
+      .filter((item) => supported.has(item.key) && Number.isFinite(item.probability) &&
+        item.probability >= 0.60 && item.probability <= 0.7777777778)
       .sort((a, b) => b.probability - a.probability);
     if (!eligible.length) return [];
     const best = eligible[0];
