@@ -49,6 +49,14 @@ export function TacticalPitch({ tape, snapshot, minute, homeName, awayName }: {
           <rect key={i} x={40 + i * 92} y="45" width="92" height="510"
             fill={i % 2 ? "#ecfff2" : "#000"} opacity={i % 2 ? ".028" : ".035"}/>)}
         <rect x="40" y="45" width="920" height="510" fill="url(#migo-pitch-glow)"/>
+        <g opacity=".31">
+          {Array.from({length:8},(_,row)=>Array.from({length:16},(_,col)=>
+            <circle key={row+"-"+col} cx={65+col*58} cy={71+row*60} r=".9" fill="#bedbc4"/>))}
+        </g>
+        <g opacity=".22" stroke="#c2e8d2" strokeWidth="2" fill="none">
+          <path d="M32 32h936v535H32z"/>
+          <path d="M36 300H14 M964 300h22"/>
+        </g>
         <g fill="none" stroke="#c3e6da" strokeWidth="2.5" opacity=".72">
           <line x1="500" y1="45" x2="500" y2="555"/>
           <circle cx="500" cy="300" r="73"/>
@@ -71,7 +79,7 @@ export function TacticalPitch({ tape, snapshot, minute, homeName, awayName }: {
             fill="none" strokeWidth="4" strokeDasharray="11 7" opacity=".8"/>
         </g> : null}
         {frame.players.map((p) => <g key={p.id} className={"tactical-player tactical-player-" + p.side}
-          transform={"translate(" + px(p.x) + " " + py(p.y) + ")"}>
+          style={{transform: "translate(" + px(p.x) + "px, " + py(p.y) + "px)"}}>
           {p.active && <circle r="21" fill="none" stroke="#fbfff6" strokeWidth="3" opacity=".8"/>}
           <circle r="16" fill={p.side === "home" ? "#baf43a" : "#66a0ff"}
             stroke={p.side === "home" ? "#14251d" : "#e4edff"} strokeWidth="3"
@@ -79,7 +87,7 @@ export function TacticalPitch({ tape, snapshot, minute, homeName, awayName }: {
           <text textAnchor="middle" y="5" fill={p.side === "home" ? "#122019" : "#081c3a"}
             fontSize="14" fontWeight="900">{p.index + 1}</text>
         </g>)}
-        <g className="tactical-ball" transform={"translate(" + px(frame.ball.x) + " " + py(frame.ball.y) + ")"}>
+        <g className="tactical-ball" style={{transform: "translate(" + px(frame.ball.x) + "px, " + py(frame.ball.y) + "px)"}}>
           <circle r="11" fill="#f7fcff" stroke="#0a161a" strokeWidth="2.5"
             filter="url(#migo-ball-glow)"/>
           <circle r="4" fill="#233440"/>
