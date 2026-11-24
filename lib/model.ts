@@ -65,7 +65,11 @@ export function forecastFixture(fixture: Fixture, overrides?: ForecastOverrides)
   let draw = 0;
   let awayWin = 0;
   let btts = 0;
-  const totals = [0, 0, 0, 0];
+  const totals = [0, 0, 0, 0, 0];
+  let homeScores = 0;
+  let awayScores = 0;
+  let homeOver15 = 0;
+  let awayOver15 = 0;
   const scores: Array<{ score: string; probability: number }> = [];
 
   for (let home = 0; home <= 8; home += 1) {
@@ -75,7 +79,11 @@ export function forecastFixture(fixture: Fixture, overrides?: ForecastOverrides)
       else if (home === away) draw += probability;
       else awayWin += probability;
       if (home > 0 && away > 0) btts += probability;
-      [0.5, 1.5, 2.5, 3.5].forEach((line, index) => {
+      if (home >= 1) homeScores += probability;
+      if (away >= 1) awayScores += probability;
+      if (home >= 2) homeOver15 += probability;
+      if (away >= 2) awayOver15 += probability;
+      [0.5, 1.5, 2.5, 3.5, 4.5].forEach((line, index) => {
         if (home + away > line) totals[index] += probability;
       });
       scores.push({ score: `${home}–${away}`, probability });
@@ -87,6 +95,10 @@ export function forecastFixture(fixture: Fixture, overrides?: ForecastOverrides)
   draw /= probabilityMass;
   awayWin /= probabilityMass;
   btts /= probabilityMass;
+  homeScores /= probabilityMass;
+  awayScores /= probabilityMass;
+  homeOver15 /= probabilityMass;
+  awayOver15 /= probabilityMass;
   totals.forEach((value, index) => { totals[index] = value / probabilityMass; });
   scores.forEach((score) => { score.probability /= probabilityMass; });
   const markets = [
@@ -95,9 +107,18 @@ export function forecastFixture(fixture: Fixture, overrides?: ForecastOverrides)
     market("away", `${fixture.away.shortName} win`, awayWin),
     market("home-draw", `${fixture.home.shortName} or draw`, homeWin + draw),
     market("away-draw", `${fixture.away.shortName} or draw`, awayWin + draw),
+    market("over-0.5", "Over 0.5 goals", totals[0]),
     market("over-1.5", "Over 1.5 goals", totals[1]),
     market("over-2.5", "Over 2.5 goals", totals[2]),
+    market("over-3.5", "Over 3.5 goals", totals[3]),
+    market("under-1.5", "Under 1.5 goals", 1 - totals[1]),
+    market("under-2.5", "Under 2.5 goals", 1 - totals[2]),
     market("under-3.5", "Under 3.5 goals", 1 - totals[3]),
+    market("under-4.5", "Under 4.5 goals", 1 - totals[4]),
+    market("home-over-0.5", `${fixture.home.shortName} 1+ goal`, homeScores),
+    market("away-over-0.5", `${fixture.away.shortName} 1+ goal`, awayScores),
+    market("home-over-1.5", `${fixture.home.shortName} 2+ goals`, homeOver15),
+    market("away-over-1.5", `${fixture.away.shortName} 2+ goals`, awayOver15),
     market("btts", "Both teams to score", btts),
   ].sort((a, b) => b.probability - a.probability);
 
