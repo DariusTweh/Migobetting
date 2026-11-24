@@ -144,7 +144,8 @@ export function FirstHalfPanel({fixture,history,ready}:{
     for(const match of pull.matches)map.set(match.id,match);
     return [...map.values()];
   },[history,pull]);
-  const available=ready||pull.matches.length>0;
+  // Show useful cached verified club history immediately while the general history refresh finishes.
+  const available=ready||history.length>0||pull.matches.length>0;
   const model=useMemo(()=>available?estimateFirstHalf(all,fixture):null,[available,all,fixture]);
   const coverage=useMemo(()=>firstHalfCoverage(all,fixture),[all,fixture]);
   const seasons=useMemo(()=>{
