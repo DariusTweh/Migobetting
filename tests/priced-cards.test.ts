@@ -3,8 +3,8 @@ import { buildPricedCard, pricedCandidates } from "../lib/priced-cards";
 import type { Fixture } from "../lib/types";
 import type { MarketQuote } from "../lib/market-odds";
 
-const now = Date.parse("2029-12-01T12:00:00Z");
-const future = (n: number) => new Date(Date.parse("2030-01-02T15:00:00Z") + n * 86400000).toISOString();
+const now = Date.parse("2030-01-02T12:00:00Z");
+const future = (n: number) => new Date(Date.parse("2030-01-02T15:00:00Z") + n * 3600000).toISOString();
 const fixture = (n: number): Fixture => ({
   id: "match-" + n, leagueId: "eng.1", league: "Premier League",
   kickoff: future(n), status: "scheduled", statusLabel: "Scheduled",
@@ -29,6 +29,32 @@ describe("priced soccer parlay builder", () => {
     expect(card.legs).toHaveLength(2);
     expect(card.combinedAmerican).toBeGreaterThanOrEqual(100);
     expect(card.legs.every((leg) => leg.bookKey === "rundown-19")).toBe(true);
+  });
+  it("never inserts tomorrow's match even when its quote is more attractive", () => {
+    const tomorrow = { ...fixture(99), kickoff: "2030-01-03T18:00:00Z" };
+    const sameDay = [fixture(1), fixture(2), fixture(3)];
+    const card = buildPricedCard([...sameDay, tomorrow],
+      [quote(1,-130), quote(2,-130), quote(3,-130), quote(99,100)],
+      "daily-double",[],now);
+    expect(card.legs.length).toBeGreaterThan(0);
+    expect(card.legs.every(leg => leg.kickoff.startsWith("2030-01-02"))).toBe(true);
+    expect(card.legs.some(leg => leg.fixtureId === "match-99")).toBe(false);
+  });
+  it("passes instead of borrowing from tomorrow when no qualifying matches remain today", () => {
+    const tomorrow = { ...fixture(12), kickoff: "2030-01-03T17:00:00Z" };
+    const other = { ...fixture(13), kickoff: "2030-01-04T17:00:00Z" };
+    const card = buildPricedCard([tomorrow,other],[quote(12,-130),quote(13,-130)],
+      "daily-double",[],now);
+    expect(card.legs).toHaveLength(0);
+    expect(card.notes[0]).toContain("today");
+    const banger = buildPricedCard([tomorrow,other],[quote(12,-130),quote(13,-130)],
+      "banger",[],now);
+    expect(banger.legs).toHaveLength(0);
+  });
+  it("does not include kickoff times that have already passed today", () => {
+    const started = {...fixture(21),kickoff:"2030-01-02T11:59:00Z"};
+    const card=buildPricedCard([started],[quote(21,-130)],"daily-double",[],now);
+    expect(card.legs).toHaveLength(0);
   });
   it("does not combine different bookmakers into an imaginary ticket", () => {
     const card = buildPricedCard([fixture(1), fixture(2)],
