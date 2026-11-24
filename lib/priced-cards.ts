@@ -3,6 +3,7 @@ import type { HistoricalMatch } from "./history";
 import type { MarketQuote, MarketKey } from "./market-odds";
 import { forecastWithHistory } from "./historical-forecast";
 import { americanToDecimal, decimalToAmerican, impliedProbability } from "./odds";
+import { todayUpcomingFixtures } from "./daily-slate";
 
 export type PricedLeg = MarketQuote & {
   fixtureLabel: string;
@@ -78,9 +79,13 @@ export function buildPricedCard(
     combinedAmerican: null, combinedDecimal: null, jointProbability: null,
     notes: [message],
   });
-  if (!quotes.length) return fail("No current bookmaker quotes were returned. Configure a free odds API key or use manual prices.");
-  const candidates = pricedCandidates(fixtures, quotes, history, now);
-  if (!candidates.length) return fail("PASS: no sufficiently priced, qualified selections. -1100-style legs are rejected.");
+  // Both automatically generated cards are for the *current Pacific calendar day*.
+  // Filter at model selection rather than just hiding future cards in the UI.
+  const slate = todayUpcomingFixtures(fixtures, now);
+  if (!slate.length) return fail("PASS: no remaining scheduled matches today (Pacific time). Tomorrow's fixtures cannot enter today's card.");
+  if (!quotes.length) return fail("No current bookmaker quotes for today's games. Configure an odds API key or enter prices manually.");
+  const candidates = pricedCandidates(slate, quotes, history, now);
+  if (!candidates.length) return fail("PASS: no qualified same-day prices. No tomorrow/next-72-hour filler and no -1100-style legs.");
 
   const byBook = new Map<string, PricedLeg[]>();
   for (const leg of candidates) byBook.set(leg.bookKey, [...(byBook.get(leg.bookKey) ?? []), leg]);
@@ -126,6 +131,7 @@ export function buildPricedCard(
     combinedAmerican: decimalToAmerican(selected.decimal), combinedDecimal: selected.decimal,
     jointProbability: selected.probability,
     notes: [
+      "All legs kick off today (America/Los_Angeles); no tomorrow or rolling 72-hour fixtures.",
       "Quoted market prices from one bookmaker, not guaranteed executable at your location.",
       "No legs shorter than -350. Every market must clear a 1 percentage-point indicative model edge threshold.",
       "Market probabilities use only approved held-out calibration when available; other markets stay raw.",
