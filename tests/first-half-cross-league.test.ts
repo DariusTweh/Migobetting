@@ -49,7 +49,15 @@ describe("cross-competition first-half team attack and defense",()=>{
     expect(coverage.homeMatches).toBeGreaterThan(20);
   });
   it("responds to verifiable defensive leaks and 1H attacking performance",()=>{
-    const base=estimateFirstHalf(results,fixture)!;
+    // League baseline also needs matches NOT involving Bayern, or a team-
+    // specific defensive deterioration would shift the whole Bundesliga mean.
+    const leagueControls=Array.from({length:100},(_,i)=>({
+      ...results[1], id:"control-"+i,competition:"Bundesliga",
+      date:new Date(Date.UTC(2025,7,1+i*4)).toISOString(),
+      homeTeam:i%2?"RB Leipzig":"Mainz",awayTeam:i%2?"Mainz":"RB Leipzig",
+      homeGoals:2,awayGoals:1,halfTimeHomeGoals:1,halfTimeAwayGoals:0,
+    }));
+    const base=estimateFirstHalf([...results,...leagueControls],fixture)!;
     const weakBayern=results.map(m=>{
       const b=clubHalfTimeKey(m.homeTeam)==="bayern" || clubHalfTimeKey(m.awayTeam)==="bayern";
       if(!b)return m;
@@ -60,7 +68,7 @@ describe("cross-competition first-half team attack and defense",()=>{
         halfTimeAwayGoals:clubHalfTimeKey(m.homeTeam)==="bayern"?2:1,
       };
     });
-    const altered=estimateFirstHalf(weakBayern,fixture)!;
+    const altered=estimateFirstHalf([...weakBayern,...leagueControls],fixture)!;
     expect(altered.homeSignals.defensiveVulnerability).toBeGreaterThan(0);
     expect(altered.awaySignals.defensiveVulnerability).toBeGreaterThan(base.awaySignals.defensiveVulnerability);
     expect(altered.expectedHomeGoals).toBeGreaterThan(base.expectedHomeGoals);
