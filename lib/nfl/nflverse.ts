@@ -281,6 +281,7 @@ export function applyNflverseIntelligence(game: NflGame, props: NflProp[], snaps
     const rawStatus = injury?.status.toLowerCase() ?? "";
     const isOut = rawStatus === "out" || rawStatus === "ir" || rawStatus === "injured reserve";
     const isDoubtful = rawStatus === "doubtful";
+    const contradictoryReport = rawStatus === "unverified-conflict";
     const uncertain = ["questionable", "doubtful"].includes(rawStatus);
     const allowance = snapshot.defense.find((item) =>
       item.team === opponent && item.position === pick.position && item.market === pick.market);
@@ -304,7 +305,7 @@ export function applyNflverseIntelligence(game: NflGame, props: NflProp[], snaps
     const rawScore = usage * .35 + matchup * .25 + pick.factors.gameScript * .2 +
       pick.factors.efficiency * .1 + context * .1;
     const researchScore = Math.round(Math.min(ratio === null ? 70 : 75, rawScore));
-    const grade = isOut || isDoubtful || thinVolume || thinSnaps ||
+    const grade = isOut || isDoubtful || contradictoryReport || thinVolume || thinSnaps ||
       pick.historicalHits < 3 || researchScore < 60 ? "PASS" as const : "RESEARCH" as const;
     const evidence = [
       ...pick.evidence,
@@ -326,6 +327,7 @@ export function applyNflverseIntelligence(game: NflGame, props: NflProp[], snaps
       ...(isOut ? ["Player listed OUT in the report; automatically PASS."] : []),
       ...(isDoubtful ? ["Player listed doubtful; automatically PASS."] : []),
       ...(uncertain && !isDoubtful ? ["Player questionable; extra availability risk."] : []),
+      ...(contradictoryReport ? ["Conflicting undated injury rows; automatically PASS."] : []),
       ...(thinVolume ? ["Observed opportunity is below the minimum threshold for this market."] : []),
       ...(thinSnaps ? ["Observed offensive snap participation is low."] : []),
       "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names.",
@@ -361,7 +363,7 @@ export async function getNflverseSnapshot(game: NflGame, now = new Date()): Prom
   ]);
   const sourceWarnings = records.flatMap((result, index) => result.status === "rejected"
     ? [(["stats","snaps","injuries"][index]) + ": " +
-      (result.reason instanceof Error ? result.reason.message.slice(0, 500) : "provider unavailable")]
+      (result.reason instanceof Error ? result.reason.message.slice(0, 180) : "provider unavailable")]
     : []);
   const stats = records[0].status === "fulfilled" ? parseWeeklyUsage(records[0].value, season, week) : [];
   const snaps = records[1].status === "fulfilled" ? parseSnapCounts(records[1].value, season, week) : [];
