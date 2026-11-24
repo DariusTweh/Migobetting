@@ -871,3 +871,85 @@ main{padding:24px 28px 54px;max-width:1320px}
 .first-half-scores small{font-size:10px;color:var(--muted)}
 .first-half-foot{margin:0;border-top:1px solid var(--line-soft);color:var(--muted);font-size:11px;line-height:1.6;padding:13px 14px}
 @media(max-width:390px){.form-history-content{padding:10px}.form-match-row{grid-template-columns:59px minmax(0,1fr) auto auto;gap:6px;padding:9px}.form-history-filters select,.form-history-filters label{font-size:11px;padding:7px}.first-half-expected{padding:9px;gap:6px}.first-half-expected>div{padding:8px}.first-half-market-list{padding:0 9px 10px}}
+
+
+/* First-half validation dashboard */
+.first-half-validation-controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;gap:12px;align-items:end;padding:16px}
+.first-half-validation-controls .field{min-width:0}
+.fhv-metric-table{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.fhv-row{display:grid;grid-template-columns:minmax(122px,1.4fr) repeat(4,minmax(85px,1fr));min-width:510px;gap:8px;padding:12px 16px;border-top:1px solid var(--line-soft);align-items:center;font-size:12px}
+.fhv-row>strong{color:var(--text);font-size:12px}
+.fhv-row>span{font-variant-numeric:tabular-nums;color:var(--muted)}
+.fhv-head{border-top:0;color:var(--faint);font-weight:800;text-transform:uppercase;font-size:10px;letter-spacing:.04em}
+.fhv-season-list{display:grid}
+.fhv-season{border-top:1px solid var(--line-soft);display:grid;grid-template-columns:140px minmax(0,1fr);gap:12px;padding:13px 16px}
+.fhv-season:first-child{border-top:0}
+.fhv-season>div{display:grid;gap:5px}
+.fhv-season strong{font-size:13px}
+.fhv-season small{color:var(--muted);font-size:11px}
+.fhv-season>div:last-child>span{font-size:11px;color:var(--muted)}
+.fhv-season b{color:var(--text)}
+.fhv-calibration{padding:14px 16px;border-top:1px solid var(--line-soft)}
+.fhv-calibration h3{margin:0 0 12px;font-size:13px}
+.fhv-bin{display:grid;grid-template-columns:100px minmax(0,1fr) 125px;align-items:center;gap:10px;padding:8px 0;font-size:11px;color:var(--muted)}
+.fhv-bin>span small{display:block;font-size:9px;margin-top:3px}
+.fhv-bin>div{height:11px;position:relative;background:#152129;border-radius:99px}
+.fhv-bin>div i{display:block;height:100%;background:var(--lime);border-radius:99px;opacity:.8}
+.fhv-bin>div b{position:absolute;display:block;width:2px;height:17px;top:-3px;background:#fff;transform:translateX(-50%)}
+.fhv-bin>strong{font-variant-numeric:tabular-nums;color:var(--text);text-align:right}
+
+/* The 2.5D soccer tactical broadcast */
+.tactical-game-center{display:grid;gap:0;margin-bottom:16px;background:#0a1419;border:1px solid #273e3b;border-radius:16px;overflow:hidden;box-shadow:0 12px 42px #0005}
+.tactical-game-center .playback-scoreboard{border:0;border-radius:0;margin:0;background:linear-gradient(100deg,#152421,#0b1720 55%,#121d30)}
+.tactical-game-center .playback-scores{padding:3px 14px 9px}
+.tactical-game-center .playback-scores>b{font-variant-numeric:tabular-nums}
+.tactical-broadcast{background:#07130f;overflow:hidden}
+.tactical-broadcast-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:11px 15px;border-top:1px solid #1d3430;background:#091916;font-size:10px;letter-spacing:.06em;color:#b5c9c1}
+.tactical-broadcast-head>strong{font-size:11px;text-align:center;color:#b9f644;letter-spacing:.015em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tactical-broadcast-head>span:last-child{font-variant-numeric:tabular-nums;white-space:nowrap}
+.tactical-live-dot{width:6px;height:6px;display:inline-block;background:#bcf33f;border-radius:50%;margin-right:5px;box-shadow:0 0 8px #bcf33f}
+.tactical-pitch-stage{position:relative;padding:10px 8px 6px;background:radial-gradient(ellipse at 50% 30%,#2d5550 0%,#0d2926 70%,#07110f 100%)}
+.tactical-pitch-svg{width:100%;height:auto;aspect-ratio:5/3;display:block;filter:drop-shadow(0 8px 10px #0008)}
+.tactical-player,.tactical-ball{transition:transform .21s linear;will-change:transform}
+.tactical-player{pointer-events:none}
+.tactical-pass-trail{pointer-events:none;animation:tactical-trail .5s ease-out}
+@keyframes tactical-trail{0%{opacity:0;stroke-dashoffset:40}100%{opacity:1;stroke-dashoffset:0}}
+.tactical-goal-flash{animation:tactical-goal .7s ease-in-out}
+@keyframes tactical-goal{0%{opacity:0;transform:scale(.91);transform-origin:center}40%{opacity:1}100%{opacity:1;transform:scale(1);transform-origin:center}}
+.tactical-pitch-label{position:absolute;bottom:12px;font-size:10px;font-weight:800;text-shadow:0 2px 7px #001b14;max-width:40%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#e5f9f1}
+.tactical-pitch-label-home{left:18px}.tactical-pitch-label-away{right:18px}
+.tactical-broadcast-foot{display:grid;grid-template-columns:minmax(0,1fr) minmax(65px,1.5fr) minmax(0,1fr);align-items:center;gap:12px;padding:10px 16px;background:#091915}
+.tactical-broadcast-foot>div:first-child,.tactical-broadcast-foot>div:last-child{display:flex;align-items:center;gap:6px;min-width:0;font-size:11px;white-space:nowrap}
+.tactical-broadcast-foot>div:last-child{justify-content:flex-end}
+.tactical-broadcast-foot strong{color:#eaf8f1;font-variant-numeric:tabular-nums}
+.tactical-team-dot{display:inline-block;flex-shrink:0;width:9px;height:9px;border-radius:50%}
+.tactical-team-dot.home{background:#baf43a}.tactical-team-dot.away{background:#66a0ff}
+.tactical-possession-track{height:7px;background:#6097ef;border-radius:99px;overflow:hidden}
+.tactical-possession-track i{display:block;height:100%;background:#baf43a}
+.tactical-play-caption{display:flex;align-items:start;gap:12px;padding:12px 15px;background:#0c1b20;border-top:1px solid #21352e}
+.tactical-play-caption>b{color:#baf43a;font-size:12px;min-width:38px;font-variant-numeric:tabular-nums}
+.tactical-play-caption>span{font-size:12px;font-weight:600;color:#e1f2ee;line-height:1.45}
+.tactical-synthetic-disclaimer{margin:0;padding:8px 15px 12px;color:#85a09b;font-size:10px;line-height:1.5}
+.tactical-transport{display:flex;flex-wrap:wrap;gap:9px;align-items:center;padding:13px;border-top:1px solid #1e3530;background:#0c171b}
+.tactical-transport .button{min-height:37px;padding:7px 10px}
+.tactical-speed{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:11px}
+.tactical-speed select{background:#111f27;color:var(--text);border:1px solid var(--line);border-radius:7px;padding:8px}
+.tactical-seek{display:flex;flex:1 1 100%;align-items:center;gap:10px;font-size:11px;font-variant-numeric:tabular-nums;color:var(--muted)}
+.tactical-seek input{width:100%;accent-color:var(--lime)}
+@media(max-width:720px){
+ .first-half-validation-controls{grid-template-columns:repeat(2,minmax(0,1fr));padding:12px;gap:9px}
+ .first-half-validation-controls>.button{grid-column:1/-1}
+ .fhv-season{grid-template-columns:1fr;gap:6px}
+ .fhv-bin{grid-template-columns:63px minmax(0,1fr) 100px;gap:6px;font-size:10px}
+ .tactical-broadcast-head{padding:8px 10px;font-size:9px}
+ .tactical-broadcast-head>strong{font-size:10px}
+ .tactical-pitch-stage{padding:4px}
+ .tactical-broadcast-foot{gap:5px;padding:8px;font-size:9px}
+ .tactical-broadcast-foot>div:first-child,.tactical-broadcast-foot>div:last-child{font-size:9px;gap:3px}
+ .tactical-pitch-label{font-size:9px;bottom:8px}
+ .tactical-transport{gap:6px;padding:10px}
+ .tactical-transport .button{font-size:11px;min-height:35px;padding:6px 8px}
+}
+@media(prefers-reduced-motion:reduce){
+ .tactical-player,.tactical-ball,.tactical-pass-trail,.tactical-goal-flash{animation:none!important;transition:none!important}
+}
