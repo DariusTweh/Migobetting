@@ -56,3 +56,16 @@ Provide evidence-backed NFL offensive player-prop research and game-script slip 
 - UI distinguishes research confidence from calibrated probability.
 - Only pregame selections count as forward predictions.
 - All existing soccer screens and workflows remain intact.
+
+## Phase 2 status (2026-11-24)
+Implemented supplemental nflverse adapters and verified them against a real Vercel preview:
+- Current-season player-week stats and 2026 offensive snap counts successfully load.
+- Out-of-sample eligibility is guarded at the **season/week** level; games on or after the fixture week are excluded even when the weekly provider lacks exact game dates.
+- A live **LAR vs GB** test returned 21 candidate props from 225 player game lines, with 10 research-eligible and 11 PASS. This is a coverage test, not evidence of predictive accuracy.
+- Verified recent targets, carries, passing attempts, target share, snap participation, and league-normalized opponent positional volume are shown with per-player evidence.
+- A current-week injury CSV is loaded, including the 2026 format that lacks a row-level modification timestamp. Undated conflicting statuses force PASS; absence of an injury row **never** means confirmed active.
+- ESPN season team-history feeds returned no prior games in the first test; NFL weekly history therefore uses official published nflverse player-week values, not fabricated dates. ESPN remains the fixture provider/fallback.
+- Tested parsing, schema validation, date/week leakage, unique player matching, doubtful/OUT safeguards, and contradictory injury records.
+
+### Remaining source gaps
+The engine still lacks game-day active inactives, verified route participation, red-zone/goal-line opportunities, weather, full defensive efficiency metrics, and a stable book quote feed. Probabilities and fair odds are intentionally null. These must be connected and backtested before calling the model calibrated or enabling a genuine probability-ranked Glory builder.
