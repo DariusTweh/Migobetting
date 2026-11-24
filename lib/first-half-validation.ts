@@ -31,7 +31,7 @@ export type FirstHalfSeasonValidation = {
 };
 export type FirstHalfValidationReport = {
   competition: string;
-  modelVersion: "migo-first-half-poisson-v1";
+  modelVersion: "migo-first-half-cross-league-v2";
   candidates: number; scored: number;
   dateRange: { from: string; to: string } | null;
   perSeason: FirstHalfSeasonValidation[];
@@ -134,7 +134,7 @@ export function validateFirstHalfMultiSeason(
   const reviewed = [...new Set(allSamples.map((sample) => sample.matchId))];
   const uniqueMatches = rows.filter((m) => reviewed.includes(m.id));
   return {
-    competition, modelVersion: "migo-first-half-poisson-v1",
+    competition, modelVersion: "migo-first-half-cross-league-v2",
     candidates: perSeason.reduce((sum, s) => sum + s.candidates, 0),
     scored: reviewed.length,
     dateRange: uniqueMatches.length ? {
