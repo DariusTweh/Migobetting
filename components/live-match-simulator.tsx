@@ -9,6 +9,7 @@ import { useLocalMatchHistory } from "@/lib/use-local-history";
 import { generateMatchTape, snapshotMatch, type MatchSide, type SimTeamStat } from "@/lib/match-playback";
 import type { Fixture, LineupIntelligence } from "@/lib/types";
 import { Panel, PanelHead } from "./ui";
+import { TacticalPitch } from "./tactical-pitch";
 
 const BAR_FIELDS: Array<{ key: keyof SimTeamStat; title: string }> = [
   { key: "shots", title: "Shots" },
@@ -142,7 +143,48 @@ export function LiveMatchSimulator({ fixtures }: { fixtures: Fixture[] }) {
     [tape, selectedSide, snapshot]);
 
   return <div className="stack">
-    <div className="notice"><strong>SIMULATION · NOT A LIVE MATCH</strong> Every minute, shot, pass, event and player performance shown below is synthetic. ESPN supplies fixture information and available lineup names; this is not an ESPN play-by-play feed.</div>
+    <div className="notice"><strong>VIRTUAL MATCH · NOT LIVE</strong> Player and ball movement, match events and stats are generated from a synthetic timeline. The real 30,000-match probabilities remain separate.</div>
+    {fixture && forecast && tape && snapshot ? <div className="tactical-game-center">
+            <div className="playback-scoreboard">
+        <div className="playback-topline"><span>{fixture.league}</span><span>{minute === 0 ? "PRE-MATCH" : minute === 90 ? "FULL TIME · SIMULATED" : String(minute) + "′ · SIMULATED"}</span></div>
+        <div className="playback-scores">
+          <div><small>HOME</small><strong>{fixture.home.shortName}</strong></div>
+          <b>{snapshot.home.goals} <span>–</span> {snapshot.away.goals}</b>
+          <div><small>AWAY</small><strong>{fixture.away.shortName}</strong></div>
+        </div>
+        <div className="playback-progress"><span style={{ width: minute / 90 * 100 + "%" }} /></div>
+        <div className="playback-xg">{playbackMode === "representative" ? "Representative modal-score scenario" : "Random alternate scenario"} · Model goal means: {forecast.expectedHomeGoals.toFixed(2)}–{forecast.expectedAwayGoals.toFixed(2)} · {lineupStatus}</div>
+      </div>
+
+      <TacticalPitch tape={tape} snapshot={snapshot} minute={minute}
+        homeName={fixture.home.shortName} awayName={fixture.away.shortName}/>
+      <div className="tactical-transport">
+        <button className="button button-primary" disabled={minute === 90}
+          onClick={() => setPlaying((state) => !state)}>
+          {playing ? <Pause size={17}/> : <Play size={17}/>}
+          {playing ? "Pause" : minute ? "Resume" : "Kick off"}
+        </button>
+        <button className="button button-small" onClick={() => {setPlaying(false);setMinute(0);}}>
+          <RotateCcw size={15}/> Restart
+        </button>
+        <button className="button button-small" onClick={() => {setPlaying(false);setMinute(Math.min(90,minute+10));}}
+          disabled={minute >= 90}><SkipForward size={15}/> +10m</button>
+        <label className="tactical-speed">Speed
+          <select value={speed} aria-label="Simulation playback speed"
+            onChange={(event) => setSpeed(Number(event.target.value))}>
+            <option value={1}>1×</option><option value={4}>4×</option><option value={10}>10×</option>
+          </select>
+        </label>
+        <label className="tactical-seek"><span>{minute}′ / 90′</span>
+          <input aria-label="Seek match timeline" type="range" min={0} max={90} value={minute}
+            onChange={(event) => {setMinute(Number(event.target.value));setPlaying(false);}}/>
+        </label>
+      </div>
+    </div> : <Panel><div className="empty-state compact">
+      <strong>{forecastLoading ? "Preparing the tactical match…" : "Tactical pitch unavailable"}</strong>
+      {forecastLoading ? "MIGO is calculating the underlying match forecast." :
+        "Choose a fixture with sufficient scoring data."}
+    </div></Panel>}
     <Panel>
       <PanelHead title="Pre-match forecast · 30,000 simulated matches" meta={forecast ? forecast.modelVersion + " · " + forecast.dataQuality + " data quality · same forecast regardless of playback seed" : "Choose a fixture"} />
       {forecastLoading ? <div className="forecast-loading">
@@ -204,17 +246,7 @@ export function LiveMatchSimulator({ fixtures }: { fixtures: Fixture[] }) {
         <div className="field"><label>Match clock · {minute}′ / 90′</label><input aria-label="Simulated minute" type="range" min={0} max={90} value={minute} disabled={!tape} onChange={(event) => { setMinute(Number(event.target.value)); setPlaying(false); }} style={{ width: "100%" }} /></div>
       </div>
     </Panel>
-    {!fixture || !forecast || !tape || !snapshot ? <Panel><div className="empty-state"><strong>{forecastLoading ? "Preparing representative match…" : "Match timeline unavailable"}</strong>{forecastLoading ? "The 30,000-match forecast will determine the representative final score." : "Choose a fixture with sufficient model data."}</div></Panel> : <>
-      <div className="playback-scoreboard">
-        <div className="playback-topline"><span>{fixture.league}</span><span>{minute === 0 ? "PRE-MATCH" : minute === 90 ? "FULL TIME · SIMULATED" : String(minute) + "′ · SIMULATED"}</span></div>
-        <div className="playback-scores">
-          <div><small>HOME</small><strong>{fixture.home.shortName}</strong></div>
-          <b>{snapshot.home.goals} <span>–</span> {snapshot.away.goals}</b>
-          <div><small>AWAY</small><strong>{fixture.away.shortName}</strong></div>
-        </div>
-        <div className="playback-progress"><span style={{ width: minute / 90 * 100 + "%" }} /></div>
-        <div className="playback-xg">{playbackMode === "representative" ? "Representative modal-score scenario" : "Random alternate scenario"} · Model goal means: {forecast.expectedHomeGoals.toFixed(2)}–{forecast.expectedAwayGoals.toFixed(2)} · {lineupStatus}</div>
-      </div>
+    {fixture && forecast && tape && snapshot ? <>
       <div className="playback-columns">
         <Panel>
           <PanelHead title="Simulated match statistics" meta="Numbers advance as the simulated clock progresses" />
