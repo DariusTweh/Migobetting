@@ -10,6 +10,7 @@ import type { Fixture } from "@/lib/types";
 import { americanToDecimal, decimalToAmerican, formatAmerican, impliedProbability } from "@/lib/odds";
 import { useLocalMatchHistory } from "@/lib/use-local-history";
 import { createPaperParlay, savePaperParlay } from "@/lib/paper-parlays";
+import { isUpcomingPacificToday } from "@/lib/daily-slate";
 
 type Leg = { id: string; fixtureId: string; market: string; odds: number | null; bookKey?: string; bookmaker?: string; quoteSource?: string; quoteUpdatedAt?: string };
 type CardKind = "daily-double" | "banger" | "manual";
@@ -68,7 +69,8 @@ export function PickBuilder({ fixtures }: { fixtures: Fixture[] }) {
       quoteUpdatedAt: leg.updatedAt,
     })));
     setKind(target); setSaved(false);
-    setNotice("Loaded a qualified " + target + " priced card from " + proposed.bookmaker +
+    setNotice("Today's remaining matches only (Pacific time). Loaded a qualified " + target +
+      " priced card from " + proposed.bookmaker +
       ". Quotes are indicative, may be delayed, and must be checked before use.");
   }
 
@@ -87,7 +89,8 @@ export function PickBuilder({ fixtures }: { fixtures: Fixture[] }) {
             const item = raw as { fixtureId?: string; marketKey?: string; bookKey?: string };
             const fixture = fixtures.find((candidate) => candidate.id === item.fixtureId);
             const canonical = item.marketKey ? MARKET_KEYS[item.marketKey] : undefined;
-            if (!fixture || !canonical || fixture.status !== "scheduled" || Date.parse(fixture.kickoff) <= Date.now()) return [];
+            if (!fixture || !canonical || fixture.status !== "scheduled" ||
+              !isUpcomingPacificToday(fixture.kickoff)) return [];
             const quote = (feed?.quotes ?? []).find((q) =>
               q.fixtureId === item.fixtureId && q.marketKey === item.marketKey && q.bookKey === item.bookKey);
             return [{
@@ -158,7 +161,7 @@ export function PickBuilder({ fixtures }: { fixtures: Fixture[] }) {
   }
 
   return <>
-    <PageHeader eyebrow="Research and paper parlays" title="Pick Builder" description="Build, price, and save paper parlays." />
+    <PageHeader eyebrow="Research and paper parlays" title="Pick Builder" description="Daily Double and Banger generators use today's remaining Pacific-time matches only. Custom manual parlays may use later fixtures." />
     <div className="lab-tabs">
       <button onClick={() => autoBuild("daily-double")}><Layers3 size={16}/> Generate Daily Double</button>
       <button onClick={() => autoBuild("banger")}><Layers3 size={16}/> Generate Banger</button>
