@@ -2,6 +2,7 @@ import type { Fixture, Forecast } from "./types";
 import type { HistoricalMatch } from "./history";
 import { estimateHistoricalGoals } from "./history";
 import { forecastFixture } from "./model";
+import { calibrateFullTimeForecast } from "./full-time-calibration";
 
 const leagueName = (fixture: Fixture) => fixture.leagueId === "usa.1" ? "MLS" : fixture.league;
 
@@ -16,7 +17,7 @@ export function forecastWithHistory(fixture: Fixture, all: HistoricalMatch[]): F
   });
   if (!estimate) return fallback;
   const good = estimate.homeMatches >= 16 && estimate.awayMatches >= 16 && estimate.effectiveMatches >= 40;
-  return forecastFixture(fixture, {
+  return calibrateFullTimeForecast(forecastFixture(fixture, {
     expectedHomeGoals: estimate.expectedHomeGoals,
     expectedAwayGoals: estimate.expectedAwayGoals,
     lowScoreCorrelation: estimate.lowScoreCorrelation,
@@ -37,5 +38,5 @@ export function forecastWithHistory(fixture: Fixture, all: HistoricalMatch[]): F
       "Unavailable injuries, tactical changes, absences, and confirmed lineups are not yet assigned numerical effects.",
       "The fitted probabilities still require rolling out-of-sample calibration before real-money use.",
     ],
-  });
+  }), leagueName(fixture), fixture.kickoff);
 }
