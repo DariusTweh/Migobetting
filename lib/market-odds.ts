@@ -1,6 +1,9 @@
 import type { Fixture, LeagueId } from "./types";
 
-export type MarketKey = "home" | "draw" | "away" | "over-1.5" | "over-2.5" | "under-3.5" | "btts" | "home-draw" | "away-draw";
+export type MarketKey = "home" | "draw" | "away" | "home-draw" | "away-draw" | "btts" |
+  "over-0.5" | "over-1.5" | "over-2.5" | "over-3.5" |
+  "under-1.5" | "under-2.5" | "under-3.5" | "under-4.5" |
+  "home-over-0.5" | "away-over-0.5" | "home-over-1.5" | "away-over-1.5";
 export type MarketQuote = {
   fixtureId: string;
   marketKey: MarketKey;
