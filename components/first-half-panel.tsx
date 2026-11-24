@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import type { Fixture } from "@/lib/types";
 import type { HistoricalMatch } from "@/lib/history";
 import { importHistoricalMatches } from "@/lib/history-store";
@@ -251,10 +252,14 @@ export function FirstHalfPanel({fixture,history,ready}:{
         from {pull.uefa.coverage.previousCompletedMatchesForTeams} prior completed games for these clubs.
       </small>:null}
     </div>
+    <div className="fh-calibration-action">
+      <Link href="/simulation?view=calibration">Check OOS calibration and activate verified markets →</Link>
+    </div>
     <p className="first-half-foot">
-      Cross-league Poisson v2 uses actual first-half goals scored and conceded, opponent-adjusted attack/defense,
-      home/away splits, recency and league normalization. No future results, no invented HT scores.
-      UEFA data may remain sparse; these experimental estimates are not independently calibrated or bookmaker prices.
+      Cross-league Poisson v2 uses verified first-half goals scored and conceded, opponent and venue adjustment,
+      recency and league normalization. Raw scorelines stay unchanged.
+      Independently approved probability adjustments appear only where sufficient later match evidence supports them.
+      UEFA samples may remain sparse. No model probability is a bookmaker price.
     </p>
   </Panel>;
 }
