@@ -85,7 +85,7 @@ export type BacktestResult = {
   goalsByCompetition: Array<{ competition: string; calibration: GoalCalibration }>;
 };
 
-const DIVISION_NAMES: Record<string, string> = { E0: "Premier League", SP1: "La Liga", D1: "Bundesliga", I1: "Serie A", F1: "Ligue 1" };
+const DIVISION_NAMES: Record<string, string> = { E0: "Premier League", SP1: "La Liga", D1: "Bundesliga", I1: "Serie A", F1: "Ligue 1", N1: "Eredivisie", P1: "Primeira Liga", B1: "Belgian Pro League", T1: "Turkish Super Lig", G1: "Greek Super League", SC0: "Scottish Premiership" };
 const TEAM_ALIASES: Record<string, string> = {
   "man city": "manchester city", "man united": "manchester united", "wolves": "wolverhampton wanderers",
   "nott'm forest": "nottingham forest", "psg": "paris saint-germain", "inter": "internazionale",
