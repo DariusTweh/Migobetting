@@ -8,7 +8,7 @@ import { Calculator, Layers3, Plus, Save, Trash2, TriangleAlert } from "lucide-r
 import { PageHeader, Panel, PanelHead, Notice } from "./ui";
 import type { Fixture } from "@/lib/types";
 import { americanToDecimal, decimalToAmerican, formatAmerican, impliedProbability } from "@/lib/odds";
-import { useLocalMatchHistory } from "@/lib/use-local-history";
+import { useLocalMatchHistoryStatus } from "@/lib/use-local-history";
 import { createPaperParlay, savePaperParlay } from "@/lib/paper-parlays";
 import { isUpcomingPacificToday } from "@/lib/daily-slate";
 
@@ -34,7 +34,7 @@ const MARKET_KEYS: Record<string, string> = {
 };
 
 export function PickBuilder({ fixtures }: { fixtures: Fixture[] }) {
-  const history = useLocalMatchHistory();
+  const { matches: history, ready: historyReady } = useLocalMatchHistoryStatus();
   const { feed, loading: oddsLoading, error: oddsError } = useOddsFeed();
   const [initializedFromUrl, setInitializedFromUrl] = useState(false);
   const [fixtureId, setFixtureId] = useState(fixtures.find((f) => f.status === "scheduled")?.id ?? fixtures[0]?.id ?? "");
@@ -91,7 +91,8 @@ export function PickBuilder({ fixtures }: { fixtures: Fixture[] }) {
   }
 
   useEffect(() => {
-    if (oddsLoading || initializedFromUrl) return;
+    // Imported fair slips do not wait on the optional bookmaker API.
+    if (!historyReady || initializedFromUrl) return;
     setInitializedFromUrl(true);
     const search = new URLSearchParams(window.location.search);
     const mode = search.get("mode");
@@ -129,9 +130,9 @@ export function PickBuilder({ fixtures }: { fixtures: Fixture[] }) {
       } catch { /* Untrusted URL selection; use freshly retrieved quotes instead. */ }
     }
     autoBuild(mode);
-    // Hydrate once after the current quote feed has loaded.
+    // Hydrate once when the history model is ready. Quotes are optional.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [oddsLoading, initializedFromUrl, feed, fixtures]);
+  }, [historyReady, initializedFromUrl, feed, fixtures]);
 
   function addLeg() {
     if (!selectedFixture || selectedFixture.status !== "scheduled" || Date.parse(selectedFixture.kickoff) <= Date.now()) {
@@ -182,12 +183,12 @@ export function PickBuilder({ fixtures }: { fixtures: Fixture[] }) {
   return <>
     <PageHeader eyebrow="Research and paper parlays" title="Pick Builder" description="Daily Double and Banger generators use today's remaining Pacific-time matches only. Custom manual parlays may use later fixtures." />
     <div className="lab-tabs">
-      <button onClick={() => autoBuild("daily-double")}><Layers3 size={16}/> Generate Daily Double</button>
-      <button onClick={() => autoBuild("banger")}><Layers3 size={16}/> Generate Banger</button>
+      <button disabled={!historyReady} onClick={() => autoBuild("daily-double")}><Layers3 size={16}/> Generate Daily Double</button>
+      <button disabled={!historyReady} onClick={() => autoBuild("banger")}><Layers3 size={16}/> Generate Banger</button>
       <button onClick={() => { setLegs([]); setKind("manual"); setSaved(false); setNotice(""); }}>Clear card</button>
     </div>
     {(oddsLoading || oddsError || feed?.setupRequired) ? <div className="notice">
-      {oddsLoading ? "Loading odds…" : oddsError ? "Odds unavailable · " + oddsError : "No odds API key · manual pricing available."}
+      {oddsLoading ? "Checking optional bookmaker quotes · model fair cards still available." : oddsError ? "Bookmaker odds unavailable · " + oddsError : "No odds API key · model fair cards still available."}
     </div> : null}
     {notice ? <div className="lineup-explanation">{notice}</div> : null}
     <div className="builder-layout">
