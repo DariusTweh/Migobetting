@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { Fixture } from "@/lib/types";
 import type { HistoricalMatch } from "@/lib/history";
 import { importHistoricalMatches } from "@/lib/history-store";
-import { estimateFirstHalf, firstHalfCoverage, isContinentalMen } from "@/lib/first-half-model";
+import { estimateFirstHalf, firstHalfCoverage, isContinentalMen, clubHalfTimeKey } from "@/lib/first-half-model";
 import { Panel, PanelHead } from "./ui";
 
 type Backfill = {
@@ -24,6 +24,19 @@ const OTHER_EUROPE = ["nl.1","por.1","bel.1","tur.1","gre.1","sco.1"] as const;
 const CLUB_FEEDS:string[] = [...DOMESTIC,...OTHER_EUROPE];
 const requestCache = new Map<string,Promise<Backfill>>();
 const uefaCache = new Map<string,Promise<UefaBackfill>>();
+const EXTRA_CLUB_LEAGUE:Record<string,string>={
+  psv:"nl.1",ajax:"nl.1",feyenoord:"nl.1",az:"nl.1",twente:"nl.1",
+  benfica:"por.1",porto:"por.1",sporting:"por.1",braga:"por.1",
+  "club brugge":"bel.1",anderlecht:"bel.1",genk:"bel.1",
+  galatasaray:"tur.1",besiktas:"tur.1",fenerbahce:"tur.1",
+  olympiacos:"gre.1",paok:"gre.1",panathinaikos:"gre.1",
+  celtic:"sco.1",rangers:"sco.1",
+};
+const CORE_NAMES:Record<string,string>={
+  "eng.1":"Premier League","esp.1":"La Liga","ger.1":"Bundesliga",
+  "ita.1":"Serie A","fra.1":"Ligue 1",
+};
+
 
 async function fetchDomestic(code:string):Promise<Backfill> {
   let promise=requestCache.get(code);
@@ -84,8 +97,22 @@ export function FirstHalfPanel({fixture,history,ready}:{
     let alive=true;
     setPull(EMPTY);
     if(!supported){setLoading(false);return;}
+    // General history bootstrap already imports the big-five domestic leagues.
+    // Wait for it before deciding which supplemental club feeds are actually needed.
+    if(clubCompetition&&!ready){setLoading(true);return;}
     setLoading(true);
-    const sources=clubCompetition?CLUB_FEEDS:
+    const existing=firstHalfCoverage(history,fixture);
+    const insufficientClubs=existing.homeMatches<8 || existing.awayMatches<8;
+    const extras=[fixture.home.name,fixture.away.name].map(clubHalfTimeKey)
+      .map(key=>EXTRA_CLUB_LEAGUE[key]).filter((value):value is string=>!!value);
+    const missingCore=DOMESTIC.filter(code=>history.filter(m=>
+      m.competition===CORE_NAMES[code] &&
+      Number.isInteger(m.halfTimeHomeGoals)&&Number.isInteger(m.halfTimeAwayGoals)).length<60);
+    const sources=clubCompetition?
+      insufficientClubs?[...new Set([
+        ...missingCore,
+        ...(extras.length?extras:OTHER_EUROPE),
+      ])]:[]:
       DOMESTIC.includes(fixture.leagueId as typeof DOMESTIC[number]) ||
       OTHER_EUROPE.includes(fixture.leagueId as typeof OTHER_EUROPE[number])
         ?[fixture.leagueId]:[];
@@ -110,7 +137,7 @@ export function FirstHalfPanel({fixture,history,ready}:{
         warnings:[...failures,...successful.flatMap(x=>x.warnings.slice(0,1)),...(espn?.warnings??[]).slice(0,2)]});
     }).finally(()=>{if(alive)setLoading(false);});
     return ()=>{alive=false;};
-  },[fixture.leagueId,fixture.home.name,fixture.away.name,fixture.kickoff,supported,clubCompetition,uefaWomen]);
+  },[fixture.leagueId,fixture.home.name,fixture.away.name,fixture.kickoff,supported,clubCompetition,uefaWomen,ready]);
 
   const all=useMemo(()=>{
     const map=new Map(history.map(m=>[m.id,m]));
