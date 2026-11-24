@@ -1022,3 +1022,22 @@ main{padding:24px 28px 54px;max-width:1320px}
 .fh-season-grid b{font-size:10px;color:#e0e9eb}
 .fh-season-grid span{font-size:11px;color:var(--lime);font-variant-numeric:tabular-nums}
 @media(max-width:420px){.fh-season-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.fh-data-banner{font-size:11px;padding:10px}}
+
+
+/* Half-time cross-league attack/defense evidence */
+.fh-club-signals{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:13px 14px 5px}
+.fh-club-signal{min-width:0;padding:14px;border:1px solid #2d4141;border-radius:12px;background:linear-gradient(125deg,#102024,#0c171f)}
+.fh-club-signal-title{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:13px}
+.fh-club-signal-title strong{font-size:13px;color:#f1f7f6;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
+.fh-club-signal-title span{font-size:9px;color:var(--lime);font-weight:850;letter-spacing:.04em;text-align:right}
+.fh-club-signal-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.fh-club-signal-metrics>div{display:grid;gap:4px}
+.fh-club-signal-metrics small{font-size:10px;color:#95afb2;line-height:1.3}
+.fh-club-signal-metrics b{font-size:21px;letter-spacing:-.04em;color:#effbf8;font-variant-numeric:tabular-nums}
+.fh-club-signal-footer{display:block;margin-top:13px;padding-top:10px;border-top:1px solid #254039;font-size:9px;color:#90aba9;line-height:1.5}
+.fh-training-sources{display:grid;gap:9px;padding:12px 14px;border-top:1px solid var(--line-soft)}
+.fh-training-sources>strong{font-size:12px}
+.fh-training-sources>div{display:flex;gap:6px;flex-wrap:wrap}
+.fh-training-sources>div>span{font-size:10px;color:#bfd4d0;background:#112327;border:1px solid #284041;border-radius:7px;padding:7px 9px}
+.fh-training-sources b{color:var(--lime);margin-left:5px;font-variant-numeric:tabular-nums}
+@media(max-width:500px){.fh-club-signals{gap:6px;padding:9px}.fh-club-signal{padding:9px}.fh-club-signal-metrics b{font-size:18px}.fh-club-signal-metrics small{font-size:9px}.fh-club-signal-title{align-items:start;flex-direction:column;gap:3px}}
