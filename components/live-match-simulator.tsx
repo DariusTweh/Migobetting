@@ -144,18 +144,59 @@ export function LiveMatchSimulator({ fixtures }: { fixtures: Fixture[] }) {
 
   return <div className="stack">
     <div className="notice"><strong>VIRTUAL MATCH · NOT LIVE</strong> Player and ball movement, match events and stats are generated from a synthetic timeline. The real 30,000-match probabilities remain separate.</div>
+    <div className="virtual-match-picker">
+      <div className="virtual-match-picker-heading"><span>VIRTUAL MATCHDAY</span>
+        <strong>{fixture?.league ?? "Select a fixture"}</strong></div>
+      <select aria-label="Choose soccer match to simulate" className="select" value={fixtureId}
+        onChange={(event) => {setFixtureId(event.target.value);setPlaying(false);}}>
+        {fixtures.map((item) => <option key={item.id} value={item.id}>
+          {item.home.shortName} vs {item.away.shortName} · {item.league}
+        </option>)}
+      </select>
+    </div>
     {fixture && forecast && tape && snapshot ? <div className="tactical-game-center">
-            <div className="playback-scoreboard">
-        <div className="playback-topline"><span>{fixture.league}</span><span>{minute === 0 ? "PRE-MATCH" : minute === 90 ? "FULL TIME · SIMULATED" : String(minute) + "′ · SIMULATED"}</span></div>
-        <div className="playback-scores">
-          <div><small>HOME</small><strong>{fixture.home.shortName}</strong></div>
-          <b>{snapshot.home.goals} <span>–</span> {snapshot.away.goals}</b>
-          <div><small>AWAY</small><strong>{fixture.away.shortName}</strong></div>
+      <div className="virtual-broadcast-scoreboard">
+        <div className="virtual-broadcast-header">
+          <span>SIMULATED MATCH</span>
+          <span className="virtual-broadcast-clock">{minute === 90 ? "FULL TIME" :
+            minute === 45 ? "HALF TIME" : minute === 0 ? "KICKOFF" :
+            (minute < 45 ? "1ST HALF" : "2ND HALF") + " · " + minute + "′"}</span>
+          <span>{playbackMode === "representative" ? "ILLUSTRATIVE" : "SAMPLED"}</span>
         </div>
-        <div className="playback-progress"><span style={{ width: minute / 90 * 100 + "%" }} /></div>
-        <div className="playback-xg">{playbackMode === "representative" ? "Representative modal-score scenario" : "Random alternate scenario"} · Model goal means: {forecast.expectedHomeGoals.toFixed(2)}–{forecast.expectedAwayGoals.toFixed(2)} · {lineupStatus}</div>
+        <div className="virtual-broadcast-main">
+          <div className="virtual-broadcast-team">
+            {fixture.home.logo ? <img src={fixture.home.logo} alt="" loading="lazy"/> :
+              <span className="virtual-broadcast-crest">{fixture.home.abbreviation.slice(0,3)}</span>}
+            <strong>{fixture.home.shortName}</strong><small>HOME</small>
+          </div>
+          <div className="virtual-broadcast-score">
+            <div><b>{snapshot.home.goals}</b><span>:</span><b>{snapshot.away.goals}</b></div>
+            <small><i/> {minute === 0 ? "READY" : minute === 90 ? "FT" : minute + ":00"} <i/></small>
+          </div>
+          <div className="virtual-broadcast-team">
+            {fixture.away.logo ? <img src={fixture.away.logo} alt="" loading="lazy"/> :
+              <span className="virtual-broadcast-crest">{fixture.away.abbreviation.slice(0,3)}</span>}
+            <strong>{fixture.away.shortName}</strong><small>AWAY</small>
+          </div>
+        </div>
+        <div className="virtual-broadcast-goalmarkers" aria-label="Simulated goals timeline">
+          <div className="virtual-broadcast-track">
+            <i style={{width:minute/90*100+"%"}}/>
+            {tape.frames.flatMap((frame)=>frame.events.filter((item)=>item.kind==="goal"))
+              .map((event)=><button key={event.id} type="button"
+                title={event.minute + "′ · " + event.description}
+                style={{left:event.minute/90*100+"%"}}
+                className={"virtual-goalmark virtual-goalmark-"+event.side+
+                  (event.minute <= minute ? " past" : "")}
+                onClick={()=>{setPlaying(false);setMinute(event.minute);}}
+                aria-label={"Jump to simulated goal in minute "+event.minute}/>)}
+          </div>
+        </div>
+        <div className="virtual-broadcast-summary">
+          <span>GOAL MODEL <b>{forecast.expectedHomeGoals.toFixed(2)} – {forecast.expectedAwayGoals.toFixed(2)}</b></span>
+          <span>{lineups?.fixtureId === fixture.id ? "LINEUP DATA" : "PLACEHOLDER PLAYERS"}</span>
+        </div>
       </div>
-
       <TacticalPitch tape={tape} snapshot={snapshot} minute={minute}
         homeName={fixture.home.shortName} awayName={fixture.away.shortName}/>
       <div className="tactical-transport">
@@ -225,25 +266,18 @@ export function LiveMatchSimulator({ fixtures }: { fixtures: Fixture[] }) {
     <Panel>
       <PanelHead title="Match playback controls" meta="Sampled match is the honest default; modal-score playback is available only as an illustration." />
       <div className="builder-form">
-        <div className="field"><label>Fixture</label><select className="select" value={fixtureId} onChange={(event) => { setFixtureId(event.target.value); setPlaying(false); }}>{fixtures.map((f) => <option value={f.id} key={f.id}>{f.home.shortName} vs {f.away.shortName} · {f.league}</option>)}</select></div>
+
         <div className="form-grid">
           <div className="field"><label>Playback mode</label><select className="select" value={playbackMode} onChange={(event) => setPlaybackMode(event.target.value as PlaybackMode)}>
             <option value="alternate">Sampled match · full distribution</option>
             <option value="representative">Illustration · modal score</option>
           </select></div>
           <div className="field"><label>Playback seed · {playbackMode === "alternate" ? "changes score and timeline" : "changes timeline only"}</label><input className="input" value={seed} onChange={(event) => setSeed(event.target.value)} /></div>
-          <div className="field"><label>Playback speed</label><select className="select" value={speed} onChange={(event) => setSpeed(Number(event.target.value))}><option value="1">1×</option><option value="4">4×</option><option value="10">10×</option></select></div>
+
         </div>
         <p className="forecast-disclaimer">{playbackMode === "representative"
           ? "Changing the playback seed changes hypothetical goal minutes, players and events, but not the representative final score or the 30,000-match forecast."
           : "Alternate mode samples a different possible final score for each seed. The 30,000-match probabilities remain unchanged."}</p>
-        <div className="playback-actions">
-          <button className="button button-primary" disabled={!tape || minute === 90} onClick={() => setPlaying((x) => !x)}>{playing ? <Pause size={16} /> : <Play size={16} />}{playing ? "Pause match" : minute ? "Resume match" : "Kick off simulation"}</button>
-          <button className="button" onClick={() => { setMinute(0); setPlaying(false); }} disabled={!tape}><RotateCcw size={16} />Restart</button>
-          <button className="button" onClick={() => { setMinute((x) => Math.min(90, x + 5)); setPlaying(false); }} disabled={!tape || minute === 90}><SkipForward size={16} />+5 min</button>
-          <button className="button" onClick={() => { setMinute(90); setPlaying(false); }} disabled={!tape || minute === 90}>Full time</button>
-        </div>
-        <div className="field"><label>Match clock · {minute}′ / 90′</label><input aria-label="Simulated minute" type="range" min={0} max={90} value={minute} disabled={!tape} onChange={(event) => { setMinute(Number(event.target.value)); setPlaying(false); }} style={{ width: "100%" }} /></div>
       </div>
     </Panel>
     {fixture && forecast && tape && snapshot ? <>
