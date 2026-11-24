@@ -6,6 +6,12 @@ const DIVISIONS: Record<string, { code: string; name: string }> = {
   "ger.1": { code: "D1", name: "Bundesliga" },
   "ita.1": { code: "I1", name: "Serie A" },
   "fra.1": { code: "F1", name: "Ligue 1" },
+  "nl.1": { code: "N1", name: "Eredivisie" },
+  "por.1": { code: "P1", name: "Primeira Liga" },
+  "bel.1": { code: "B1", name: "Belgian Pro League" },
+  "tur.1": { code: "T1", name: "Turkish Super Lig" },
+  "gre.1": { code: "G1", name: "Greek Super League" },
+  "sco.1": { code: "SC0", name: "Scottish Premiership" },
 };
 export const dynamic = "force-dynamic";
 
