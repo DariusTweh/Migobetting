@@ -2,7 +2,7 @@ import type { BacktestPrediction } from "./history";
 import type { FirstHalfValidationSample } from "./first-half-validation";
 import type { CalibrationSample } from "./out-of-sample-calibration";
 
-/** Realized outcomes of every full-time forecasted market, not only winning picks. */
+/** Realized outcomes for independent full-time probabilities. Double chance is derived from the calibrated 1X2 simplex, never independently distorted. */
 export function fullTimeCalibrationSamples(predictions: BacktestPrediction[]):CalibrationSample[] {
   return predictions.flatMap(p=>{
     const goals=p.actualHomeGoals+p.actualAwayGoals;
@@ -10,8 +10,6 @@ export function fullTimeCalibrationSamples(predictions: BacktestPrediction[]):Ca
       ["home",p.probabilities.home,p.actualOutcome==="home"],
       ["draw",p.probabilities.draw,p.actualOutcome==="draw"],
       ["away",p.probabilities.away,p.actualOutcome==="away"],
-      ["home-draw",p.probabilities.homeOrDraw,p.actualOutcome!=="away"],
-      ["away-draw",p.probabilities.awayOrDraw,p.actualOutcome!=="home"],
       ["over-1.5",p.probabilities.over15,goals>=2],
       ["over-2.5",p.probabilities.over25,goals>=3],
       ["under-3.5",p.probabilities.under35,goals<=3],
