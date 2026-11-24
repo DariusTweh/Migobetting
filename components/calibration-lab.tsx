@@ -6,7 +6,7 @@ import { runHistoricalBacktest } from "@/lib/history";
 import { validateFirstHalfMultiSeason } from "@/lib/first-half-validation";
 import { fullTimeCalibrationSamples, firstHalfSamplesForCompetition } from "@/lib/calibration-sources";
 import {
-  evaluateCalibrationGroups, readCalibrationProfile, saveApprovedCalibrations,
+  evaluateCalibrationGroups, saveApprovedCalibrations,
   type CalibrationDecision,
 } from "@/lib/out-of-sample-calibration";
 import { Metric, Notice, Panel, PanelHead } from "./ui";
@@ -118,7 +118,7 @@ export function CalibrationLab(){
         Raw probabilities remain for every unapproved market. A saved paper pick is never overwritten.
       </p>
     </Panel>:null}
-    {warnings.length?<Notice variant="warning">{warnings.slice(0,8).join(" · ")}</Notice>:null}
+    {warnings.length?<Notice>{warnings.slice(0,8).join(" · ")}</Notice>:null}
     {checked?<Panel>
       <PanelHead title="Market-by-market verdict"
         meta="Final untouched period · lower Brier / log-loss indicates better probability quality"/>
@@ -138,7 +138,6 @@ export function CalibrationLab(){
       This is historical probability validation, not a guarantee of wins or profitable odds.
       The calibration test never changes the raw score-generation engine or historical saved picks.
       Calibrated first-half and full-time markets remain separate; dependent 1X2/double-chance probabilities are kept consistent.
-      {readCalibrationProfile()?" Your browser has a saved calibration profile.":""}
     </p>
   </div>;
 }
