@@ -41,10 +41,10 @@ describe("complete ticket paper parlays", () => {
   });
   it("creates one immutable $10 auto-tracked Daily Double for the calendar day", () => {
     const priced = {
-      kind: "daily-double",
+      kind: "daily-double", pricing: "quoted",
       legs: [
-        { ...leg("1", "Home win"), league: "Premier League", marketKey: "home", bookmaker: "DraftKings", bookKey: "dk", source: "TheRundown", updatedAt: "2029-12-01T11:55:00Z", probability: 0.7, impliedProbability: 0.55, modelEdge: 0.15 },
-        { ...leg("2", "Over 1.5 goals"), league: "Premier League", marketKey: "over-1.5", bookmaker: "DraftKings", bookKey: "dk", source: "TheRundown", updatedAt: "2029-12-01T11:55:00Z", probability: 0.75, impliedProbability: 0.55, modelEdge: 0.2 },
+        { ...leg("1", "Home win"), league: "Premier League", marketKey: "home", bookmaker: "DraftKings", bookKey: "dk", source: "TheRundown", updatedAt: "2029-12-01T11:55:00Z", probability: 0.7, impliedProbability: 0.55, modelEdge: 0.15, pricing: "quoted", fairAmerican: -233 },
+        { ...leg("2", "Over 1.5 goals"), league: "Premier League", marketKey: "over-1.5", bookmaker: "DraftKings", bookKey: "dk", source: "TheRundown", updatedAt: "2029-12-01T11:55:00Z", probability: 0.75, impliedProbability: 0.55, modelEdge: 0.2, pricing: "quoted", fairAmerican: -300 },
       ],
       bookmaker: "DraftKings", bookKey: "dk", combinedAmerican: 264, combinedDecimal: 3.64,
       jointProbability: 0.525, notes: [],
@@ -59,5 +59,8 @@ describe("complete ticket paper parlays", () => {
     expect(tracked?.legs).toHaveLength(2);
     const futureDay={...priced,legs:priced.legs.map(leg=>({...leg,kickoff:"2029-12-02T18:00:00Z"}))};
     expect(createAutoPaperParlay(futureDay,now)).toBeNull();
+    const modelFair={...priced,pricing:"model-fair" as const,
+      legs:priced.legs.map(leg=>({...leg,pricing:"model-fair" as const,source:"MIGO Fair" as const}))};
+    expect(createAutoPaperParlay(modelFair,now)).toBeNull();
   });
 });
