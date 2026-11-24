@@ -104,13 +104,17 @@ export function validateFirstHalfMultiSeason(
     let scored = 0;
     for (const match of targets) {
       const fixture: Fixture = {
-        id: match.id, leagueId: "eng.1", league: competition, kickoff: match.date,
+        id: match.id, leagueId: competition === "Champions League" ? "uefa.champions" :
+          competition === "UEFA Women's Champions League" ? "uefa.wchampions" : "eng.1",
+        league: competition, kickoff: match.date,
         status: "scheduled", statusLabel: "Historical", source: "ESPN",
         sourceUpdatedAt: match.date,
         home: { id: "home", name: match.homeTeam, shortName: match.homeTeam, abbreviation: "H" },
         away: { id: "away", name: match.awayTeam, shortName: match.awayTeam, abbreviation: "A" },
       };
-      const forecast = estimateFirstHalf(rows, fixture);
+      // Evaluate the target competition, but let the model train on all
+      // earlier eligible domestic/European club results for UEFA fixtures.
+      const forecast = estimateFirstHalf(history, fixture);
       if (!forecast) continue;
       scored++;
       const h = match.halfTimeHomeGoals!, a = match.halfTimeAwayGoals!;
