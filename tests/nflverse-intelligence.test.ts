@@ -79,6 +79,23 @@ describe("nflverse supplemental intelligence",()=>{
     expect(known).toHaveLength(1);
     expect(known[0].status).toBe("Questionable");
   });
+  it("accepts undated current-week injury rows only as source-observed, not officially time-stamped",()=>{
+    const rows=[{season:"2026",week:"12",team:"CIN",full_name:"Ja'Marr Chase",
+      report_status:"Out",practice_status:"DNP",report_primary_injury:"Hamstring"}];
+    const reports=parseInjuries(rows,2026,12,Date.parse("2026-11-28T20:00:00Z"));
+    expect(reports).toHaveLength(1);
+    expect(reports[0].timestampVerified).toBe(false);
+    expect(reports[0].modifiedAt).toBe("");
+    expect(reports[0].status).toBe("Out");
+  });
+  it("rejects contradictory undated injury statuses instead of selecting a made-up newest row",()=>{
+    const rows=[
+      {season:"2026",week:"12",team:"CIN",full_name:"Ja'Marr Chase",report_status:"Out"},
+      {season:"2026",week:"12",team:"CIN",full_name:"Ja'Marr Chase",report_status:"Questionable"},
+    ];
+    const reports=parseInjuries(rows,2026,12,Date.parse("2026-11-28T20:00:00Z"));
+    expect(reports[0].status).toBe("unverified-conflict");
+  });
   it("blocks players listed OUT, without claiming an unknown player is active",()=>{
     const props=rankNflProps(game,espnRows);
     const active = applyNflverseIntelligence(game,props,snapshot());
@@ -87,7 +104,7 @@ describe("nflverse supplemental intelligence",()=>{
     expect(active[0].intelligence?.status).toBe("unverified");
     expect(active[0].calibratedProbability).toBeNull();
     const injury = {name:"Ja'Marr Chase",team:"CIN",season:2026,week:12,
-      status:"Out",practice:"DNP",injury:"Hamstring",modifiedAt:"2026-11-29T11:00:00Z"};
+      status:"Out",practice:"DNP",injury:"Hamstring",modifiedAt:"2026-11-29T11:00:00Z",timestampVerified:true};
     const ruledOut=applyNflverseIntelligence(game,props,snapshot({injuries:[injury]}));
     expect(ruledOut.every(p=>p.grade==="PASS")).toBe(true);
   });
