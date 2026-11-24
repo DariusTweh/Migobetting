@@ -144,9 +144,11 @@ const groupRules: Array<{ market: NflMarket; position: string; metric: keyof Nfl
 export function opponentAllowance(boxes: Array<{ gameId: string; teamId: string; rows: NflBoxLine[] }>, teamId: string): NflMatchup[] {
   const history = boxes.filter((box) => box.teamId === teamId);
   return groupRules.flatMap((rule) => {
-    const values = history.map((box) => box.rows.filter((row) => row.teamId !== teamId &&
-      row.position === rule.position && typeof row[rule.metric] === "number")
-      .reduce((sum, row) => sum + Number(row[rule.metric]), 0));
+    const values = history.flatMap((box) => {
+      const rows = box.rows.filter((row) => row.teamId !== teamId &&
+        row.position === rule.position && typeof row[rule.metric] === "number");
+      return rows.length ? [rows.reduce((sum, row) => sum + Number(row[rule.metric]), 0)] : [];
+    });
     if (values.length < 3) return [];
     return [{ market: rule.market, position: rule.position,
       allowedMean: values.reduce((sum,n) => sum + n,0) / values.length, sampleGames: values.length }];
