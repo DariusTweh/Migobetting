@@ -22,12 +22,6 @@ export function fullTimeCalibrationSamples(predictions: BacktestPrediction[]):Ca
     }));
   });
 }
-export function firstHalfCalibrationSamples(samples:FirstHalfValidationSample[]):CalibrationSample[] {
-  return samples.map(s=>({
-    date:s.date,competition:"1H:"+s.season.slice(0,0)+s.home.slice(0,0)+""+s.market.slice(0,0),
-    market:s.market,probability:s.probability,won:s.observed,
-  }));
-}
 /** Each half-time sample carries its competition from the associated report. */
 export function firstHalfSamplesForCompetition(samples:FirstHalfValidationSample[], competition:string):CalibrationSample[] {
   return samples.map(s=>({
