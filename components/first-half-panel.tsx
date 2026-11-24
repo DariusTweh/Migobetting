@@ -5,6 +5,8 @@ import type { Fixture } from "@/lib/types";
 import type { HistoricalMatch } from "@/lib/history";
 import { importHistoricalMatches } from "@/lib/history-store";
 import { estimateFirstHalf, firstHalfCoverage, isContinentalMen, clubHalfTimeKey } from "@/lib/first-half-model";
+import { calibrateFirstHalfForecast } from "@/lib/half-time-calibration";
+import { CALIBRATION_EVENT, readCalibrationProfile } from "@/lib/out-of-sample-calibration";
 import { Panel, PanelHead } from "./ui";
 
 type Backfill = {
@@ -147,6 +149,17 @@ export function FirstHalfPanel({fixture,history,ready}:{
   // Show useful cached verified club history immediately while the general history refresh finishes.
   const available=ready||history.length>0||pull.matches.length>0;
   const model=useMemo(()=>available?estimateFirstHalf(all,fixture):null,[available,all,fixture]);
+  const [calibrationRevision,setCalibrationRevision]=useState(0);
+  useEffect(()=>{
+    const notify=()=>setCalibrationRevision(v=>v+1);
+    window.addEventListener(CALIBRATION_EVENT,notify);
+    return ()=>window.removeEventListener(CALIBRATION_EVENT,notify);
+  },[]);
+  const displayed=useMemo(()=>model?
+    calibrateFirstHalfForecast(model,fixture.league,fixture.kickoff,readCalibrationProfile()):null,
+    [model,fixture.league,fixture.kickoff,calibrationRevision]);
+  const calibrated=Boolean(model&&displayed&&model.markets.some((m,i)=>
+    Math.abs(m.probability-displayed.markets[i].probability)>1e-7));
   const coverage=useMemo(()=>firstHalfCoverage(all,fixture),[all,fixture]);
   const seasons=useMemo(()=>{
     const bySeason=new Map<string,{valid:number;completed:number}>();
@@ -208,7 +221,11 @@ export function FirstHalfPanel({fixture,history,ready}:{
         <div><small>Combined expected 1H</small><strong>{(model.expectedHomeGoals+model.expectedAwayGoals).toFixed(2)}</strong></div>
         <div><small>{fixture.away.shortName} expected 1H</small><strong>{model.expectedAwayGoals.toFixed(2)}</strong></div>
       </div>
-      <div className="first-half-market-list">{model.markets.map(m=>
+      <div className="fh-data-banner">
+        {calibrated?"OOS-calibrated percentages · tested on later unseen matches":
+          "Raw model probabilities · no approved out-of-sample corrections for this fixture"}
+      </div>
+      <div className="first-half-market-list">{displayed?.markets.map(m=>
         <div className="first-half-market-row" key={m.key}>
           <span>{m.label}</span>
           <div><strong>{(m.probability*100).toFixed(1)}%</strong>
