@@ -6,6 +6,7 @@
 export type NflMarket = "passingYards" | "passingTds" | "rushingYards" | "receivingYards" | "receptions";
 export type NflBoxLine = {
   gameId: string; date: string; teamId: string; athleteId: string; name: string; position: string;
+  season?: number; week?: number; source?: "ESPN" | "nflverse";
   passingYards?: number; passingTds?: number; passingAttempts?: number;
   rushingYards?: number; rushingAttempts?: number; receivingYards?: number;
   receptions?: number; targets?: number;
@@ -54,10 +55,21 @@ const marketForPosition = (position: string): NflMarket[] =>
   position === "RB" ? ["rushingYards", "receivingYards", "receptions"] :
   ["WR", "TE"].includes(position) ? ["receivingYards", "receptions"] : [];
 
-export function historyBeforeKickoff(lines: NflBoxLine[], kickoff: string): NflBoxLine[] {
+export function historyBeforeKickoff(lines: NflBoxLine[], fixture: string | NflGame): NflBoxLine[] {
+  const kickoff = typeof fixture === "string" ? fixture : fixture.kickoff;
   const limit = Date.parse(kickoff);
   if (!Number.isFinite(limit)) return [];
-  return lines.filter((line) => Number.isFinite(Date.parse(line.date)) && Date.parse(line.date) < limit);
+  return lines.filter((line) => {
+    // Never fabricate an NFL game date for a week-level source. A verified season
+    // and week are sufficient only when the fixture also has season/week metadata.
+    if (typeof fixture !== "string" && Number.isInteger(fixture.week) &&
+      Number.isInteger(fixture.season) && Number.isInteger(line.week) &&
+      Number.isInteger(line.season)) {
+      return line.season! < fixture.season! ||
+        (line.season === fixture.season && line.week! < fixture.week!);
+    }
+    return Number.isFinite(Date.parse(line.date)) && Date.parse(line.date) < limit;
+  });
 }
 
 /** Only games with a listed athlete/category are counted; missing ESPN rows are not fabricated as zeroes. */
@@ -67,14 +79,21 @@ export function rankNflProps(
   opponentAllowances: Record<string, NflMatchup[]> = {},
 ): NflProp[] {
   const groups = new Map<string, NflBoxLine[]>();
-  for (const line of historyBeforeKickoff(boxLines, game.kickoff)) {
+  for (const line of historyBeforeKickoff(boxLines, game)) {
     if (line.teamId !== game.home.id && line.teamId !== game.away.id) continue;
     const key = line.teamId + ":" + line.athleteId;
     groups.set(key, [...(groups.get(key) ?? []), line]);
   }
   const candidates: NflProp[] = [];
   for (const group of groups.values()) {
-    group.sort((a, b) => Date.parse(b.date) - Date.parse(a.date));
+    group.sort((a, b) => {
+      if (a.season !== undefined && b.season !== undefined &&
+          a.week !== undefined && b.week !== undefined) {
+        return b.season - a.season || b.week - a.week;
+      }
+      const left = Date.parse(a.date), right = Date.parse(b.date);
+      return Number.isFinite(left) && Number.isFinite(right) ? right - left : 0;
+    });
     const mostRecent = group[0];
     const opponentId = mostRecent.teamId === game.home.id ? game.away.id : game.home.id;
     for (const market of marketForPosition(mostRecent.position)) {
