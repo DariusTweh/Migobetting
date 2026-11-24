@@ -34,7 +34,7 @@ export type NflverseCoverage = {
   injuries: "available" | "unavailable";
   statsRows: number; snapsRows: number; injuryRows: number;
   week: number | null; season: number | null;
-  attribution: string;
+  attribution: string; sourceWarnings?: string[];
 };
 export type NflverseSnapshot = {
   players: WeeklyUsage[]; snaps: SnapRecord[]; injuries: InjuryReport[];
@@ -348,6 +348,10 @@ export async function getNflverseSnapshot(game: NflGame, now = new Date()): Prom
     downloadCsv("snap_counts/snap_counts_" + season + ".csv", ["player","team","season","week","offense_pct"]),
     downloadCsv("injuries/injuries_" + season + ".csv", ["full_name","team","season","week","date_modified"]),
   ]);
+  const sourceWarnings = records.flatMap((result, index) => result.status === "rejected"
+    ? [(["stats","snaps","injuries"][index]) + ": " +
+      (result.reason instanceof Error ? result.reason.message.slice(0, 120) : "provider unavailable")]
+    : []);
   const stats = records[0].status === "fulfilled" ? parseWeeklyUsage(records[0].value, season, week) : [];
   const snaps = records[1].status === "fulfilled" ? parseSnapCounts(records[1].value, season, week) : [];
   const injuries = records[2].status === "fulfilled" ? parseInjuries(records[2].value, season, week, cutoff) : [];
@@ -358,7 +362,7 @@ export async function getNflverseSnapshot(game: NflGame, now = new Date()): Prom
       snaps: records[1].status === "fulfilled" ? "available" : "unavailable",
       injuries: records[2].status === "fulfilled" ? "available" : "unavailable",
       statsRows: stats.length, snapsRows: snaps.length, injuryRows: injuries.length,
-      season, week, attribution: "nflverse/nflverse-data (CC BY 4.0)",
+      season, week, attribution: "nflverse/nflverse-data (CC BY 4.0)", sourceWarnings,
     },
   };
 }
