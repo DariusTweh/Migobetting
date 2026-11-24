@@ -3,7 +3,7 @@ import { createAutoPaperParlay, createPaperParlay, gradePaperParlay } from "../l
 import type { LockedParlayLeg } from "../lib/paper-parlays";
 import type { PricedCard } from "../lib/priced-cards";
 
-const future = "2030-05-12T12:00:00Z";
+const future = "2029-12-01T18:00:00Z"; // Same Pacific date as the paper slip lock
 const now = Date.parse("2029-12-01T12:00:00Z");
 const leg = (fixtureId: string, market: string): LockedParlayLeg => ({
   fixtureId, fixtureLabel: "A vs B", leagueId: "eng.1", kickoff: future,
@@ -15,6 +15,16 @@ describe("complete ticket paper parlays", () => {
     expect(card.legs).toHaveLength(2);
     expect(card.decimalOdds).toBeGreaterThan(2);
     expect(() => createPaperParlay({ kind: "banger", legs: [leg("1", "Home win"), leg("1", "Away win")], stake: 20 }, now)).toThrow();
+  });
+  it("disallows any future-day Daily Double or Banger but leaves custom parlays flexible", () => {
+    const tomorrow = { ...leg("3","Home win"), kickoff: "2029-12-02T18:00:00Z" };
+    expect(() => createPaperParlay({
+      kind:"daily-double",legs:[leg("1","Home win"),tomorrow],stake:10,
+    },now)).toThrow(/today's remaining matches/);
+    expect(() => createPaperParlay({
+      kind:"banger",legs:[leg("1","Home win"),tomorrow],stake:10,
+    },now)).toThrow(/today's remaining matches/);
+    expect(createPaperParlay({kind:"manual",legs:[leg("1","Home win"),tomorrow],stake:10},now).legs).toHaveLength(2);
   });
   it("grades a winning ticket only after every leg completes", () => {
     const card = createPaperParlay({ kind: "manual", legs: [leg("1", "Home win"), leg("2", "Over 1.5 goals")], stake: 20 }, now);
@@ -47,5 +57,7 @@ describe("complete ticket paper parlays", () => {
       status: "open",
     });
     expect(tracked?.legs).toHaveLength(2);
+    const futureDay={...priced,legs:priced.legs.map(leg=>({...leg,kickoff:"2029-12-02T18:00:00Z"}))};
+    expect(createAutoPaperParlay(futureDay,now)).toBeNull();
   });
 });
