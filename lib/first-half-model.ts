@@ -24,6 +24,7 @@ export type FirstHalfBacktest = {
 };
 
 const DAY = 86400000;
+const TRAINING_DAYS = 1461; // current partial season and previous three complete seasons
 const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, n));
 const decay = (days: number) => Math.pow(0.5, days / 180);
 
@@ -39,7 +40,7 @@ function firstHalfHistory(matches: HistoricalMatch[], fixture: Fixture): Weighte
   if (!Number.isFinite(cutoff)) return [];
   return matches.flatMap((match) => {
     const date = Date.parse(match.date);
-    if (!Number.isFinite(date) || date >= cutoff || date < cutoff - 730 * DAY ||
+    if (!Number.isFinite(date) || date >= cutoff || date < cutoff - TRAINING_DAYS * DAY ||
         match.competition !== fixture.league || !validHalfTime(match)) return [];
     return [{
       ...match, weight: decay((cutoff - date) / DAY),
@@ -47,6 +48,28 @@ function firstHalfHistory(matches: HistoricalMatch[], fixture: Fixture): Weighte
       awayKey: formTeamKey(match.awayTeam),
     }];
   });
+}
+
+/** Explain why a first-half forecast can or cannot be produced. All samples precede kickoff. */
+export function firstHalfCoverage(matches: HistoricalMatch[], fixture: Fixture) {
+  const earlier = firstHalfHistory(matches, fixture);
+  const homeKey = formTeamKey(fixture.home.name);
+  const awayKey = formTeamKey(fixture.away.name);
+  const sameCompetition = matches.filter((match) => match.competition === fixture.league);
+  const earlierRaw = sameCompetition.filter((match) => {
+    const date = Date.parse(match.date);
+    const cutoff = Date.parse(fixture.kickoff.slice(0, 10) + "T00:00:00Z");
+    return Number.isFinite(date) && date < cutoff && date >= cutoff - TRAINING_DAYS * DAY;
+  });
+  return {
+    competition: fixture.league,
+    earlierMatches: earlierRaw.length,
+    validHalfTime: earlier.length,
+    homeMatches: earlier.filter((match) => match.homeKey === homeKey || match.awayKey === homeKey).length,
+    awayMatches: earlier.filter((match) => match.homeKey === awayKey || match.awayKey === awayKey).length,
+    earliestDate: earlier.length ? earlier.reduce((first, m) => m.date < first ? m.date : first, earlier[0].date) : null,
+    source: earlier.length ? "Verified HTHG/HTAG or validated halftime feed" : "Missing verified half-time scores",
+  };
 }
 
 const poisson = (mean: number, goals: number): number => {
@@ -116,7 +139,7 @@ export function estimateFirstHalf(
     ],
     halfTimeScores: scores,
     notes: [
-      "Uses " + training.length + " verified earlier half-time scores from " + fixture.league + ".",
+      "Uses " + training.length + " verified earlier half-time scores from " + fixture.league + " (up to three completed seasons and current season).",
       "Venue-specific team attack/defense rates, 180-day decay and league-average shrinkage.",
       "Pre-match Poisson estimates only; not yet calibrated and no verified first-half bookmaker prices.",
     ],
