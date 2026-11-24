@@ -24,6 +24,13 @@ describe("NFL evidence gate and forecast",()=>{
     expect(picks[0].calibratedProbability).toBeNull();
     expect(picks[0].fairOdds).toBeNull();
   });
+  it("does not turn incomparable positional team totals into artificial matchup confidence",()=>{
+    const base=rankNflProps(game,rows)[0];
+    const allowed={B:[{market:"passingYards" as const,position:"QB",allowedMean:600,sampleGames:6}]};
+    const withOpponent=rankNflProps(game,rows,allowed)[0];
+    expect(withOpponent.factors.matchup).toBe(50);
+    expect(withOpponent.researchScore).toBe(base.researchScore);
+  });
   it("refuses short samples",()=>{
     expect(rankNflProps(game,rows.slice(0,2))).toEqual([]);
   });
