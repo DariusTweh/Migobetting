@@ -1,6 +1,6 @@
 import type { NflBoxLine, NflGame, NflMatchup, NflMarket, NflTeam } from "./engine";
 import { rankNflProps, NFL_MODEL_VERSION } from "./engine";
-import { getNflverseSnapshot, applyNflverseIntelligence } from "./nflverse";
+import { getNflverseSnapshot, applyNflverseIntelligence, weeklyBoxLinesForMatchup } from "./nflverse";
 import { localDateKey, offsetDateKey } from "../date-time";
 
 const API = "https://site.api.espn.com/apis/site/v2/sports/football/nfl";
@@ -161,6 +161,27 @@ export async function getNflPreview(game: NflGame, now = new Date()) {
   if (game.status !== "scheduled" || Date.parse(game.kickoff) <= now.getTime()) {
     return { error: "Pre-game projections are disabled after kickoff. No hindsight picks." };
   }
+  // Prefer the current-season nflverse weekly file. ESPN's public team schedule
+  // has sometimes returned zero historical games even when scores exist.
+  const earlySupplemental = await getNflverseSnapshot(game, now);
+  const nflverseLines = weeklyBoxLinesForMatchup(game, earlySupplemental.players);
+  if (nflverseLines.length >= 10) {
+    const homeGames = new Set(nflverseLines.filter((line) => line.teamId === game.home.id)
+      .map((line) => line.gameId)).size;
+    const awayGames = new Set(nflverseLines.filter((line) => line.teamId === game.away.id)
+      .map((line) => line.gameId)).size;
+    const props = applyNflverseIntelligence(game, rankNflProps(game, nflverseLines), earlySupplemental);
+    return {
+      game, version: NFL_MODEL_VERSION + "+nflverse-usage-v2", fetchedAt: new Date().toISOString(),
+      coverage: {
+        completedGames: new Set(nflverseLines.map((line) => line.gameId)).size,
+        playerLines: nflverseLines.length, homeHistory: homeGames, awayHistory: awayGames,
+        note: "Verified pregame nflverse weekly player stats. Week-level cutoff excludes the current game. Game-day actives, route participation, weather and sportsbook prices remain unverified.",
+      },
+      props, supplementalCoverage: earlySupplemental.coverage,
+      probabilityStatus: "UNCALIBRATED" as const,
+    };
+  }
   const season = seasonForKickoff(game.kickoff), cutoff = Math.min(Date.parse(game.kickoff), now.getTime());
   const teams = [game.home, game.away];
   const scheduleResults = await Promise.allSettled(teams.map((t) =>
@@ -192,12 +213,13 @@ export async function getNflPreview(game: NflGame, now = new Date()) {
   for (const t of teams) allowances[t.id] = opponentAllowance(boxes.filter((box) =>
     idsByTeam.find((it) => it.teamId === t.id)?.ids.includes(box.gameId))
     .map((box) => ({ ...box, teamId: t.id })), t.id);
-  const supplemental = await getNflverseSnapshot(enrichedGame, now);
-  const props = applyNflverseIntelligence(enrichedGame, rankNflProps(enrichedGame, ownRows, allowances), supplemental);
+  const supplemental = game.week === enrichedGame.week ? earlySupplemental : await getNflverseSnapshot(enrichedGame, now);
+  const fallbackLines = ownRows.length ? ownRows : weeklyBoxLinesForMatchup(enrichedGame, supplemental.players);
+  const props = applyNflverseIntelligence(enrichedGame, rankNflProps(enrichedGame, fallbackLines, allowances), supplemental);
   return {
     game: enrichedGame, version: NFL_MODEL_VERSION + "+nflverse-usage-v2", fetchedAt: new Date().toISOString(),
     coverage: {
-      completedGames: boxes.length, playerLines: ownRows.length,
+      completedGames: boxes.length, playerLines: fallbackLines.length,
       homeHistory: idsByTeam[0].ids.length, awayHistory: idsByTeam[1].ids.length,
       note: "ESPN listed box scores only; snap/route, injury, weather and sportsbook feeds not connected.",
     },
