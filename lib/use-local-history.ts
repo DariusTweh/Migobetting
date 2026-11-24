@@ -65,6 +65,9 @@ async function loadAvailableHistory(): Promise<HistoricalMatch[]> {
   // Only completed real ESPN events are imported; no invented results.
   const years = [new Date().getUTCFullYear() - 1, new Date().getUTCFullYear()];
   for (const [id, competition] of Object.entries(ESPN_HISTORY_COMPETITIONS) as Array<[EspnHistoryLeague, string]>) {
+    // Men's UEFA halftime is fetched on demand alongside club domestic form.
+    // Avoid 24 additional ESPN month requests on every app startup.
+    if (id === "uefa.champions") continue;
     const count = saved.filter((match) => match.competition === competition).length;
     if (count >= 40) continue;
     const settled = await Promise.allSettled(years.map(async (year) => {
