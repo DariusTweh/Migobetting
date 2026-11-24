@@ -35,6 +35,8 @@ export type FirstHalfValidationReport = {
   candidates: number; scored: number;
   dateRange: { from: string; to: string } | null;
   perSeason: FirstHalfSeasonValidation[];
+  /** Each forecast was generated using only prior games, suitable for chronological calibration. */
+  samples: FirstHalfValidationSample[];
   metrics: FirstHalfValidationMetric[];
   calibration: Record<"first-half-over-0.5" | "first-half-over-1.5",
     Array<{ band: string; count: number; predicted: number; observed: number }>>;
@@ -144,7 +146,7 @@ export function validateFirstHalfMultiSeason(
     dateRange: uniqueMatches.length ? {
       from: uniqueMatches[0].date, to: uniqueMatches[uniqueMatches.length - 1].date,
     } : null,
-    perSeason,
+    perSeason, samples: allSamples,
     metrics: keys.map((k) => sampleMetric(allSamples, k.key, k.label)),
     calibration: {
       "first-half-over-0.5": calibration(allSamples, "first-half-over-0.5"),
