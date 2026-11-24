@@ -1,4 +1,4 @@
-import { parseHistoricalCsv, type HistoricalMatch } from "@/lib/history";
+import { parseHistoricalCsv, type HistoricalMatch } from "../../../../lib/history";
 
 const DIVISIONS: Record<string, { code: string; name: string }> = {
   "eng.1": { code: "E0", name: "Premier League" },
