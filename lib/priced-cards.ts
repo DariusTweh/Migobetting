@@ -33,8 +33,8 @@ const marketText: Record<MarketKey, string> = {
 };
 export const MIN_ACCEPTED_AMERICAN = -350;
 export const MIN_ACCEPTED_PROBABILITY = 0.60;
-// Raw correlation-adjusted goal models are uncalibrated; model edge is a research filter,
-// never a demonstrated profitable advantage.
+// Qualified, market-specific OOS calibration may be applied to price estimates.
+// Any model edge remains a research filter, never proof of profitability.
 export const MIN_INDICATIVE_EDGE = 0.01;
 
 export function pricedCandidates(
@@ -127,8 +127,9 @@ export function buildPricedCard(
     jointProbability: selected.probability,
     notes: [
       "Quoted market prices from one bookmaker, not guaranteed executable at your location.",
-      "No legs shorter than -350. Every market must clear the raw model's 1 percentage-point indicative threshold.",
-      "Uncalibrated probabilities and assumed independence across fixtures can overstate the true chance of winning.",
+      "No legs shorter than -350. Every market must clear a 1 percentage-point indicative model edge threshold.",
+      "Market probabilities use only approved held-out calibration when available; other markets stay raw.",
+      "Estimated parlay hit rates assume independence across fixtures and can overstate the true chance of winning.",
       "Recheck current odds and market availability before taking any action. Paper research only.",
     ],
   };
