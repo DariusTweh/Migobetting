@@ -7,7 +7,7 @@ import {
 } from "@/lib/first-half-validation";
 import { Panel, PanelHead } from "./ui";
 
-const LEAGUES = ["Premier League", "La Liga", "Bundesliga", "Serie A", "Ligue 1"];
+const LEAGUES = ["Premier League", "La Liga", "Bundesliga", "Serie A", "Ligue 1", "Champions League", "UEFA Women\'s Champions League"];
 const pct = (n: number | null) => n === null ? "—" : (n * 100).toFixed(1) + "%";
 const decimal = (n: number | null) => n === null ? "—" : n.toFixed(3);
 
