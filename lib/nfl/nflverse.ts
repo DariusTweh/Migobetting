@@ -350,7 +350,7 @@ export async function getNflverseSnapshot(game: NflGame, now = new Date()): Prom
   ]);
   const sourceWarnings = records.flatMap((result, index) => result.status === "rejected"
     ? [(["stats","snaps","injuries"][index]) + ": " +
-      (result.reason instanceof Error ? result.reason.message.slice(0, 120) : "provider unavailable")]
+      (result.reason instanceof Error ? result.reason.message.slice(0, 500) : "provider unavailable")]
     : []);
   const stats = records[0].status === "fulfilled" ? parseWeeklyUsage(records[0].value, season, week) : [];
   const snaps = records[1].status === "fulfilled" ? parseSnapCounts(records[1].value, season, week) : [];
