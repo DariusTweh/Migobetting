@@ -1003,3 +1003,22 @@ main{padding:24px 28px 54px;max-width:1320px}
   .virtual-broadcast-score>div b{font-size:38px}
   .virtual-broadcast-summary{font-size:9px}
 }
+
+
+/* Verified halftime coverage and import state */
+.fh-data-banner{display:flex;align-items:center;gap:10px;padding:11px 15px;background:#12222a;border-bottom:1px solid #263f49;color:#b0cbd2;font-size:12px;line-height:1.5}
+.fh-data-success{background:#10241e;color:#b6e8cb;border-color:#284e3e;font-weight:700}
+.fh-sync-dot{width:8px;height:8px;flex-shrink:0;border-radius:50%;background:#69adfc;box-shadow:0 0 0 3px #69adfc22}
+.fh-data-success .fh-sync-dot{background:var(--lime);box-shadow:0 0 0 3px #b8f23b22}
+.fh-data-warning{padding:12px 15px;background:#2b201b;color:#ffbd8e;border-bottom:1px solid #5a3c2b;font-size:12px;line-height:1.5}
+.fh-coverage-inline{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0}
+.fh-coverage-inline>span{padding:6px 9px;border:1px solid #293e42;background:#152027;border-radius:8px;color:#b8cbd0;font-size:11px}
+.fh-coverage-inline b{color:#fff}
+.fh-season-coverage{margin-top:5px;border-top:1px solid var(--line-soft);padding:12px 14px;display:grid;gap:10px}
+.fh-season-coverage>strong{font-size:12px;color:#dceae7}
+.fh-season-coverage>small{font-size:11px;color:var(--muted)}
+.fh-season-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
+.fh-season-grid>div{min-width:0;padding:8px;border:1px solid #223239;border-radius:8px;background:#0e1c23;display:grid;gap:5px;text-align:center}
+.fh-season-grid b{font-size:10px;color:#e0e9eb}
+.fh-season-grid span{font-size:11px;color:var(--lime);font-variant-numeric:tabular-nums}
+@media(max-width:420px){.fh-season-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.fh-data-banner{font-size:11px;padding:10px}}
