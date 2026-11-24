@@ -2,6 +2,7 @@ import type { HistoricalMatch } from "./history";
 
 export const ESPN_HISTORY_COMPETITIONS = {
   "usa.1": "MLS",
+  "uefa.champions": "Champions League",
   "uefa.wchampions": "UEFA Women's Champions League",
 } as const;
 
