@@ -12,14 +12,25 @@ import { useLocalMatchHistory } from "@/lib/use-local-history";
 import { createPaperParlay, savePaperParlay } from "@/lib/paper-parlays";
 import { isUpcomingPacificToday } from "@/lib/daily-slate";
 
-type Leg = { id: string; fixtureId: string; market: string; odds: number | null; bookKey?: string; bookmaker?: string; quoteSource?: string; quoteUpdatedAt?: string };
+type Leg = { id: string; fixtureId: string; market: string; odds: number | null; fairAmerican?: number; bookKey?: string; bookmaker?: string; quoteSource?: string; quoteUpdatedAt?: string };
 type CardKind = "daily-double" | "banger" | "manual";
-const MARKETS = ["Home win", "Draw", "Away win", "Home or draw", "Away or draw", "Over 1.5 goals", "Over 2.5 goals", "Under 3.5 goals", "Both teams to score"];
+const MARKETS = ["Home win", "Draw", "Away win", "Home or draw", "Away or draw",
+  "Over 0.5 goals", "Over 1.5 goals", "Over 2.5 goals", "Over 3.5 goals",
+  "Under 1.5 goals", "Under 2.5 goals", "Under 3.5 goals", "Under 4.5 goals",
+  "Home team over 0.5 goals", "Away team over 0.5 goals",
+  "Home team over 1.5 goals", "Away team over 1.5 goals", "Both teams to score"];
 const MARKET_KEYS: Record<string, string> = {
   "home": "Home win", "draw": "Draw", "away": "Away win",
   "home-draw": "Home or draw", "away-draw": "Away or draw",
-  "over-1.5": "Over 1.5 goals", "over-2.5": "Over 2.5 goals",
-  "under-3.5": "Under 3.5 goals", "btts": "Both teams to score",
+  "over-0.5": "Over 0.5 goals", "over-1.5": "Over 1.5 goals",
+  "over-2.5": "Over 2.5 goals", "over-3.5": "Over 3.5 goals",
+  "under-1.5": "Under 1.5 goals", "under-2.5": "Under 2.5 goals",
+  "under-3.5": "Under 3.5 goals", "under-4.5": "Under 4.5 goals",
+  "home-over-0.5": "Home team over 0.5 goals",
+  "away-over-0.5": "Away team over 0.5 goals",
+  "home-over-1.5": "Home team over 1.5 goals",
+  "away-over-1.5": "Away team over 1.5 goals",
+  "btts": "Both teams to score",
 };
 
 export function PickBuilder({ fixtures }: { fixtures: Fixture[] }) {
@@ -64,14 +75,19 @@ export function PickBuilder({ fixtures }: { fixtures: Fixture[] }) {
     }
     setLegs(proposed.legs.map((leg) => ({
       id: crypto.randomUUID(), fixtureId: leg.fixtureId,
-      market: MARKET_KEYS[leg.marketKey] ?? leg.market, odds: leg.americanOdds,
-      bookKey: leg.bookKey, bookmaker: leg.bookmaker, quoteSource: leg.source,
-      quoteUpdatedAt: leg.updatedAt,
+      market: MARKET_KEYS[leg.marketKey] ?? leg.market,
+      odds: proposed.pricing === "quoted" ? leg.americanOdds : null,
+      fairAmerican: leg.fairAmerican,
+      bookKey: proposed.pricing === "quoted" ? leg.bookKey : undefined,
+      bookmaker: proposed.pricing === "quoted" ? leg.bookmaker : undefined,
+      quoteSource: proposed.pricing === "quoted" ? leg.source : undefined,
+      quoteUpdatedAt: proposed.pricing === "quoted" ? leg.updatedAt : undefined,
     })));
     setKind(target); setSaved(false);
-    setNotice("Today's remaining matches only (Pacific time). Loaded a qualified " + target +
-      " priced card from " + proposed.bookmaker +
-      ". Quotes are indicative, may be delayed, and must be checked before use.");
+    setNotice(proposed.pricing === "quoted" ?
+      "Today's " + target + " has exact matching bookmaker quotes from " + proposed.bookmaker +
+      ". Verify the current price before saving." :
+      "Today's " + target + " uses MIGO fair prices only. These are theoretical break-even odds, not available bookmaker prices. Enter actual prices to save a priced paper ticket.");
   }
 
   useEffect(() => {
@@ -95,15 +111,18 @@ export function PickBuilder({ fixtures }: { fixtures: Fixture[] }) {
               q.fixtureId === item.fixtureId && q.marketKey === item.marketKey && q.bookKey === item.bookKey);
             return [{
               id: crypto.randomUUID(), fixtureId: fixture.id, market: canonical,
-              odds: quote?.americanOdds ?? null, bookKey: quote?.bookKey,
+              odds: quote?.americanOdds ?? null,
+              fairAmerican: forecastWithHistory(fixture, history).markets
+                .find((m) => m.key === item.marketKey)?.fairAmerican,
+              bookKey: quote?.bookKey,
               bookmaker: quote?.bookmaker, quoteSource: quote?.source, quoteUpdatedAt: quote?.updatedAt,
             }];
           });
           if (imported.length === decoded.length && new Set(imported.map((x) => x.fixtureId)).size === imported.length) {
             setLegs(imported); setKind(mode); setSaved(false);
             setNotice(imported.every((leg) => leg.odds !== null)
-              ? "Imported the exact quoted slip from Command Center. Recheck bookmaker prices before paper-locking."
-              : "Imported your selected markets; some old prices are no longer available. Enter the missing current odds manually.");
+              ? "Imported today's selected markets with matching bookmaker quotes. Verify prices before saving."
+              : "Imported today's model-fair selections. Fair odds are theoretical and not automatically entered as actual prices. Supply real bookmaker odds to paper-lock.");
             return;
           }
         }
@@ -187,15 +206,17 @@ export function PickBuilder({ fixtures }: { fixtures: Fixture[] }) {
         <PanelHead title={kind === "daily-double" ? "Daily Double paper slip" : kind === "banger" ? "Banger paper slip" : "Custom paper parlay"} meta={legs.length ? legs.length + " selected legs" : "Nothing added"} />
         {legs.length ? <div className="builder-card">
           <div className="leg-list">{legs.map((leg) => { const fixture = fixtureMap.get(leg.fixtureId); return <div className="leg-row" key={leg.id}>
-            <div><span>{fixture?.league}</span><strong>{leg.market}</strong><small>{fixture?.home.shortName} vs {fixture?.away.shortName}</small><label className="field"><small>{leg.bookmaker ? leg.bookmaker + " · " + leg.quoteSource + " · quoted " + (leg.quoteUpdatedAt ? new Date(leg.quoteUpdatedAt).toLocaleTimeString() : "time unknown") : "Manually entered American odds"}</small><input className="input" style={{ maxWidth: 185 }} type="number" placeholder="-150 or +120" value={leg.odds ?? ""} onChange={(event) => updateLeg(leg.id, event.target.value)} /></label></div>
+            <div><span>{fixture?.league}</span><strong>{leg.market}</strong><small>{fixture?.home.shortName} vs {fixture?.away.shortName}</small><label className="field"><small>{leg.bookmaker ? leg.bookmaker + " · " + leg.quoteSource + " · quoted " + (leg.quoteUpdatedAt ? new Date(leg.quoteUpdatedAt).toLocaleTimeString() : "time unknown") :
+                leg.fairAmerican !== undefined ? "MIGO fair estimate " + formatAmerican(leg.fairAmerican) + " · enter actual bookmaker odds below" :
+                "Manually entered American odds"}</small><input className="input" style={{ maxWidth: 185 }} type="number" placeholder="-150 or +120" value={leg.odds ?? ""} onChange={(event) => updateLeg(leg.id, event.target.value)} /></label></div>
             <b>{leg.odds === null || leg.odds === 0 ? "NEEDS PRICE" : formatAmerican(leg.odds)}</b>
             <button className="icon-button" onClick={() => setLegs((current) => current.filter((item) => item.id !== leg.id))} aria-label="Remove leg"><Trash2 size={16}/></button>
           </div>; })}</div>
           {duplicateFixture ? <div className="correlation-warning"><TriangleAlert size={16}/> Duplicate fixtures are not allowed for the current parlay generator.</div> : null}
-          <div className="model-warning"><TriangleAlert size={14}/><span>Model probability is uncalibrated; combined legs assume independence.</span></div>
+          <div className="model-warning"><TriangleAlert size={14}/><span>MIGO fair prices are mathematical estimates, not bookmaker quotes. Real prices required for paper profit tracking. Markets may be uncalibrated; fixtures are treated as independent.</span></div>
           <div className="card-totals">
             <div><span>Combined actual odds</span><strong>{combined === null ? "Waiting for prices" : formatAmerican(combined)}</strong></div>
-            <div><span>Uncalibrated model probability</span><strong>{modelEstimate ? (modelEstimate.probability * 100).toFixed(1) + "%" : "—"}</strong></div>
+            <div><span>Estimated joint model probability</span><strong>{modelEstimate ? (modelEstimate.probability * 100).toFixed(1) + "%" : "—"}</strong></div>
             <div><span>Stake</span><div className="stake-input"><span>$</span><input type="number" min="1" value={stake} onChange={(event) => setStake(Number(event.target.value))}/></div></div>
             <div><span>Potential gross return</span><strong>{payout === null ? "—" : "$" + payout.toFixed(2)}</strong></div>
           </div>
