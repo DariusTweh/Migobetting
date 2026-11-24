@@ -35,6 +35,16 @@ Soccer fixture research, statistical match forecasts, simulation and paper-parla
 - **1H validation tab:** choose a league and the maximum matches per season, then run retrospective walk-forward first-half model evaluations on genuine imported halftime scores. Reports include predicted-vs-observed goals for five markets, Brier/log-loss diagnostics, ≥68% hit counts, per-season comparisons, and reliability bands for 1H Over 0.5 and Over 1.5.
 - **Scope:** evaluation is performed on demand, in the browser, using the local IndexedDB history. Seasons with insufficient earlier halftime samples are excluded from scoring. Validation results are *not* automatically applied as corrected probabilities, used in generated betting slips, or evidence of bookmaker profitability. Market calibration requires further out-of-sample evidence.
 
+## Out-of-sample calibration and guarded activation
+
+- **Simulation Lab → OOS Calibration** runs chronological probability tests on actual match history (separate first-half and full-time models) and can test one league or all available competitions.
+- Every calibration cohort uses **prior-match-only walk-forward forecasts**. Within each market and competition, the recorded predictions are split by *date* into a 60% fitting period, 20% validation period and 20% untouched later test period. A restrained log-odds correction is fitted using only the earliest period. If validation **and** the final held-out test fail to improve Brier score, or the final log loss fails to improve, the adjustment is **rejected**.
+- At least 150 out-of-sample forecasts across 45 match days are required, with adequate samples in all three chronological partitions. Inadequate samples and unproven markets stay **raw**, not silently marked calibrated. Training/results never mix 1H and FT, separate competitions, or women's and men's football.
+- Approved corrections persist in this browser's local storage and automatically affect eligible future match-detail probabilities, strongest-pick research, quoted-odds candidate comparisons and automatic parlay research. First-half market overlays use the same approved-profile gate. Only dates **after** the training/test history can receive the correction; saved pre-match records remain immutable. A failed re-test removes an older correction.
+- Full-time **1X2** markets are adjusted as a group only when all three outcomes independently pass, then normalized so home/draw/away sum to 100%; double chance is re-derived from 1X2. Goal totals obey necessary monotonic bounds (Over 2.5 ≤ Over 1.5), and BTTS cannot exceed Over 1.5. Half-time Over 1.5 is bounded by Over 0.5.
+- **Scope/limitation:** These are post-model *market-probability* adjustments, not a new physically coherent joint score model. The 30,000-match simulations, expected goals, and exact scorelines remain on their unmodified raw distribution; calibrated market views say so explicitly. These tests do not establish executable bookmaker odds, profitable edges, or independent future live performance.
+- Automatic promotion requires a user-initiated validation run because the multi-league evaluation is expensive and uses browser-local historical records. The results and approved profiles are stored in the browser, not synced to a backend.
+
 ## Development
 
 ```bash
