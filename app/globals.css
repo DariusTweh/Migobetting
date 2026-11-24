@@ -953,3 +953,53 @@ main{padding:24px 28px 54px;max-width:1320px}
 @media(prefers-reduced-motion:reduce){
  .tactical-player,.tactical-ball,.tactical-pass-trail,.tactical-goal-flash{animation:none!important;transition:none!important}
 }
+
+
+/* MIGO Virtual Matchday — compact broadcast UI */
+.virtual-match-picker{display:grid;gap:9px;padding:13px 15px;background:linear-gradient(125deg,#13241e,#111b24);border:1px solid #274239;border-radius:15px}
+.virtual-match-picker-heading{display:flex;align-items:center;justify-content:space-between;gap:9px}
+.virtual-match-picker-heading>span{font-size:10px;font-weight:900;color:var(--lime);letter-spacing:.12em}
+.virtual-match-picker-heading>strong{font-size:12px;color:var(--muted)}
+.virtual-match-picker>.select{width:100%;min-height:43px;background:#071316;border:1px solid #2a3a40;font-size:13px}
+.virtual-broadcast-scoreboard{background:radial-gradient(ellipse at 50% -20%,#233c3c,#0c151e 70%);border-bottom:1px solid #30504b}
+.virtual-broadcast-header{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 15px;border-bottom:1px solid #27383c;font-size:10px;color:#a0adaf;letter-spacing:.09em;font-weight:800}
+.virtual-broadcast-header>span:first-child{color:var(--lime)}
+.virtual-broadcast-clock{color:#c9e5de;white-space:nowrap}
+.virtual-broadcast-main{display:grid;grid-template-columns:minmax(0,1fr) minmax(100px,1fr) minmax(0,1fr);align-items:center;gap:7px;padding:17px 20px 11px}
+.virtual-broadcast-team{min-width:0;display:flex;align-items:center;flex-direction:column;gap:6px;text-align:center}
+.virtual-broadcast-team img{object-fit:contain;display:block;width:42px;height:42px;filter:drop-shadow(0 4px 9px #0008)}
+.virtual-broadcast-crest{width:42px;height:42px;display:grid;place-items:center;background:#273a40;border:1px solid #4a6268;border-radius:99px;font-size:11px;font-weight:900}
+.virtual-broadcast-team strong{font-size:13px;font-weight:850;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.virtual-broadcast-team small{font-size:10px;letter-spacing:.09em;color:#96a8ae}
+.virtual-broadcast-score{text-align:center}
+.virtual-broadcast-score>div{display:flex;gap:7px;justify-content:center;align-items:center}
+.virtual-broadcast-score>div b{font-size:clamp(33px,6vw,53px);font-weight:900;letter-spacing:-.045em;line-height:1.05;font-variant-numeric:tabular-nums;color:#fff}
+.virtual-broadcast-score>div span{font-size:25px;color:#6b838a;margin-bottom:7px}
+.virtual-broadcast-score>small{display:flex;justify-content:center;align-items:center;gap:7px;margin-top:8px;color:#c2f78c;font-size:10px;letter-spacing:.08em;font-weight:900}
+.virtual-broadcast-score>small i{width:4px;height:4px;border-radius:50%;background:var(--lime)}
+.virtual-broadcast-goalmarkers{padding:9px 22px}
+.virtual-broadcast-track{height:5px;border-radius:99px;background:#23373b;position:relative}
+.virtual-broadcast-track>i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#67aaa0,var(--lime))}
+.virtual-goalmark{position:absolute;top:50%;width:13px;height:13px;border:2px solid #0d1721;border-radius:50%;transform:translate(-50%,-50%);cursor:pointer;box-shadow:0 0 0 1px #516b67}
+.virtual-goalmark-home{background:#baf43a}
+.virtual-goalmark-away{background:#76a9ff}
+.virtual-goalmark.past{box-shadow:0 0 10px #baf43a55}
+.virtual-broadcast-summary{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:7px;border-top:1px solid #1b3335;padding:9px 15px;color:#89a6a4;font-size:10px;font-weight:700;letter-spacing:.035em}
+.virtual-broadcast-summary b{color:#dceee8;font-variant-numeric:tabular-nums}
+.tactical-game-center{box-shadow:0 12px 35px #0007;border-color:#24473c}
+.tactical-pitch-stage{border-left:5px solid #081411;border-right:5px solid #081411}
+.tactical-broadcast-head{background:linear-gradient(90deg,#112c27,#0a181c 45%,#132b23);border-top:1px solid #2b463d}
+.tactical-broadcast-foot{border-top:1px solid #2c5149}
+.tactical-play-caption{background:#0c1920}
+.tactical-player,.tactical-ball{transition:transform .24s cubic-bezier(.3,.2,.35,1)}
+.tactical-ball{transition-duration:.19s}
+.tactical-match-stage-overlay{pointer-events:none}
+@media(max-width:600px){
+  .virtual-match-picker{padding:11px}
+  .virtual-broadcast-main{padding:13px 11px 10px;gap:3px}
+  .virtual-broadcast-header{font-size:9px;padding:9px 11px}
+  .virtual-broadcast-team img,.virtual-broadcast-crest{width:35px;height:35px}
+  .virtual-broadcast-team strong{font-size:12px}
+  .virtual-broadcast-score>div b{font-size:38px}
+  .virtual-broadcast-summary{font-size:9px}
+}
