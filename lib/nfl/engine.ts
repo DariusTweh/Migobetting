@@ -91,14 +91,16 @@ export function rankNflProps(
         if (hits < 3 || projection < line * 1.08) continue;
         const rate = hits / observed.length; // descriptive only, not a forward probability
         const usage = clamp(40 + observed.length * 5 + Math.min(25, Math.max(0, (projection / line - 1) * 30)));
-        const matchup = allowance ? clamp(50 + (allowance.allowedMean - projection) / Math.max(30, projection) * 22, 30, 75) : 50;
+        // Positional team totals cannot be compared directly with an individual projection.
+        // Matchup remains neutral until opponent-adjusted, league-normalized baselines are validated.
+        const matchup = 50;
         const gameScript = 50; // a verified implied script is not yet connected
         const efficiency = clamp(80 - coefficient * 35, 25, 80);
         const context = 50; // confirmed roles, injuries and weather are not yet connected
         const factors = { usage, matchup, gameScript, efficiency, context };
         const raw = usage * NFL_WEIGHTS.usage + matchup * NFL_WEIGHTS.matchup +
           gameScript * NFL_WEIGHTS.gameScript + efficiency * NFL_WEIGHTS.efficiency + context * NFL_WEIGHTS.context;
-        const researchScore = Math.round(Math.min(allowance ? 74 : 69, raw));
+        const researchScore = Math.round(Math.min(69, raw));
         candidates.push({
           id: mostRecent.athleteId + ":" + market + ":" + line, athleteId: mostRecent.athleteId,
           player: mostRecent.name, teamId: mostRecent.teamId, position: mostRecent.position,
