@@ -126,14 +126,15 @@ export function parseWeeklyUsage(rows: Array<Record<string, string>>, season: nu
 
 /** Exact season/week, real stat values and no fabricated game dates. */
 export function weeklyBoxLinesForMatchup(game: NflGame, players: WeeklyUsage[]): NflBoxLine[] {
-  if (!game.season || !game.week) return [];
+  const season = game.season, week = game.week;
+  if (!season || !week) return [];
   const teams = new Map([
     [canonicalNflTeam(game.home.abbreviation), game.home.id],
     [canonicalNflTeam(game.away.abbreviation), game.away.id],
   ]);
   return players.flatMap((row) => {
     const teamId = teams.get(row.team);
-    if (!teamId || row.season !== game.season || row.week >= game.week || row.week < 1) return [];
+    if (!teamId || row.season !== season || row.week >= week || row.week < 1) return [];
     const values = [row.passingYards, row.passingTds, row.rushingYards, row.receivingYards, row.receptions];
     if (!values.some((value) => value !== null)) return [];
     return [{
