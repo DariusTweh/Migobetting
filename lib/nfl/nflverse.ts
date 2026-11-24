@@ -1,4 +1,4 @@
-import type { NflGame, NflProp, NflMarket } from "./engine";
+import type { NflGame, NflProp, NflMarket, NflBoxLine } from "./engine";
 
 /**
  * Supplemental nflverse data. All rows must be from weeks strictly before the
@@ -13,7 +13,8 @@ const MAX_CSV_BYTES = 7_000_000;
 export type WeeklyUsage = {
   name: string; id: string; team: string; position: string; season: number; week: number; gameId: string;
   opponent: string; targets: number | null; targetShare: number | null; carries: number | null;
-  passingAttempts: number | null; receptions: number | null;
+  passingAttempts: number | null; passingYards: number | null; passingTds: number | null;
+  rushingYards: number | null; receivingYards: number | null; receptions: number | null;
 };
 export type SnapRecord = {
   name: string; team: string; season: number; week: number;
@@ -115,10 +116,37 @@ export function parseWeeklyUsage(rows: Array<Record<string, string>>, season: nu
       opponent: canonicalNflTeam(row.opponent_team ?? ""),
       targets: finite(row.targets), targetShare: finite(row.target_share),
       carries: finite(row.carries), passingAttempts: finite(row.attempts),
+      passingYards: finite(row.passing_yards), passingTds: finite(row.passing_tds),
+      rushingYards: finite(row.rushing_yards), receivingYards: finite(row.receiving_yards),
       receptions: finite(row.receptions),
     });
   }
   return data;
+}
+
+/** Exact season/week, real stat values and no fabricated game dates. */
+export function weeklyBoxLinesForMatchup(game: NflGame, players: WeeklyUsage[]): NflBoxLine[] {
+  if (!game.season || !game.week) return [];
+  const teams = new Map([
+    [canonicalNflTeam(game.home.abbreviation), game.home.id],
+    [canonicalNflTeam(game.away.abbreviation), game.away.id],
+  ]);
+  return players.flatMap((row) => {
+    const teamId = teams.get(row.team);
+    if (!teamId || row.season !== game.season || row.week >= game.week || row.week < 1) return [];
+    const values = [row.passingYards, row.passingTds, row.rushingYards, row.receivingYards, row.receptions];
+    if (!values.some((value) => value !== null)) return [];
+    return [{
+      gameId: row.gameId, date: "", season: row.season, week: row.week,
+      athleteId: "nflverse:" + row.id, teamId, name: row.name,
+      position: row.position, source: "nflverse" as const,
+      passingYards: row.passingYards ?? undefined, passingTds: row.passingTds ?? undefined,
+      passingAttempts: row.passingAttempts ?? undefined,
+      rushingYards: row.rushingYards ?? undefined, rushingAttempts: row.carries ?? undefined,
+      receivingYards: row.receivingYards ?? undefined, receptions: row.receptions ?? undefined,
+      targets: row.targets ?? undefined,
+    }];
+  });
 }
 
 export function parseSnapCounts(rows: Array<Record<string, string>>, season: number, week: number): SnapRecord[] {
