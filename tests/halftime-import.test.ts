@@ -56,7 +56,7 @@ describe("expanded halftime historical window", () => {
     return {
       id:"season-"+i,competition:"Serie A",season:String(year),date,
       homeTeam:isHome?"Inter":"AC Milan",awayTeam:isHome?"AC Milan":"Inter",
-      homeGoals:2,awayGoals:1,halfTimeHomeGoals:1,halfTimeAwayGoals:0,
+      homeGoals:2,awayGoals:1,halfTimeHomeGoals:i%4===0?0:1,halfTimeAwayGoals:i%3===0?1:0,
       result:"H",source:"test",importedAt:"2026-11-24T00:00:00Z",
     };
   });
