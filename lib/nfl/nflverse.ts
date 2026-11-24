@@ -293,7 +293,7 @@ export function applyNflverseIntelligence(game: NflGame, props: NflProp[], snaps
     return { ...pick, factors, researchScore, grade, evidence, risks,
       intelligence: {
         source: "nflverse weekly stats/snap counts/injuries",
-        sampleGames: recent.length, targets, carries, passingAttempts,
+        sampleGames: recent.length, targets, carries, passingAttempts: passAttempts,
         targetShare: targetShare === null ? null : targetShare * 100,
         snapShare, status: injury?.status || "unverified",
         defenseRatio: ratio,
