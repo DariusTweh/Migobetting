@@ -24,6 +24,8 @@ export type ProbabilityCorrection = {
   rawLogLoss: number;
   calibratedLogLoss: number;
   cutoff: string;
+  trainedThrough: string;
+  forecastVersion: string;
 };
 export type CalibrationDecision = {
   competition: string;
@@ -101,7 +103,8 @@ export function evaluateCalibration(samples: CalibrationSample[]): CalibrationDe
       ...base,intercept:best.intercept,slope:best.slope,model:"logit-affine-v1",
       nTrain:train.length,nValidation:validate.length,nTest:test.length,
       rawBrier:rawTest,calibratedBrier:newTest,rawLogLoss:rawLog,calibratedLogLoss:newLog,
-      cutoff:testDay,
+      cutoff:testDay,trainedThrough:clean[clean.length-1].date.slice(0,10),
+      forecastVersion:first.competition.startsWith("1H:")?"migo-first-half-cross-league-v2":"migo-opponent-decay-dc-0.4",
     }:null,
     rawBrier:rawTest,calibratedBrier:newTest,rawLogLoss:rawLog,calibratedLogLoss:newLog,
     reason:approved?
@@ -126,12 +129,19 @@ export function readCalibrationProfile(): CalibrationProfile | null {
     return data;
   }catch{return null;}
 }
-export function getCorrection(competition:string,market:string,profile:CalibrationProfile|null=readCalibrationProfile()) {
-  return profile?.corrections.find(c=>c.competition===competition&&c.market===market)??null;
+export function getCorrection(competition:string,market:string,profile:CalibrationProfile|null=readCalibrationProfile(),
+  kickoff?:string,modelVersion?:string) {
+  const correction=profile?.corrections.find(c=>c.competition===competition&&c.market===market)??null;
+  if(!correction)return null;
+  // A later backtest revision cannot silently rewrite an already historical prediction.
+  if(kickoff && (!Number.isFinite(Date.parse(kickoff)) ||
+    kickoff.slice(0,10)<=correction.trainedThrough))return null;
+  if(modelVersion && correction.forecastVersion!==modelVersion)return null;
+  return correction;
 }
 export function correctedMarketProbability(competition:string,market:string,p:number,
-  profile:CalibrationProfile|null=readCalibrationProfile()):number {
-  const correction=getCorrection(competition,market,profile);
+  profile:CalibrationProfile|null=readCalibrationProfile(),kickoff?:string,modelVersion?:string):number {
+  const correction=getCorrection(competition,market,profile,kickoff,modelVersion);
   return correction?correctProbability(p,correction):p;
 }
 export function saveApprovedCalibrations(decisions:CalibrationDecision[]):CalibrationProfile|null {
