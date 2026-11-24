@@ -65,7 +65,11 @@ export function tacticalFrame(tape: MatchTape, moment: number): TacticalFrame {
   const teamMarkers = players.filter((p) => p.side === attacking && p.index >= 5);
   const carrier = event ? players.find((p) => p.id === event.playerId) :
     teamMarkers[hash(tape.seed + "/carrier/" + Math.floor(minute / 2)) % teamMarkers.length];
-  const ball = minute === 0 ? { x: 50, y: 50 } :
+  const shotAtGoal = event && ["goal", "save", "shot"].includes(event.kind);
+  const ball = minute === 0 ? { x: 50, y: 50 } : shotAtGoal ?
+    { x: event!.side === "home" ? (event!.kind === "goal" ? 97 : 94) :
+        (event!.kind === "goal" ? 3 : 6),
+      y: clamp(carrier?.y ?? 50, 12, 88) } :
     { x: carrier?.x ?? 50, y: clamp((carrier?.y ?? 50) + 1.7, 4, 96) };
   const previous = minute > 0 && teamMarkers.length > 1
     ? teamMarkers[(hash(tape.seed + "/pass/" + minute) + 1) % teamMarkers.length]
