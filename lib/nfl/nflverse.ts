@@ -22,7 +22,7 @@ export type SnapRecord = {
 };
 export type InjuryReport = {
   name: string; team: string; season: number; week: number;
-  status: string; practice: string; injury: string; modifiedAt: string;
+  status: string; practice: string; injury: string; modifiedAt: string; timestampVerified: boolean;
 };
 export type PositionalAllowed = {
   team: string; position: string; market: NflMarket;
@@ -173,17 +173,28 @@ export function parseInjuries(rows: Array<Record<string, string>>, season: numbe
       (row.season_type && row.season_type !== "REG")) continue;
     const name = row.full_name?.trim() ?? "", team = canonicalNflTeam(row.team ?? "");
     const date = row.date_modified?.trim() ?? "", ms = Date.parse(date);
-    if (!name || !team || !Number.isFinite(ms) || ms > cutoff) continue;
+    if (!name || !team || (Number.isFinite(ms) && ms > cutoff)) continue;
+    // 2026 injury CSV no longer exposes date_modified: ingest only in a
+    // live pregame snapshot, and identify its observation time explicitly.
+    const timestampVerified = Number.isFinite(ms);
     const key = team + ":" + normalizePlayer(name);
     const entry: InjuryReport = {
       name, team, season, week,
       status: row.report_status?.trim() ?? "",
       practice: row.practice_status?.trim() ?? "",
       injury: row.report_primary_injury?.trim() ?? "",
-      modifiedAt: new Date(ms).toISOString(),
+      modifiedAt: timestampVerified ? new Date(ms).toISOString() : "",
+      timestampVerified,
     };
     const earlier = latest.get(key);
-    if (!earlier || Date.parse(entry.modifiedAt) > Date.parse(earlier.modifiedAt)) latest.set(key, entry);
+    if (!earlier) latest.set(key, entry);
+    else if (timestampVerified && (!earlier.timestampVerified ||
+      Date.parse(entry.modifiedAt) > Date.parse(earlier.modifiedAt))) latest.set(key, entry);
+    else if (!timestampVerified && !earlier.timestampVerified &&
+      (earlier.status !== entry.status || earlier.practice !== entry.practice)) {
+      // Conflicting undated rows for one athlete cannot be ordered reliably.
+      latest.set(key, { ...entry, status: "unverified-conflict", practice: "", injury: "" });
+    }
   }
   return [...latest.values()];
 }
@@ -306,7 +317,7 @@ export function applyNflverseIntelligence(game: NflGame, props: NflProp[], snaps
         "Opponent " + pick.position + " opportunity allowance / league baseline: " + ratio.toFixed(2) +
         "x (" + allowance!.games + " opponent games).",
       injury ? "Week-specific injury report: " + (injury.status || "not designated") +
-        "; practice: " + (injury.practice || "unknown") + " (updated " + injury.modifiedAt + ")." :
+        "; practice: " + (injury.practice || "unknown") + (injury.timestampVerified ? " (updated " + injury.modifiedAt + ")." : " (report row undated; observed in pregame fetch).") :
         "No matched current-week injury report. This does NOT confirm the player is active.",
     ];
     const risks = [
@@ -346,7 +357,7 @@ export async function getNflverseSnapshot(game: NflGame, now = new Date()): Prom
   const records = await Promise.allSettled([
     downloadCsv("stats_player/stats_player_week_" + season + ".csv", ["player_id","player_display_name","team","season","week","game_id","position"]),
     downloadCsv("snap_counts/snap_counts_" + season + ".csv", ["player","team","season","week","offense_pct"]),
-    downloadCsv("injuries/injuries_" + season + ".csv", ["full_name","team","season","week","date_modified"]),
+    downloadCsv("injuries/injuries_" + season + ".csv", ["full_name","team","season","week"]),
   ]);
   const sourceWarnings = records.flatMap((result, index) => result.status === "rejected"
     ? [(["stats","snaps","injuries"][index]) + ": " +
