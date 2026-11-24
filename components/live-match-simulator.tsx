@@ -271,6 +271,6 @@ export function LiveMatchSimulator({ fixtures }: { fixtures: Fixture[] }) {
           {displayedPlayers?.map(({ player, stat }) => <div className="playback-player-row" key={player.id}><span><strong>{player.name}</strong><small>{player.position} · {player.provenance === "placeholder" ? "Placeholder" : "ESPN lineup name"}</small></span><b>{stat?.passes ?? 0}</b><b>{stat?.shots ?? 0}</b><b>{stat?.goals ?? 0}</b><b>{stat?.assists ?? 0}</b></div>)}
         </div>
       </Panel>
-    </>}
+    </> : null}
   </div>;
 }
