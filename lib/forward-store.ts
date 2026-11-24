@@ -38,14 +38,17 @@ function save(items: ForwardPrediction[]) {
 export function snapshotUpcomingFixtures(fixtures: Fixture[], history: HistoricalMatch[] = [], now = Date.now()) {
   const existing = readForwardPredictions();
   const ids = new Set(existing.map((item) => item.id));
+  const lockedFixtures = new Set(existing.map((item) => item.leagueId + ":" + item.fixtureId));
   const additions = fixtures.flatMap((fixture): ForwardPrediction[] => {
-    if (fixture.status !== "scheduled" || new Date(fixture.kickoff).getTime() <= now) return [];
+    if (fixture.status !== "scheduled" || new Date(fixture.kickoff).getTime() <= now ||
+      lockedFixtures.has(fixture.leagueId + ":" + fixture.id)) return [];
     const forecast = forecastWithHistory(fixture, history);
     if (forecast.dataQuality === "insufficient") return [];
     const outcomes = [["home", forecast.homeWin], ["draw", forecast.draw], ["away", forecast.awayWin]] as const;
     const predictedOutcome = outcomes.reduce((best, item) => item[1] > best[1] ? item : best)[0];
     const id = `${fixture.id}:${forecast.modelVersion}`;
     if (ids.has(id)) return [];
+    lockedFixtures.add(fixture.leagueId + ":" + fixture.id);
     return [{ id, fixtureId: fixture.id, leagueId: fixture.leagueId, fixtureLabel: `${fixture.home.shortName} vs ${fixture.away.shortName}`, kickoff: fixture.kickoff, lockedAt: new Date(now).toISOString(), modelVersion: forecast.modelVersion, modelInputs: { expectedHomeGoals: forecast.expectedHomeGoals, expectedAwayGoals: forecast.expectedAwayGoals, lowScoreCorrelation: forecast.lowScoreCorrelation, dataQuality: forecast.dataQuality }, probabilities: { home: forecast.homeWin, draw: forecast.draw, away: forecast.awayWin, over15: forecast.markets.find((item) => item.key === "over-1.5")?.probability ?? 0, over25: forecast.markets.find((item) => item.key === "over-2.5")?.probability ?? 0, btts: forecast.markets.find((item) => item.key === "btts")?.probability ?? 0 }, predictedOutcome, status: "open" }];
   });
   if (additions.length) save([...existing, ...additions]);
