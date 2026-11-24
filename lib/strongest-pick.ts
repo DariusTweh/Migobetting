@@ -5,7 +5,7 @@ import { pricedCandidates } from "./priced-cards";
 import { forecastWithHistory } from "./historical-forecast";
 
 const HORIZON_MS = 72 * 60 * 60 * 1000;
-const UNPRICED_MARKETS = new Set(["home", "away", "over-1.5", "over-2.5", "under-3.5", "btts"]);
+const UNPRICED_MARKETS = new Set(["home", "away", "over-1.5", "over-2.5", "under-2.5", "under-3.5", "under-4.5", "home-over-0.5", "away-over-0.5", "home-over-1.5", "away-over-1.5", "btts"]);
 
 /** Same moderate-probability market filter for dashboard and match detail pages. */
 export function strongestUnpricedMarket(forecast: Forecast): MarketProbability | null {
