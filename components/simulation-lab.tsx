@@ -9,22 +9,26 @@ import type { SimulationResult } from "@/lib/simulation";
 import { simulateStrategy, type StrategyResult } from "@/lib/strategy";
 import { Metric, Notice, PageHeader, Panel, PanelHead } from "./ui";
 import { LiveMatchSimulator } from "./live-match-simulator";
+import { FirstHalfValidationPanel } from "./first-half-validation-panel";
 
 const percent = (value: number) => `${(value * 100).toFixed(1)}%`;
 const SAVED_KEY = "migo:simulations:v1";
 
 export function SimulationLab({ fixtures, providerErrors, fetchedAt }: { fixtures: Fixture[]; providerErrors: string[]; fetchedAt: string }) {
-  const [tab, setTab] = useState<"live" | "match" | "strategy">("live");
+  const [tab, setTab] = useState<"live" | "match" | "strategy" | "first-half">("live");
   useEffect(() => {
     const search = new URLSearchParams(window.location.search);
     if (search.get("view") === "probabilities") setTab("match");
     else if (search.get("view") === "strategy") setTab("strategy");
     else if (search.get("view") === "live") setTab("live");
+    else if (search.get("view") === "first-half") setTab("first-half");
   }, []);
   return <>
     <PageHeader eyebrow="Virtual match center" title="Simulation Lab" description="Watch a synthetic match unfold minute by minute, or inspect model probabilities and long-run strategy risk." />
-    <div className="lab-tabs"><button className={tab === "live" ? "active" : ""} onClick={() => setTab("live")}><Activity size={16} />Live-style match</button><button className={tab === "match" ? "active" : ""} onClick={() => setTab("match")}><FlaskConical size={16} />Probability lab</button><button className={tab === "strategy" ? "active" : ""} onClick={() => setTab("strategy")}><WalletCards size={16} />Strategy risk</button></div>
-    {tab === "live" ? <LiveMatchSimulator fixtures={fixtures} /> : tab === "match" ? <MatchSimulator fixtures={fixtures} providerErrors={providerErrors} fetchedAt={fetchedAt} /> : <StrategySimulator />}
+    <div className="lab-tabs"><button className={tab === "live" ? "active" : ""} onClick={() => setTab("live")}><Activity size={16} />Live-style match</button><button className={tab === "match" ? "active" : ""} onClick={() => setTab("match")}><FlaskConical size={16} />Probability lab</button><button className={tab === "strategy" ? "active" : ""} onClick={() => setTab("strategy")}><WalletCards size={16} />Strategy risk</button><button className={tab === "first-half" ? "active" : ""} onClick={() => setTab("first-half")}>1H validation</button></div>
+    {tab === "live" ? <LiveMatchSimulator fixtures={fixtures} /> :
+      tab === "match" ? <MatchSimulator fixtures={fixtures} providerErrors={providerErrors} fetchedAt={fetchedAt} /> :
+      tab === "first-half" ? <FirstHalfValidationPanel/> : <StrategySimulator />}
   </>;
 }
 
@@ -101,7 +105,7 @@ function MatchSimulator({ fixtures, providerErrors, fetchedAt }: { fixtures: Fix
       <Panel><PanelHead title="Coherent market matrix" meta="Every probability is computed from the same simulated score outcomes" /><div className="simulation-market-grid"><Market label="Home or draw" value={result.doubleChance.homeOrDraw} /><Market label="Away or draw" value={result.doubleChance.awayOrDraw} /><Market label="Over 0.5" value={result.totals.over05} /><Market label="Over 1.5" value={result.totals.over15} /><Market label="Over 2.5" value={result.totals.over25} /><Market label="Over 3.5" value={result.totals.over35} /><Market label="Home over 0.5" value={result.teamGoals.homeOver05} /><Market label="Away over 0.5" value={result.teamGoals.awayOver05} /><Market label="DNB home / push" value={result.drawNoBet.home} note={`${percent(result.drawNoBet.push)} push`} /></div></Panel>
     </> : null}
     {providerErrors.length ? <Notice>Some ESPN competitions failed: {providerErrors.join(" · ")}</Notice> : null}
-    <Notice>ESPN fixtures and recency-weighted local match history were checked {new Date(fetchedAt).toLocaleString()}. More trials reduce sampling noise, not real-world model error. First-half markets remain unavailable because no separate first-half model has been validated.</Notice>
+    <Notice>ESPN fixtures and recency-weighted local match history were checked {new Date(fetchedAt).toLocaleString()}. More trials reduce sampling noise, not real-world model error. First-half model diagnostics are available separately under 1H validation; no first-half markets are included in automatic slips until validated.</Notice>
   </div>;
 }
 
