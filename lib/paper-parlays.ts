@@ -2,6 +2,7 @@
 
 import { americanToDecimal } from "./odds";
 import { marketWins } from "./parlay";
+import { isCurrentDayCard } from "./daily-slate";
 import type { PricedCard } from "./priced-cards";
 import type { LeagueId } from "./types";
 
@@ -56,6 +57,9 @@ export function createPaperParlay(input: Pick<PaperParlay, "kind" | "legs" | "st
   if (input.legs.some((leg) => Date.parse(leg.kickoff) <= now || !Number.isFinite(leg.americanOdds) || leg.americanOdds === 0)) {
     throw new Error("Every leg must have a valid entered price and a future kickoff");
   }
+  if ((input.kind === "daily-double" || input.kind === "banger") && !isCurrentDayCard(input.legs, now)) {
+    throw new Error("Daily Double and Banger tickets only accept today's remaining matches (Pacific time). For another date, use a custom parlay.");
+  }
   const decimalOdds = input.legs.reduce((acc, leg) => acc * americanToDecimal(leg.americanOdds), 1);
   return {
     id: crypto.randomUUID(), kind: input.kind, legs: input.legs.map((leg) => ({ ...leg })),
@@ -78,7 +82,7 @@ function pacificCalendarKey(now: number): string {
 /** Locks at most one qualifying automatic ticket of each kind per local day. */
 export function createAutoPaperParlay(card: PricedCard, now = Date.now(), stake = 10): PaperParlay | null {
   if (!card.legs.length || !Number.isFinite(stake) || stake <= 0 ||
-    card.legs.some((leg) => Date.parse(leg.kickoff) <= now)) return null;
+    !isCurrentDayCard(card.legs, now)) return null;
   const legs: LockedParlayLeg[] = card.legs.map((leg) => ({
     fixtureId: leg.fixtureId,
     fixtureLabel: leg.fixtureLabel,
