@@ -2,6 +2,7 @@ import { forecastWithHistory } from "./historical-forecast";
 import type { HistoricalMatch } from "./history";
 import type { Fixture } from "./types";
 import { americanToDecimal, decimalToAmerican } from "./odds";
+import { todayUpcomingFixtures } from "./daily-slate";
 
 export type SuggestedLeg = {
   fixtureId: string;
@@ -45,7 +46,7 @@ export function researchCandidates(fixtures: Fixture[], cutoff = Date.now(), his
 }
 
 export function buildResearchCard(fixtures: Fixture[], kind: SuggestedCard["kind"], cutoff = Date.now(), history: HistoricalMatch[] = []): SuggestedCard {
-  const candidates = researchCandidates(fixtures, cutoff, history);
+  const candidates = researchCandidates(todayUpcomingFixtures(fixtures, cutoff), cutoff, history);
   const limit = kind === "daily-double" ? 4 : 5;
   const minLegs = kind === "daily-double" ? 2 : 3;
   const selected: SuggestedLeg[] = [];
@@ -61,14 +62,14 @@ export function buildResearchCard(fixtures: Fixture[], kind: SuggestedCard["kind
   if (selected.length < minLegs) {
     return {
       kind, legs: [], probability: null, fairAmerican: null,
-      notes: ["Not enough qualified upcoming fixtures to construct this card. PASS."],
+      notes: ["PASS: not enough qualified matches remaining today (Pacific time). No tomorrow/next-72-hour filler."],
     };
   }
   return {
     kind, legs: selected, probability,
     fairAmerican: decimalToAmerican(1 / probability),
     notes: [
-      "MODEL-ONLY RESEARCH CARD. Probabilities are uncalibrated; no sportsbook prices were supplied.",
+      "MODEL-ONLY RESEARCH CARD. All matches kick off today (Pacific time). Probabilities are uncalibrated unless independently verified; no sportsbook prices were supplied.",
       "Fair odds are calculated from the model and are NOT BetMGM or any other bookmaker quote.",
       "A +100 Daily Double or +400 Banger cannot be verified until actual market prices are entered.",
       "Separate fixtures are treated as independent; shared competition effects are unmodeled.",
