@@ -81,8 +81,13 @@ function pacificCalendarKey(now: number): string {
 
 /** Locks at most one qualifying automatic ticket of each kind per local day. */
 export function createAutoPaperParlay(card: PricedCard, now = Date.now(), stake = 10): PaperParlay | null {
-  if (!card.legs.length || !Number.isFinite(stake) || stake <= 0 ||
-    !isCurrentDayCard(card.legs, now)) return null;
+  // Never record hypothetical model-fair odds as a priced paper bet or ROI.
+  // Automatic paper tickets are allowed only when *every* leg has an actual,
+  // same-bookmaker quoted price confirmed by the card generator.
+  if (card.pricing !== "quoted" || !card.legs.length || !Number.isFinite(stake) || stake <= 0 ||
+    !isCurrentDayCard(card.legs, now) ||
+    card.legs.some(leg => leg.pricing !== "quoted" || leg.bookKey !== card.bookKey ||
+      leg.source === "MIGO Fair")) return null;
   const legs: LockedParlayLeg[] = card.legs.map((leg) => ({
     fixtureId: leg.fixtureId,
     fixtureLabel: leg.fixtureLabel,
