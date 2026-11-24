@@ -1063,3 +1063,6 @@ main{padding:24px 28px 54px;max-width:1320px}
 .calibration-verdict.rejected{background:#293039;color:#b3bec5}
 .calibration-verdict.insufficient{background:#3c2d1c;color:#f4cd7a}
 @media(max-width:640px){.calibration-guide{grid-template-columns:1fr}.calibration-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.calibration-workspace{padding:11px}}
+
+.fh-calibration-action{padding:11px 14px;border-top:1px solid var(--line-soft)}
+.fh-calibration-action a{display:flex;align-items:center;justify-content:center;min-height:36px;border:1px solid #405d2c;border-radius:8px;background:#16251a;color:#c8fb6a;text-decoration:none;font-weight:800;font-size:12px;text-align:center;padding:9px}
