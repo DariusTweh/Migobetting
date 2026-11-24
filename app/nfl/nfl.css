@@ -35,3 +35,13 @@
 .nfl-slip button { margin:0 16px; }
 @media(max-width:950px) { .nfl-layout { grid-template-columns:1fr; } }
 @media(max-width:560px) { .nfl-prop-head { flex-direction:column; } .nfl-metrics { grid-template-columns:1fr 1fr; } .nfl-game { min-height:116px; } }
+
+.nfl-provider { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; border:1px solid var(--line); background:#111a20; border-radius:11px; padding:13px; margin-top:14px; font-size:11px; color:var(--muted); }
+.nfl-provider strong,.nfl-provider small { grid-column:1/-1; }
+.nfl-provider strong { font-size:13px; color:var(--text); }
+.nfl-provider small { color:var(--faint); line-height:1.5; }
+.nfl-provider span { border-radius:7px; border:1px solid var(--line); padding:8px; }
+.nfl-intelligence { display:flex; flex-wrap:wrap; gap:8px; font-size:11px; margin-bottom:13px; }
+.nfl-intelligence span { background:#131f24; border:1px solid var(--line); border-radius:7px; padding:6px 9px; color:var(--muted); }
+.nfl-intelligence b { color:var(--text); }
+@media(max-width:560px){ .nfl-provider { grid-template-columns:1fr 1fr; } }
