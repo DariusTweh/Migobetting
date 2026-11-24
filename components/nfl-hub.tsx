@@ -7,6 +7,11 @@ type Preview = {
   game: NflGame; version: string; fetchedAt: string;
   coverage: { completedGames: number; playerLines: number; homeHistory: number; awayHistory: number; note: string };
   props: NflProp[]; probabilityStatus: "UNCALIBRATED"; error?: string;
+  supplementalCoverage?: {
+    stats: "available" | "unavailable"; snaps: "available" | "unavailable";
+    injuries: "available" | "unavailable"; statsRows: number; snapsRows: number;
+    injuryRows: number; week: number | null; season: number | null; attribution: string;
+  };
 };
 const time = (date: string) => new Intl.DateTimeFormat("en-US", {
   timeZone: "America/Los_Angeles", weekday: "short", month: "short", day: "numeric",
@@ -93,7 +98,14 @@ export function NflHub({ initialData }: { initialData: Board }) {
             <div><span>Player stat lines</span><strong>{preview.coverage.playerLines}</strong></div>
             <div><span>Probability model</span><strong>Not calibrated</strong></div>
           </div>
-          <p className="nfl-footnote">{preview.coverage.note} Pick ratings use Usage 35%, Matchup 25%, Script 20%, Efficiency 10%, Context 10%; unknown inputs cannot count as confirmed strengths.</p>
+          {preview.supplementalCoverage ? <div className="nfl-provider">
+            <strong>Player opportunity coverage · {preview.supplementalCoverage.season ?? "?"} W{preview.supplementalCoverage.week ?? "?"}</strong>
+            <span>Weekly stats: {preview.supplementalCoverage.stats} ({preview.supplementalCoverage.statsRows} rows)</span>
+            <span>Offensive snaps: {preview.supplementalCoverage.snaps} ({preview.supplementalCoverage.snapsRows} rows)</span>
+            <span>Injury reports: {preview.supplementalCoverage.injuries} ({preview.supplementalCoverage.injuryRows} dated reports)</span>
+            <small>Source: {preview.supplementalCoverage.attribution}. Incomplete sources do not count as verified player availability.</small>
+          </div> : null}
+          <p className="nfl-footnote">{preview.coverage.note} Pick ratings use Usage 35%, Matchup 25%, Script 20%, Efficiency 10%, Context 10%; unknown inputs cannot count as confirmed strengths. Player opportunities are historical; official game-day active status is still unverified.</p>
           <h3>Ranked props · research only</h3>
           {preview.props.length ? <div className="nfl-props">
             {preview.props.map((pick) => <article key={pick.id} className="nfl-prop">
@@ -102,6 +114,13 @@ export function NflHub({ initialData }: { initialData: Board }) {
                 <span className={pick.grade === "RESEARCH" ? "nfl-score" : "nfl-score nfl-score-muted"}>{pick.researchScore}/100 · {pick.grade}</span>
               </div>
               <div className="nfl-prop-values"><span>Projected <b>{pick.projection}</b></span><span>Earlier listed hit rate <b>{pick.historicalHits}/{pick.sampleGames}</b></span><span>No fair odds yet</span></div>
+              {pick.intelligence ? <div className="nfl-intelligence">
+                <span>Recent targets <b>{pick.intelligence.targets?.toFixed(1) ?? "unknown"}</b></span>
+                <span>Recent carries <b>{pick.intelligence.carries?.toFixed(1) ?? "unknown"}</b></span>
+                <span>Offense snaps <b>{pick.intelligence.snapShare !== null ? pick.intelligence.snapShare.toFixed(1) + "%" : "unknown"}</b></span>
+                <span>Target share <b>{pick.intelligence.targetShare !== null ? pick.intelligence.targetShare.toFixed(1) + "%" : "unknown"}</b></span>
+                <span>Injury status <b>{pick.intelligence.status}</b></span>
+              </div> : <p className="nfl-footnote">No unique nflverse player/team match; using ESPN box-score research only.</p>}
               <details><summary>See evidence and limitations</summary>
                 <ul>{pick.evidence.map((e, i) => <li key={i}>{e}</li>)}</ul>
                 <ul>{pick.risks.map((e, i) => <li key={i}>{e}</li>)}</ul>
