@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocalMatchHistoryStatus } from "@/lib/use-local-history";
 import { runHistoricalBacktest } from "@/lib/history";
 import { validateFirstHalfMultiSeason } from "@/lib/first-half-validation";
 import { fullTimeCalibrationSamples, firstHalfSamplesForCompetition } from "@/lib/calibration-sources";
 import {
-  evaluateCalibrationGroups, saveApprovedCalibrations,
+  evaluateCalibrationGroups, readCalibrationProfile, saveApprovedCalibrations,
   type CalibrationDecision,
 } from "@/lib/out-of-sample-calibration";
 import { Metric, Notice, Panel, PanelHead } from "./ui";
@@ -27,6 +27,7 @@ export function CalibrationLab(){
   const [warnings,setWarnings]=useState<string[]>([]);
   const [savedCount,setSavedCount]=useState<number|null>(null);
   const [active,setActive]=useState(0);
+  useEffect(()=>{setActive(readCalibrationProfile()?.corrections.length??0);},[]);
 
   async function validateAndApply(){
     if(!ready||running||!matches.length)return;
@@ -103,6 +104,13 @@ export function CalibrationLab(){
         {error?<p className="first-half-foot">Data coverage: {error}</p>:null}
       </div>
     </Panel>
+    {active>0&&savedCount===null?<Panel>
+      <PanelHead title="Previously approved calibration" meta="Stored in this browser · applied to eligible future fixtures"/>
+      <div className="calibration-workspace">
+        <strong>{active} validated market corrections active</strong>
+        <small>Re-run validation when new completed matches become available. Old saved paper predictions remain unchanged.</small>
+      </div>
+    </Panel>:null}
     {savedCount!==null?<Panel>
       <PanelHead title="Calibration verdict"
         meta="Results saved locally · future model views automatically use approved corrections"/>
