@@ -3,7 +3,8 @@ import type { NflGame, NflBoxLine } from "../lib/nfl/engine";
 import { rankNflProps } from "../lib/nfl/engine";
 import {
   applyNflverseIntelligence, canonicalNflTeam, defensiveVolume, normalizePlayer,
-  parseInjuries, parseNflCsv, parseSnapCounts, parseWeeklyUsage, type NflverseSnapshot,
+  parseInjuries, parseNflCsv, parseSnapCounts, parseWeeklyUsage, weeklyBoxLinesForMatchup,
+  type NflverseSnapshot,
 } from "../lib/nfl/nflverse";
 
 const game: NflGame = {
@@ -96,6 +97,26 @@ describe("nflverse supplemental intelligence",()=>{
     duplicate.players=[...duplicate.players,{...duplicate.players[0],id:"other-gsis-id"}];
     const result=applyNflverseIntelligence(game,props,duplicate);
     expect(result[0].intelligence).toBeUndefined();
+  });
+  it("generates viable player lines from nflverse weekly records when ESPN schedules return none",()=>{
+    const weeklies=parseWeeklyUsage(usageRows().map((r,i)=>({
+      ...r, receiving_yards:String(80+i), rushing_yards:"0", passing_yards:"0",
+      passing_tds:"0", attempts:"0", targets:"9", receptions:"6",
+    })),2026,12);
+    const lines=weeklyBoxLinesForMatchup(game,weeklies);
+    expect(lines).toHaveLength(6);
+    expect(lines.every((row)=>row.source==="nflverse" && row.date==="")).toBe(true);
+    const picks=rankNflProps(game,lines);
+    expect(picks.some((p)=>p.market==="receivingYards" && p.player==="Ja'Marr Chase")).toBe(true);
+  });
+  it("cannot backfill current or future fixture week stats into a forecast",()=>{
+    const future=parseWeeklyUsage(usageRows([11,12,13]).map((r)=>({
+      ...r, receiving_yards:"300", rushing_yards:"0", passing_yards:"0",
+      passing_tds:"0", attempts:"0",
+    })),2026,14);
+    const lines=weeklyBoxLinesForMatchup(game,future);
+    expect(lines.map((row)=>row.week)).toEqual([11]);
+    expect(lines.every((row)=>row.week! < game.week!)).toBe(true);
   });
   it("does not invent opponent league baselines from a tiny sample",()=>{
     expect(defensiveVolume(parseWeeklyUsage(usageRows(),2026,12))).toEqual([]);
