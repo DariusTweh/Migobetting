@@ -35,6 +35,13 @@ Soccer fixture research, statistical match forecasts, simulation and paper-parla
 - **1H validation tab:** choose a league and the maximum matches per season, then run retrospective walk-forward first-half model evaluations on genuine imported halftime scores. Reports include predicted-vs-observed goals for five markets, Brier/log-loss diagnostics, ≥68% hit counts, per-season comparisons, and reliability bands for 1H Over 0.5 and Over 1.5.
 - **Scope:** evaluation is performed on demand, in the browser, using the local IndexedDB history. Seasons with insufficient earlier halftime samples are excluded from scoring. Validation results are *not* automatically applied as corrected probabilities, used in generated betting slips, or evidence of bookmaker profitability. Market calibration requires further out-of-sample evidence.
 
+## Daily Double / Banger: today-only Pacific schedule
+
+- Automatic **Daily Double**, **Banger**, and the homepage **Today’s Strongest Model Pick** only inspect **not-yet-started scheduled games with kickoffs on the current America/Los_Angeles calendar date**. The fixture browser retains its independent Today/Tomorrow/date filters. No rolling 72-hour horizon is used to assemble the day's ticket.
+- Server UTC fixtures are grouped by the user's Pacific date, including daylight-saving transitions. MIGO refreshes the homepage slate every minute so the day changes at local midnight. All-day cards display today's date and remaining game count.
+- The rule lives in `lib/daily-slate.ts` and is enforced in priced automatic tickets, model-only research tickets, imported builder auto-slip URLs, automatic paper snapshots, and manually saved tickets labeled Daily Double/Banger. A **custom manual parlay** can intentionally use future dates.
+- If there are not enough qualifying **today** fixtures or price quotes to reach the +100 goal, the result is **PASS**, not a parlay padded with tomorrow's picks. Existing paper records remain unchanged.
+
 ## Out-of-sample calibration and guarded activation
 
 - **Simulation Lab → OOS Calibration** runs chronological probability tests on actual match history (separate first-half and full-time models) and can test one league or all available competitions.
