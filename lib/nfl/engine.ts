@@ -13,6 +13,7 @@ export type NflBoxLine = {
 export type NflTeam = { id: string; name: string; abbreviation: string; logo?: string; record?: string; score?: number };
 export type NflGame = {
   id: string; kickoff: string; status: "scheduled" | "live" | "final" | "other";
+  week?: number; season?: number;
   home: NflTeam; away: NflTeam; statusLabel: string; spreadDetails?: string; overUnder?: number;
 };
 export type NflMatchup = {
@@ -26,6 +27,11 @@ export type NflProp = {
   factors: { usage: number; matchup: number; gameScript: number; efficiency: number; context: number };
   evidence: string[]; risks: string[];
   calibratedProbability: null; fairOdds: null;
+  intelligence?: {
+    source: string; sampleGames: number; targets: number | null; carries: number | null;
+    passingAttempts: number | null; targetShare: number | null; snapShare: number | null;
+    status: string; defenseRatio: number | null;
+  };
 };
 export const NFL_MODEL_VERSION = "migo-nfl-prop-research-v1";
 export const NFL_WEIGHTS = { usage: .35, matchup: .25, gameScript: .20, efficiency: .10, context: .10 } as const;

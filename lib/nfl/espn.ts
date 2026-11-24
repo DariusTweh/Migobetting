@@ -1,5 +1,6 @@
 import type { NflBoxLine, NflGame, NflMatchup, NflMarket, NflTeam } from "./engine";
 import { rankNflProps, NFL_MODEL_VERSION } from "./engine";
+import { getNflverseSnapshot, applyNflverseIntelligence } from "./nflverse";
 import { localDateKey, offsetDateKey } from "../date-time";
 
 const API = "https://site.api.espn.com/apis/site/v2/sports/football/nfl";
@@ -32,7 +33,7 @@ function team(value: unknown): NflTeam {
     record: str(record.summary) || undefined, score: num(c.score),
   };
 }
-export function parseNflEvent(raw: unknown): NflGame | null {
+export function parseNflEvent(raw: unknown, scoreboardWeek?: number, scoreboardSeason?: number): NflGame | null {
   const event = obj(raw), comp = obj(arr(event.competitions)[0]);
   const competitors = arr(comp.competitors).map(obj);
   const home = competitors.find((c) => c.homeAway === "home");
@@ -47,6 +48,8 @@ export function parseNflEvent(raw: unknown): NflGame | null {
   const odds = obj(arr(comp.odds)[0]);
   return {
     id, kickoff, home: team(home), away: team(away), status: state,
+    week: num(obj(event.week).number) ?? num(obj(comp.week).number) ?? scoreboardWeek,
+    season: num(obj(event.season).year) ?? scoreboardSeason ?? new Date(kickoff).getUTCFullYear(),
     statusLabel: str(status.shortDetail) || str(status.detail) || state,
     spreadDetails: str(odds.details) || undefined, overUnder: num(odds.overUnder),
   };
@@ -59,7 +62,7 @@ export async function getNflScoreboard(now = new Date()): Promise<{ games: NflGa
   result.forEach((item, i) => {
     if (item.status === "rejected") { errors.push("ESPN schedule unavailable for " + days[i]); return; }
     for (const raw of arr(item.value.events)) {
-      const game = parseNflEvent(raw);
+      const game = parseNflEvent(raw, num(obj(item.value.week).number), num(obj(item.value.season).year));
       if (game) map.set(game.id, game);
     }
   });
@@ -176,6 +179,12 @@ export async function getNflPreview(game: NflGame, now = new Date()) {
     if (!date || Date.parse(date) >= cutoff) return [];
     return [{ gameId: id, date, rows: parseNflBoxscore(item.value, id, date) }];
   });
+  // ESPN date-scoped scoreboards do not always include the week on each event.
+  // Recover it from the current fixture in either team schedule; never guess by calendar.
+  const fromTeamSchedule = scheduleResults.flatMap((entry) => entry.status === "fulfilled" ? arr(entry.value.events) : [])
+    .map(obj).find((entry) => str(entry.id) === game.id);
+  const recoveredWeek = num(obj(fromTeamSchedule?.week).number);
+  const enrichedGame = { ...game, week: game.week ?? recoveredWeek };
   const ownRows = boxes.flatMap((box) => box.rows.filter((row) =>
     (row.teamId === game.home.id && idsByTeam[0].ids.includes(box.gameId)) ||
     (row.teamId === game.away.id && idsByTeam[1].ids.includes(box.gameId))));
@@ -183,14 +192,16 @@ export async function getNflPreview(game: NflGame, now = new Date()) {
   for (const t of teams) allowances[t.id] = opponentAllowance(boxes.filter((box) =>
     idsByTeam.find((it) => it.teamId === t.id)?.ids.includes(box.gameId))
     .map((box) => ({ ...box, teamId: t.id })), t.id);
+  const supplemental = await getNflverseSnapshot(enrichedGame, now);
+  const props = applyNflverseIntelligence(enrichedGame, rankNflProps(enrichedGame, ownRows, allowances), supplemental);
   return {
-    game, version: NFL_MODEL_VERSION, fetchedAt: new Date().toISOString(),
+    game: enrichedGame, version: NFL_MODEL_VERSION + "+nflverse-usage-v2", fetchedAt: new Date().toISOString(),
     coverage: {
       completedGames: boxes.length, playerLines: ownRows.length,
       homeHistory: idsByTeam[0].ids.length, awayHistory: idsByTeam[1].ids.length,
       note: "ESPN listed box scores only; snap/route, injury, weather and sportsbook feeds not connected.",
     },
-    props: rankNflProps(game, ownRows, allowances),
+    props, supplementalCoverage: supplemental.coverage,
     probabilityStatus: "UNCALIBRATED" as const,
   };
 }
