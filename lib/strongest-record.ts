@@ -8,7 +8,9 @@ import type { MatchFinal } from "./paper-parlays";
 const KEY = "migo:strongest-picks:v1";
 const allowed = new Set<MarketKey>([
   "home", "draw", "away", "home-draw", "away-draw",
-  "over-1.5", "over-2.5", "under-3.5", "btts",
+  "over-0.5", "over-1.5", "over-2.5", "over-3.5",
+  "under-1.5", "under-2.5", "under-3.5", "under-4.5",
+  "home-over-0.5", "away-over-0.5", "home-over-1.5", "away-over-1.5", "btts",
 ]);
 
 export type StrongestPickRecord = {
@@ -131,7 +133,16 @@ export function strongestMarketWins(key: MarketKey, home: number, away: number):
     case "away": return away > home;
     case "home-draw": return home >= away;
     case "away-draw": return away >= home;
+    case "over-0.5": return home + away >= 1;
     case "over-1.5": return home + away >= 2;
+    case "over-3.5": return home + away >= 4;
+    case "under-1.5": return home + away <= 1;
+    case "under-2.5": return home + away <= 2;
+    case "under-4.5": return home + away <= 4;
+    case "home-over-0.5": return home >= 1;
+    case "away-over-0.5": return away >= 1;
+    case "home-over-1.5": return home >= 2;
+    case "away-over-1.5": return away >= 2;
     case "over-2.5": return home + away >= 3;
     case "under-3.5": return home + away <= 3;
     case "btts": return home > 0 && away > 0;
