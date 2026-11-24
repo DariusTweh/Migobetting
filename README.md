@@ -26,6 +26,13 @@ Soccer fixture research, statistical match forecasts, simulation and paper-parla
 - Changing a playback seed changes a sampled hypothetical match but does not change the underlying forecast distribution.
 - Backtesting Lab evaluates held-out historical predictions, scoring bias, calibration and historical-paper-parlay scenarios with strict separation of earlier results from later fixtures.
 
+## Simulation · tactical broadcast and halftime model validation
+
+- **Virtual match centre:** the `Live-style match` tab now opens with a responsive top-down soccer pitch, 22 animated player tokens, a ball, synthetic passing/shot paths, goal-event callouts, match clock, possession proxy, commentary and play/pause/restart/seek/speed controls. All animations are deterministic given the existing synthetic match tape and user seed; they are **not real player tracking**.
+- **Forecast consistency:** the existing 30,000-scenario Monte Carlo analysis remains the separate pre-match probability forecast. Changing a playback seed changes only the illustrated match or selected sample, never the 30,000-trial probabilities for fixed model inputs.
+- **1H validation tab:** choose a league and the maximum matches per season, then run retrospective walk-forward first-half model evaluations on genuine imported halftime scores. Reports include predicted-vs-observed goals for five markets, Brier/log-loss diagnostics, ≥68% hit counts, per-season comparisons, and reliability bands for 1H Over 0.5 and Over 1.5.
+- **Scope:** evaluation is performed on demand, in the browser, using the local IndexedDB history. Seasons with insufficient earlier halftime samples are excluded from scoring. Validation results are *not* automatically applied as corrected probabilities, used in generated betting slips, or evidence of bookmaker profitability. Market calibration requires further out-of-sample evidence.
+
 ## Development
 
 ```bash
