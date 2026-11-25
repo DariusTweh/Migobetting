@@ -97,3 +97,33 @@ Implemented `lib/nfl/simulation.ts`, `tests/nfl-simulation.test.ts` and an inter
 3. Fit calibrators only on earlier periods; validate on held-out weeks and seasons. Require minimum counts and shrinkage where data is sparse.
 4. Persist versioned pregame predictions and actual graded outcomes for forward evaluation. Compare to simple baseline models before interpreting new complexity as improvement.
 5. Add verified game-day actives, routes/red-zone roles, opponent pressure/coverage, weather and bookmaker input. Only then enable credible fair-odds decisions and an automatic Anchor/Glory builder.
+
+## Phase 4 — Chronological diagnostic implementation (Nov 24, 2026)
+
+**User-facing page:** `/nfl/validation` with read-only `/api/nfl/validation`.
+
+**Implemented:** Verified nflverse historical fixture reconstruction, strict game-week input isolation,
+held-out scoring with Brier score / log loss / expected calibration error (ECE),
+a prior-hit-rate baseline, monotone regularized calibration fitted ONLY on training weeks,
+market-level sample counts and explicit production deployment gating.
+
+**Initial 2026 diagnostic snapshot:** From 31 eligible historical games, 299 graded eligible
+alternate prop selections were obtained. Weeks **7–8** trained an aggregate research
+mapping (156 examples); Weeks **9–10** were held out (143 examples). Held-out Brier:
+raw model **0.2128**, historical-hit-rate baseline **0.2319**, regularized aggregate
+research mapping **0.2092**. Raw ECE **0.0748**, mapped ECE **0.0557**.
+These are descriptive retrospective replay findings, NOT prospective verified odds.
+
+**Why research-only:** Sample size is limited, per-market calibration cohorts are too thin
+for individual approval, the data may include after-the-fact corrections, no truly
+frozen pregame snapshots were available, and historical Vegas spreads/totals,
+official inactives, route participation and weather were not reconstructed.
+Thus `deploymentGate: RESEARCH_ONLY` is hard-coded. The live `/nfl` model
+continues to display raw uncalibrated research estimates; no fair odds or
+automatic Glory selection is enabled.
+
+**Next:** Add 2023–2025 season archives to the walk-forward evaluation, then
+separately reserve 2026 forward predictions, add historical lines/market signals,
+evaluate by player position and prop market with minimum cohort thresholds, and
+only promote mappings if they outperform uncalibrated and baseline models
+out of sample across seasons with stable coverage.
