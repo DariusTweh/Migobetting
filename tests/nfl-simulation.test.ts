@@ -122,6 +122,25 @@ describe("NFL Phase 3 seeded correlated scenarios",()=>{
     expect(result.props).toEqual([]);
     expect(result.joint).toBeNull();
   });
+  it("refuses a ruled-out starting QB rather than modeling a fictional healthy starter",()=>{
+    const snap=snapshot();
+    snap.injuries=[{name:"LAR Test Quarterback",team:"LAR",season:2099,week:12,
+      status:"Out",practice:"DNP",injury:"Knee",modifiedAt:"",timestampVerified:false}];
+    const sim=simulateNflMatchup(game,snap,candidateProps(snap),{runs:100});
+    expect(sim.status).toBe("PASS");
+    expect(sim.props).toHaveLength(0);
+  });
+  it("keeps reported-out receiver targets out of a shared-game simulation",()=>{
+    const snap=snapshot();
+    snap.injuries=[{name:"LAR Test Wideout One",team:"LAR",season:2099,week:12,
+      status:"Out",practice:"DNP",injury:"Ankle",modifiedAt:"",timestampVerified:false}];
+    const props=candidateProps(snap);
+    const target=props.find((p)=>p.player==="LAR Test Wideout One" && p.market==="receivingYards");
+    expect(target).toBeDefined();
+    const sim=simulateNflMatchup(game,snap,props,{runs:100,seed:2});
+    expect(sim.status).toBe("READY");
+    expect(sim.props.some((p)=>p.id===target!.id)).toBe(false);
+  });
   it("enforces joint leg limits and shows no fake prices",()=>{
     const snap=snapshot(),props=candidateProps(snap);
     expect(()=>simulateNflMatchup(game,snap,props,{runs:100,jointLegIds:Array(7).fill("x")})).toThrow();
