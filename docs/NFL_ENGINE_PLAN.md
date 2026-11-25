@@ -69,3 +69,31 @@ Implemented supplemental nflverse adapters and verified them against a real Verc
 
 ### Remaining source gaps
 The engine still lacks game-day active inactives, verified route participation, red-zone/goal-line opportunities, weather, full defensive efficiency metrics, and a stable book quote feed. Probabilities and fair odds are intentionally null. These must be connected and backtested before calling the model calibrated or enabling a genuine probability-ranked Glory builder.
+
+## Phase 3 simulation delivery (2026-11-24)
+
+Implemented `lib/nfl/simulation.ts`, `tests/nfl-simulation.test.ts` and an interactive scenario panel in the existing NFL Prop Lab.
+
+### Raw Monte Carlo research outputs
+- **30,000 deterministically seeded draws** per eligible matchup, with an optional 100–30,000 draw test mode. Repeated requests with the same game/seed generate identical outputs.
+- Team-level pass/rush opportunity budgets are estimated from the prior six regular-season games, blending the last three with the full sample.
+- Eligible WR/TE/RB targets are drawn against the QB pass-attempt budget, including a residual `other` category for unmodeled players; catches and yards arise from those target draws. QB passing yards include modeled + residual receiving yardage rather than an unrelated independent QB draw.
+- Rush attempts similarly allocate to eligible RB/QB/WR workload shares. Shared pace and opposite game scripts make same-game outcomes dependent; the market spread and total only provide **bounded, explicitly uncalibrated** scenario adjustments.
+- Simulated passing TDs use prior team QB TDs per attempt, drawn in the same team passing/scoring environment. Receiver TD allocation is **not** implemented.
+- Automatically PASS if either team has fewer than four historical weeks of credible pass/rush workloads, there is no credible quarterback, or the historical starter is reported unavailable. OUT/doubtful recipients are excluded from the simulation opportunity pool.
+- Every model-eligible existing research prop has raw simulated hit rate, simulated mean, 10th/50th/90th percentile, simulation seed and trials. Non-eligible props remain unpriced.
+- User may select 2–6 eligible legs and request **one joint 30,000-draw scenario** that checks each full-game draw against every selected leg. The independence product is shown strictly for contrast, not used as a joint estimate.
+- `modelStatus: UNCALIBRATED` remains explicit; no fair odds, no claimed value, no sportsbook payout, no bookmaker execution.
+
+### Verified live
+- Vercel Rams–Packers preview returned **21 research candidates, 10 simulation-eligible markets, 30,000 draws**.
+- Examples as of test: Kyren Williams 25+ rush at raw simulated 0.8648; Stafford 1+ passing TD at 0.7541. These figures may not reflect true probabilities.
+- Real same-game example: Kyren 25+ rush AND Stafford 1+ pass TD met jointly in **19,537/30,000** draws (0.6512), compared with the independent product of 0.6521. This correctly demonstrates that the code evaluates the joint draw rather than simply multiplying marginals; it does not validate model accuracy.
+- CI tests cover fixed seed, historical-week no-hindsight, alt-line monotonicity, joint ceiling, correlation, missing-team PASS and known injured-player exclusion.
+
+### Mandatory before calling probabilities reliable
+1. Create a **chronological weekly backtester** that freezes historical feature windows strictly before the target games. Avoid 2026 retrospective use of current injury data: those reports may lack historical timestamps.
+2. Quantify Brier score, log loss, reliability bins, sample sizes, coverage, and calibration differences by market and position.
+3. Fit calibrators only on earlier periods; validate on held-out weeks and seasons. Require minimum counts and shrinkage where data is sparse.
+4. Persist versioned pregame predictions and actual graded outcomes for forward evaluation. Compare to simple baseline models before interpreting new complexity as improvement.
+5. Add verified game-day actives, routes/red-zone roles, opponent pressure/coverage, weather and bookmaker input. Only then enable credible fair-odds decisions and an automatic Anchor/Glory builder.
