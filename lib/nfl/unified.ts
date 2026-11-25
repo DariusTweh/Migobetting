@@ -60,7 +60,8 @@ export function simulateUnifiedNfl(
 ):UnifiedReport {
  const runs=options.runs??30000;
  const baseline=simulateGameMarkets(game,snapshot.scoredGames??[],
-   snapshot.unavailable??[],snapshot.players,Math.min(250,runs),options.seed);
+   snapshot.unavailable??[],snapshot.players,Math.min(250,runs),options.seed,false,
+   snapshot.historicalScoring??[]);
  const selectedProps=options.propIds??[],selectedMarkets=options.marketIds??[];
  const unique=[...selectedProps,...selectedMarkets];
  if(unique.length>6||new Set(unique).size!==unique.length||
