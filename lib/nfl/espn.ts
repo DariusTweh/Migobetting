@@ -1,8 +1,7 @@
 import type { NflBoxLine, NflGame, NflMatchup, NflMarket, NflTeam } from "./engine";
 import { rankNflProps, NFL_MODEL_VERSION } from "./engine";
 import { getNflverseSnapshot, applyNflverseIntelligence, weeklyBoxLinesForMatchup } from "./nflverse";
-import { simulateNflMatchup } from "./simulation";
-import { simulateGameMarkets } from "./game-markets";
+import { simulateUnifiedNfl } from "./unified";
 import { localDateKey, offsetDateKey } from "../date-time";
 
 const API = "https://site.api.espn.com/apis/site/v2/sports/football/nfl";
@@ -159,7 +158,7 @@ export function opponentAllowance(boxes: Array<{ gameId: string; teamId: string;
       allowedMean: values.reduce((sum,n) => sum + n,0) / values.length, sampleGames: values.length }];
   });
 }
-export async function getNflPreview(game: NflGame, now = new Date(), jointLegIds: string[] = []) {
+export async function getNflPreview(game: NflGame, now = new Date(), jointLegIds: string[] = [], marketLegIds: string[] = []) {
   if (game.status !== "scheduled" || Date.parse(game.kickoff) <= now.getTime()) {
     return { error: "Pre-game projections are disabled after kickoff. No hindsight picks." };
   }
@@ -173,8 +172,7 @@ export async function getNflPreview(game: NflGame, now = new Date(), jointLegIds
     const awayGames = new Set(nflverseLines.filter((line) => line.teamId === game.away.id)
       .map((line) => line.gameId)).size;
     const props = applyNflverseIntelligence(game, rankNflProps(game, nflverseLines), earlySupplemental);
-    const simulation = simulateNflMatchup(game, earlySupplemental, props, { jointLegIds });
-    const gameMarkets=simulateGameMarkets(game,earlySupplemental.scoredGames??[],earlySupplemental.unavailable??[],earlySupplemental.players);
+    const unified=simulateUnifiedNfl(game,earlySupplemental,props,{propIds:jointLegIds,marketIds:marketLegIds});
     return {
       game, version: NFL_MODEL_VERSION + "+nflverse-usage-v2", fetchedAt: new Date().toISOString(),
       coverage: {
@@ -182,7 +180,8 @@ export async function getNflPreview(game: NflGame, now = new Date(), jointLegIds
         playerLines: nflverseLines.length, homeHistory: homeGames, awayHistory: awayGames,
         note: "Verified pregame nflverse weekly player stats. Week-level cutoff excludes the current game. Game-day actives, route participation, weather and sportsbook prices remain unverified.",
       },
-      props, supplementalCoverage: earlySupplemental.coverage, simulation, gameMarkets,
+      props, supplementalCoverage: earlySupplemental.coverage, simulation:unified.simulation, gameMarkets:unified.gameMarkets,
+      mixedJoint:unified.mixedJoint,sharedDraws:unified.sharedDraws,
       unavailablePlayers:(earlySupplemental.unavailable??[]).filter(p=>[game.home.abbreviation,game.away.abbreviation].includes(p.team)),
       probabilityStatus: "UNCALIBRATED" as const,
     };
@@ -221,8 +220,7 @@ export async function getNflPreview(game: NflGame, now = new Date(), jointLegIds
   const supplemental = game.week === enrichedGame.week ? earlySupplemental : await getNflverseSnapshot(enrichedGame, now);
   const fallbackLines = ownRows.length ? ownRows : weeklyBoxLinesForMatchup(enrichedGame, supplemental.players);
   const props = applyNflverseIntelligence(enrichedGame, rankNflProps(enrichedGame, fallbackLines, allowances), supplemental);
-  const simulation = simulateNflMatchup(enrichedGame, supplemental, props, { jointLegIds });
-  const gameMarkets=simulateGameMarkets(enrichedGame,supplemental.scoredGames??[],supplemental.unavailable??[],supplemental.players);
+  const unified=simulateUnifiedNfl(enrichedGame,supplemental,props,{propIds:jointLegIds,marketIds:marketLegIds});
   return {
     game: enrichedGame, version: NFL_MODEL_VERSION + "+nflverse-usage-v2", fetchedAt: new Date().toISOString(),
     coverage: {
@@ -230,7 +228,8 @@ export async function getNflPreview(game: NflGame, now = new Date(), jointLegIds
       homeHistory: idsByTeam[0].ids.length, awayHistory: idsByTeam[1].ids.length,
       note: "ESPN listed box scores only; snap/route, injury, weather and sportsbook feeds not connected.",
     },
-    props, supplementalCoverage: supplemental.coverage, simulation, gameMarkets,
+    props, supplementalCoverage: supplemental.coverage, simulation:unified.simulation, gameMarkets:unified.gameMarkets,
+    mixedJoint:unified.mixedJoint,sharedDraws:unified.sharedDraws,
     unavailablePlayers:(supplemental.unavailable??[]).filter(p=>[game.home.abbreviation,game.away.abbreviation].includes(p.team)),
     probabilityStatus: "UNCALIBRATED" as const,
   };
