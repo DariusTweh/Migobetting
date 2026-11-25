@@ -1,8 +1,9 @@
 import { getNflScoreboard } from "@/lib/nfl/espn";
-import { NflHub } from "@/components/nfl-hub";
-import "./nfl.css";
+import { NflScoreboard } from "@/components/nfl-scoreboard";
+import "./pro.css";
 export const dynamic = "force-dynamic";
+export const metadata={title:"NFL Match Center | MIGO Betting",description:"NFL matchup intelligence, model projections, research markets and player availability"};
 export default async function NflPage() {
-  const board = await getNflScoreboard();
-  return <NflHub initialData={board} />;
+ const board=await getNflScoreboard();
+ return <NflScoreboard board={board}/>;
 }
