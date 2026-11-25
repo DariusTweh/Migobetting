@@ -1,0 +1,5529 @@
+{
+  "schemaVersion": 1,
+  "snapshotKind": "early",
+  "capturedAt": "2026-11-25T18:41:00.263Z",
+  "fetchedAt": "2026-11-25T18:41:00.240Z",
+  "kickoffAt": "2026-11-29T18:00Z",
+  "sourceUrl": "https://migobetting.vercel.app/api/nfl?eventId=401873089",
+  "workflowGitSha": "161232afa3dd7c32b09792c216ddbe9bacd07054",
+  "productionModelVersion": "migo-nfl-prop-research-v1+nflverse-usage-v2",
+  "game": {
+    "id": "401873089",
+    "kickoff": "2026-11-29T18:00Z",
+    "home": {
+      "id": "15",
+      "name": "Miami Dolphins",
+      "abbreviation": "MIA",
+      "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/scoreboard/mia.png",
+      "record": "1-9",
+      "score": 0
+    },
+    "away": {
+      "id": "20",
+      "name": "New York Jets",
+      "abbreviation": "NYJ",
+      "logo": "https://a.espncdn.com/i/teamlogos/nfl/500/scoreboard/nyj.png",
+      "record": "3-8",
+      "score": 0
+    },
+    "status": "scheduled",
+    "week": 12,
+    "season": 2026,
+    "statusLabel": "11/29 - 1:00 PM EST",
+    "spreadDetails": "NYJ -3.5",
+    "overUnder": 40.5
+  },
+  "coverage": {
+    "completedGames": 20,
+    "playerLines": 226,
+    "homeHistory": 10,
+    "awayHistory": 11,
+    "note": "Verified pregame nflverse weekly player stats. Week-level cutoff excludes the current game. Game-day actives, route participation, weather and sportsbook prices remain unverified."
+  },
+  "supplementalCoverage": {
+    "stats": "available",
+    "snaps": "available",
+    "injuries": "available",
+    "statsRows": 3652,
+    "snapsRows": 15217,
+    "injuryRows": 104,
+    "season": 2026,
+    "week": 12,
+    "attribution": "nflverse/nflverse-data (CC BY 4.0)",
+    "sourceWarnings": [],
+    "rosters": "available",
+    "schedules": "available",
+    "unavailableCount": 66,
+    "scoredGamesCount": 163
+  },
+  "unavailablePlayers": [
+    {
+      "id": "00-0033051",
+      "name": "David Onyemata",
+      "team": "NYJ",
+      "status": "RES",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0033862",
+      "name": "Zane Gonzalez",
+      "team": "MIA",
+      "status": "CUT",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0034285",
+      "name": "Zach Sieler",
+      "team": "MIA",
+      "status": "RES",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0034779",
+      "name": "Ronnie Harrison",
+      "team": "MIA",
+      "status": "RES",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0036114",
+      "name": "A.J. Green",
+      "team": "MIA",
+      "status": "CUT",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0036427",
+      "name": "Tyler Johnson",
+      "team": "NYJ",
+      "status": "CUT",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0036843",
+      "name": "Isaiahh Loudermilk",
+      "team": "NYJ",
+      "status": "CUT",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0036885",
+      "name": "Tre Brown",
+      "team": "NYJ",
+      "status": "RES",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0037078",
+      "name": "Cole Turner",
+      "team": "MIA",
+      "status": "RES",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0037431",
+      "name": "Kingsley Jonathan",
+      "team": "NYJ",
+      "status": "RES",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0037526",
+      "name": "Marcelino McCrary-Ball",
+      "team": "NYJ",
+      "status": "RES",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0038108",
+      "name": "Bailey Zappe",
+      "team": "NYJ",
+      "status": "CUT",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0038114",
+      "name": "Max Mitchell",
+      "team": "NYJ",
+      "status": "RES",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0038128",
+      "name": "Malik Willis",
+      "team": "MIA",
+      "status": "RES",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0038223",
+      "name": "Liam Fornadel",
+      "team": "NYJ",
+      "status": "CUT",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0038521",
+      "name": "Reese Taylor",
+      "team": "MIA",
+      "status": "CUT",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0038890",
+      "name": "Shaka Heyward",
+      "team": "MIA",
+      "status": "CUT",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0039004",
+      "name": "Carter Warren",
+      "team": "MIA",
+      "status": "RES",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0039040",
+      "name": "De'Von Achane",
+      "team": "MIA",
+      "status": "RES",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0039262",
+      "name": "Gottlieb Ayedze",
+      "team": "MIA",
+      "status": "CUT",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0039284",
+      "name": "Braiden McGregor",
+      "team": "NYJ",
+      "status": "RES",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0039285",
+      "name": "Jarius Monroe",
+      "team": "NYJ",
+      "status": "CUT",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0039312",
+      "name": "Miles Battle",
+      "team": "MIA",
+      "status": "CUT",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0039481",
+      "name": "Storm Duck",
+      "team": "MIA",
+      "status": "CUT",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0039886",
+      "name": "T'Vondre Sweat",
+      "team": "NYJ",
+      "status": "RES",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0040054",
+      "name": "Seth Coleman-Lyles",
+      "team": "MIA",
+      "status": "CUT",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0040175",
+      "name": "Jordan Phillips",
+      "team": "MIA",
+      "status": "RES",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0040186",
+      "name": "Francisco Mauigoa",
+      "team": "NYJ",
+      "status": "RES",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0040196",
+      "name": "Tyler Baron",
+      "team": "NYJ",
+      "status": "RES",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0040247",
+      "name": "Junior Bergen",
+      "team": "NYJ",
+      "status": "CUT",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0040248",
+      "name": "Zeek Biggers",
+      "team": "MIA",
+      "status": "RES",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0040304",
+      "name": "Alex Huntley",
+      "team": "MIA",
+      "status": "CUT",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0040324",
+      "name": "Cam Camper",
+      "team": "NYJ",
+      "status": "CUT",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0040400",
+      "name": "Donovan Edwards",
+      "team": "MIA",
+      "status": "CUT",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0040403",
+      "name": "Fatorma Mulbah",
+      "team": "MIA",
+      "status": "CUT",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0040404",
+      "name": "Payton Page",
+      "team": "NYJ",
+      "status": "CUT",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0040442",
+      "name": "Marques Cox",
+      "team": "MIA",
+      "status": "CUT",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0040499",
+      "name": "Keenan Garber",
+      "team": "NYJ",
+      "status": "CUT",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0040573",
+      "name": "Cam Riley",
+      "team": "MIA",
+      "status": "CUT",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0040582",
+      "name": "Arian Smith",
+      "team": "NYJ",
+      "status": "RES",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0040808",
+      "name": "Jaheim Thomas",
+      "team": "MIA",
+      "status": "CUT",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0040937",
+      "name": "Dominic Richardson",
+      "team": "NYJ",
+      "status": "RES",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0041010",
+      "name": "Tanner Wall",
+      "team": "NYJ",
+      "status": "CUT",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0041012",
+      "name": "Anthony Dunn",
+      "team": "NYJ",
+      "status": "CUT",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0041097",
+      "name": "Anez Cooper",
+      "team": "NYJ",
+      "status": "RES",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0041136",
+      "name": "Rene Konga",
+      "team": "MIA",
+      "status": "RES",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0041137",
+      "name": "Kevin Cline",
+      "team": "MIA",
+      "status": "CUT",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0041158",
+      "name": "Donaven McCulley",
+      "team": "MIA",
+      "status": "CUT",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0041160",
+      "name": "Louis Moore",
+      "team": "MIA",
+      "status": "CUT",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0041161",
+      "name": "Le'Veon Moss",
+      "team": "MIA",
+      "status": "RET",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0041165",
+      "name": "Coleman Bennett",
+      "team": "MIA",
+      "status": "CUT",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0041199",
+      "name": "Caullin Lacy",
+      "team": "NYJ",
+      "status": "CUT",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0041202",
+      "name": "Nathan Voorhis",
+      "team": "NYJ",
+      "status": "CUT",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0041207",
+      "name": "Ethan Conner",
+      "team": "MIA",
+      "status": "CUT",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0041237",
+      "name": "Chase Curtis",
+      "team": "NYJ",
+      "status": "CUT",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0041238",
+      "name": "Xavier Hill",
+      "team": "NYJ",
+      "status": "CUT",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0041239",
+      "name": "Chip Trayanum",
+      "team": "NYJ",
+      "status": "RES",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0041327",
+      "name": "Cody Hardy",
+      "team": "NYJ",
+      "status": "CUT",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0041473",
+      "name": "Stephen Dix Jr",
+      "team": "MIA",
+      "status": "CUT",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0041507",
+      "name": "Courtland Ford",
+      "team": "NYJ",
+      "status": "CUT",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0041514",
+      "name": "Jai'Onte' McMillan",
+      "team": "MIA",
+      "status": "CUT",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0041526",
+      "name": "Trey Moore",
+      "team": "MIA",
+      "status": "RES",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0041531",
+      "name": "Max Llewellyn",
+      "team": "MIA",
+      "status": "CUT",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0041566",
+      "name": "Jeremiah Franklin",
+      "team": "MIA",
+      "status": "CUT",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0041577",
+      "name": "Connor Hulstein",
+      "team": "NYJ",
+      "status": "RES",
+      "source": "nflverse season roster status"
+    },
+    {
+      "id": "00-0041596",
+      "name": "Cam Rice",
+      "team": "MIA",
+      "status": "CUT",
+      "source": "nflverse season roster status"
+    }
+  ],
+  "playerPicks": [
+    {
+      "id": "nflverse:00-0037740:receptions:2",
+      "athleteId": "nflverse:00-0037740",
+      "player": "Garrett Wilson",
+      "teamId": "20",
+      "position": "WR",
+      "market": "receptions",
+      "line": 2,
+      "label": "2+ receptions",
+      "projection": 5.1,
+      "sampleGames": 6,
+      "historicalHits": 6,
+      "recentValues": [
+        3,
+        7,
+        6,
+        2,
+        4,
+        7
+      ],
+      "researchScore": 64,
+      "grade": "RESEARCH",
+      "decisionReasons": [],
+      "factors": {
+        "usage": 89.15,
+        "matchup": 42.93467336683417,
+        "gameScript": 50,
+        "efficiency": 65.87363803878665,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 6 earlier games.",
+        "Last 6 listed averages: 4.8; last three listed: 5.3.",
+        "Cleared 2 in 6/6 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: targets 10.3 per game.",
+        "Recent snap share 88.3%; target share 32.9%.",
+        "Opponent WR opportunity allowance / league baseline: 0.76x (10 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 6,
+        "targets": 10.333333333333334,
+        "carries": 0,
+        "passingAttempts": 0,
+        "targetShare": 32.903225806451594,
+        "snapShare": 88.33333333333333,
+        "status": "unverified",
+        "defenseRatio": 0.7644891122278057
+      }
+    },
+    {
+      "id": "nflverse:00-0041523:receivingYards:25",
+      "athleteId": "nflverse:00-0041523",
+      "player": "Caleb Douglas",
+      "teamId": "15",
+      "position": "WR",
+      "market": "receivingYards",
+      "line": 25,
+      "label": "25+ receiving yards",
+      "projection": 54.1,
+      "sampleGames": 6,
+      "historicalHits": 5,
+      "recentValues": [
+        30,
+        71,
+        70,
+        43,
+        70,
+        19
+      ],
+      "researchScore": 64,
+      "grade": "RESEARCH",
+      "decisionReasons": [],
+      "factors": {
+        "usage": 89.15,
+        "matchup": 45.01964367291001,
+        "gameScript": 50,
+        "efficiency": 65.43592177294434,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 6 earlier games.",
+        "Last 6 listed averages: 50.5; last three listed: 57.0.",
+        "Cleared 25 in 5/6 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: targets 8.7 per game.",
+        "Recent snap share 77.7%; target share 31.1%.",
+        "Opponent WR opportunity allowance / league baseline: 0.83x (11 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 6,
+        "targets": 8.666666666666666,
+        "carries": 0,
+        "passingAttempts": 0,
+        "targetShare": 31.13275613275613,
+        "snapShare": 77.66666666666667,
+        "status": "unverified",
+        "defenseRatio": 0.8339881224303335
+      }
+    },
+    {
+      "id": "nflverse:00-0040198:rushingYards:25",
+      "athleteId": "nflverse:00-0040198",
+      "player": "Ollie Gordon II",
+      "teamId": "15",
+      "position": "RB",
+      "market": "rushingYards",
+      "line": 25,
+      "label": "25+ rushing yards",
+      "projection": 71.2,
+      "sampleGames": 6,
+      "historicalHits": 6,
+      "recentValues": [
+        69,
+        76,
+        55,
+        69,
+        103,
+        88
+      ],
+      "researchScore": 63,
+      "grade": "RESEARCH",
+      "decisionReasons": [],
+      "factors": {
+        "usage": 76.90833333333333,
+        "matchup": 54.19109078378548,
+        "gameScript": 50,
+        "efficiency": 73.00330891060796,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 6 earlier games.",
+        "Last 6 listed averages: 76.7; last three listed: 66.7.",
+        "Cleared 25 in 6/6 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: carries 15.7 per game.",
+        "Recent snap share unknown; target share 9.8%.",
+        "Opponent RB opportunity allowance / league baseline: 1.14x (11 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 6,
+        "targets": 3,
+        "carries": 15.666666666666666,
+        "passingAttempts": 0,
+        "targetShare": 9.82593795093795,
+        "snapShare": null,
+        "status": "unverified",
+        "defenseRatio": 1.1397030261261825
+      }
+    },
+    {
+      "id": "nflverse:00-0037740:receivingYards:25",
+      "athleteId": "nflverse:00-0037740",
+      "player": "Garrett Wilson",
+      "teamId": "20",
+      "position": "WR",
+      "market": "receivingYards",
+      "line": 25,
+      "label": "25+ receiving yards",
+      "projection": 72,
+      "sampleGames": 6,
+      "historicalHits": 6,
+      "recentValues": [
+        39,
+        106,
+        83,
+        26,
+        44,
+        104
+      ],
+      "researchScore": 63,
+      "grade": "RESEARCH",
+      "decisionReasons": [],
+      "factors": {
+        "usage": 89.15,
+        "matchup": 42.93467336683417,
+        "gameScript": 50,
+        "efficiency": 63.2890245177969,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 6 earlier games.",
+        "Last 6 listed averages: 67.0; last three listed: 76.0.",
+        "Cleared 25 in 6/6 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: targets 10.3 per game.",
+        "Recent snap share 88.3%; target share 32.9%.",
+        "Opponent WR opportunity allowance / league baseline: 0.76x (10 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 6,
+        "targets": 10.333333333333334,
+        "carries": 0,
+        "passingAttempts": 0,
+        "targetShare": 32.903225806451594,
+        "snapShare": 88.33333333333333,
+        "status": "unverified",
+        "defenseRatio": 0.7644891122278057
+      }
+    },
+    {
+      "id": "nflverse:00-0041523:receptions:2",
+      "athleteId": "nflverse:00-0041523",
+      "player": "Caleb Douglas",
+      "teamId": "15",
+      "position": "WR",
+      "market": "receptions",
+      "line": 2,
+      "label": "2+ receptions",
+      "projection": 3.4,
+      "sampleGames": 6,
+      "historicalHits": 6,
+      "recentValues": [
+        2,
+        3,
+        6,
+        4,
+        2,
+        2
+      ],
+      "researchScore": 63,
+      "grade": "RESEARCH",
+      "decisionReasons": [],
+      "factors": {
+        "usage": 87.96875,
+        "matchup": 45.01964367291001,
+        "gameScript": 50,
+        "efficiency": 63.83559191796188,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 6 earlier games.",
+        "Last 6 listed averages: 3.2; last three listed: 3.7.",
+        "Cleared 2 in 6/6 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: targets 8.7 per game.",
+        "Recent snap share 77.7%; target share 31.1%.",
+        "Opponent WR opportunity allowance / league baseline: 0.83x (11 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 6,
+        "targets": 8.666666666666666,
+        "carries": 0,
+        "passingAttempts": 0,
+        "targetShare": 31.13275613275613,
+        "snapShare": 77.66666666666667,
+        "status": "unverified",
+        "defenseRatio": 0.8339881224303335
+      }
+    },
+    {
+      "id": "nflverse:00-0037740:receptions:3",
+      "athleteId": "nflverse:00-0037740",
+      "player": "Garrett Wilson",
+      "teamId": "20",
+      "position": "WR",
+      "market": "receptions",
+      "line": 3,
+      "label": "3+ receptions",
+      "projection": 5.1,
+      "sampleGames": 6,
+      "historicalHits": 5,
+      "recentValues": [
+        3,
+        7,
+        6,
+        2,
+        4,
+        7
+      ],
+      "researchScore": 63,
+      "grade": "RESEARCH",
+      "decisionReasons": [],
+      "factors": {
+        "usage": 87.77916666666667,
+        "matchup": 42.93467336683417,
+        "gameScript": 50,
+        "efficiency": 65.87363803878665,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 6 earlier games.",
+        "Last 6 listed averages: 4.8; last three listed: 5.3.",
+        "Cleared 3 in 5/6 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: targets 10.3 per game.",
+        "Recent snap share 88.3%; target share 32.9%.",
+        "Opponent WR opportunity allowance / league baseline: 0.76x (10 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 6,
+        "targets": 10.333333333333334,
+        "carries": 0,
+        "passingAttempts": 0,
+        "targetShare": 32.903225806451594,
+        "snapShare": 88.33333333333333,
+        "status": "unverified",
+        "defenseRatio": 0.7644891122278057
+      }
+    },
+    {
+      "id": "nflverse:00-0038120:rushingYards:25",
+      "athleteId": "nflverse:00-0038120",
+      "player": "Breece Hall",
+      "teamId": "20",
+      "position": "RB",
+      "market": "rushingYards",
+      "line": 25,
+      "label": "25+ rushing yards",
+      "projection": 60.8,
+      "sampleGames": 6,
+      "historicalHits": 6,
+      "recentValues": [
+        86,
+        41,
+        61,
+        32,
+        29,
+        102
+      ],
+      "researchScore": 62,
+      "grade": "RESEARCH",
+      "decisionReasons": [],
+      "factors": {
+        "usage": 76.73066666666668,
+        "matchup": 53.16168159889732,
+        "gameScript": 50,
+        "efficiency": 63.554262153203915,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 6 earlier games.",
+        "Last 6 listed averages: 58.5; last three listed: 62.7.",
+        "Cleared 25 in 6/6 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: carries 15.3 per game.",
+        "Recent snap share 54.7%; target share 12.8%.",
+        "Opponent RB opportunity allowance / league baseline: 1.11x (10 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 6,
+        "targets": 3.6666666666666665,
+        "carries": 15.333333333333334,
+        "passingAttempts": 0,
+        "targetShare": 12.777777777777766,
+        "snapShare": 54.666666666666664,
+        "status": "unverified",
+        "defenseRatio": 1.1053893866299105
+      }
+    },
+    {
+      "id": "nflverse:00-0037740:receivingYards:50",
+      "athleteId": "nflverse:00-0037740",
+      "player": "Garrett Wilson",
+      "teamId": "20",
+      "position": "WR",
+      "market": "receivingYards",
+      "line": 50,
+      "label": "50+ receiving yards",
+      "projection": 72,
+      "sampleGames": 6,
+      "historicalHits": 3,
+      "recentValues": [
+        39,
+        106,
+        83,
+        26,
+        44,
+        104
+      ],
+      "researchScore": 62,
+      "grade": "RESEARCH",
+      "decisionReasons": [],
+      "factors": {
+        "usage": 85.0095,
+        "matchup": 42.93467336683417,
+        "gameScript": 50,
+        "efficiency": 63.2890245177969,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 6 earlier games.",
+        "Last 6 listed averages: 67.0; last three listed: 76.0.",
+        "Cleared 50 in 3/6 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: targets 10.3 per game.",
+        "Recent snap share 88.3%; target share 32.9%.",
+        "Opponent WR opportunity allowance / league baseline: 0.76x (10 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 6,
+        "targets": 10.333333333333334,
+        "carries": 0,
+        "passingAttempts": 0,
+        "targetShare": 32.903225806451594,
+        "snapShare": 88.33333333333333,
+        "status": "unverified",
+        "defenseRatio": 0.7644891122278057
+      }
+    },
+    {
+      "id": "nflverse:00-0040198:rushingYards:50",
+      "athleteId": "nflverse:00-0040198",
+      "player": "Ollie Gordon II",
+      "teamId": "15",
+      "position": "RB",
+      "market": "rushingYards",
+      "line": 50,
+      "label": "50+ rushing yards",
+      "projection": 71.2,
+      "sampleGames": 6,
+      "historicalHits": 6,
+      "recentValues": [
+        69,
+        76,
+        55,
+        69,
+        103,
+        88
+      ],
+      "researchScore": 61,
+      "grade": "RESEARCH",
+      "decisionReasons": [],
+      "factors": {
+        "usage": 72.60333333333332,
+        "matchup": 54.19109078378548,
+        "gameScript": 50,
+        "efficiency": 73.00330891060796,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 6 earlier games.",
+        "Last 6 listed averages: 76.7; last three listed: 66.7.",
+        "Cleared 50 in 6/6 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: carries 15.7 per game.",
+        "Recent snap share unknown; target share 9.8%.",
+        "Opponent RB opportunity allowance / league baseline: 1.14x (11 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 6,
+        "targets": 3,
+        "carries": 15.666666666666666,
+        "passingAttempts": 0,
+        "targetShare": 9.82593795093795,
+        "snapShare": null,
+        "status": "unverified",
+        "defenseRatio": 1.1397030261261825
+      }
+    },
+    {
+      "id": "nflverse:00-0041511:receivingYards:25",
+      "athleteId": "nflverse:00-0041511",
+      "player": "Omar Cooper Jr.",
+      "teamId": "20",
+      "position": "WR",
+      "market": "receivingYards",
+      "line": 25,
+      "label": "25+ receiving yards",
+      "projection": 85,
+      "sampleGames": 4,
+      "historicalHits": 4,
+      "recentValues": [
+        58,
+        115,
+        103,
+        30
+      ],
+      "researchScore": 61,
+      "grade": "RESEARCH",
+      "decisionReasons": [],
+      "factors": {
+        "usage": 81.17222222222222,
+        "matchup": 42.93467336683417,
+        "gameScript": 50,
+        "efficiency": 64.33549304439347,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 4 earlier games.",
+        "Last 4 listed averages: 76.5; last three listed: 92.0.",
+        "Cleared 25 in 4/4 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: targets 7.7 per game.",
+        "Recent snap share unknown; target share 26%.",
+        "Opponent WR opportunity allowance / league baseline: 0.76x (10 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 4,
+        "targets": 7.666666666666667,
+        "carries": 0,
+        "passingAttempts": 0,
+        "targetShare": 26.015325670498097,
+        "snapShare": null,
+        "status": "unverified",
+        "defenseRatio": 0.7644891122278057
+      }
+    },
+    {
+      "id": "nflverse:00-0041523:receptions:3",
+      "athleteId": "nflverse:00-0041523",
+      "player": "Caleb Douglas",
+      "teamId": "15",
+      "position": "WR",
+      "market": "receptions",
+      "line": 3,
+      "label": "3+ receptions",
+      "projection": 3.4,
+      "sampleGames": 6,
+      "historicalHits": 3,
+      "recentValues": [
+        2,
+        3,
+        6,
+        4,
+        2,
+        2
+      ],
+      "researchScore": 61,
+      "grade": "RESEARCH",
+      "decisionReasons": [],
+      "factors": {
+        "usage": 81.94583333333333,
+        "matchup": 45.01964367291001,
+        "gameScript": 50,
+        "efficiency": 63.83559191796188,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 6 earlier games.",
+        "Last 6 listed averages: 3.2; last three listed: 3.7.",
+        "Cleared 3 in 3/6 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: targets 8.7 per game.",
+        "Recent snap share 77.7%; target share 31.1%.",
+        "Opponent WR opportunity allowance / league baseline: 0.83x (11 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 6,
+        "targets": 8.666666666666666,
+        "carries": 0,
+        "passingAttempts": 0,
+        "targetShare": 31.13275613275613,
+        "snapShare": 77.66666666666667,
+        "status": "unverified",
+        "defenseRatio": 0.8339881224303335
+      }
+    },
+    {
+      "id": "nflverse:00-0041523:receivingYards:50",
+      "athleteId": "nflverse:00-0041523",
+      "player": "Caleb Douglas",
+      "teamId": "15",
+      "position": "WR",
+      "market": "receivingYards",
+      "line": 50,
+      "label": "50+ receiving yards",
+      "projection": 54.1,
+      "sampleGames": 6,
+      "historicalHits": 3,
+      "recentValues": [
+        30,
+        71,
+        70,
+        43,
+        70,
+        19
+      ],
+      "researchScore": 61,
+      "grade": "RESEARCH",
+      "decisionReasons": [],
+      "factors": {
+        "usage": 81.25575,
+        "matchup": 45.01964367291001,
+        "gameScript": 50,
+        "efficiency": 65.43592177294434,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 6 earlier games.",
+        "Last 6 listed averages: 50.5; last three listed: 57.0.",
+        "Cleared 50 in 3/6 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: targets 8.7 per game.",
+        "Recent snap share 77.7%; target share 31.1%.",
+        "Opponent WR opportunity allowance / league baseline: 0.83x (11 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 6,
+        "targets": 8.666666666666666,
+        "carries": 0,
+        "passingAttempts": 0,
+        "targetShare": 31.13275613275613,
+        "snapShare": 77.66666666666667,
+        "status": "unverified",
+        "defenseRatio": 0.8339881224303335
+      }
+    },
+    {
+      "id": "nflverse:00-0037740:receptions:5",
+      "athleteId": "nflverse:00-0037740",
+      "player": "Garrett Wilson",
+      "teamId": "20",
+      "position": "WR",
+      "market": "receptions",
+      "line": 5,
+      "label": "5+ receptions",
+      "projection": 5.1,
+      "sampleGames": 6,
+      "historicalHits": 3,
+      "recentValues": [
+        3,
+        7,
+        6,
+        2,
+        4,
+        7
+      ],
+      "researchScore": 61,
+      "grade": "RESEARCH",
+      "decisionReasons": [],
+      "factors": {
+        "usage": 80.6275,
+        "matchup": 42.93467336683417,
+        "gameScript": 50,
+        "efficiency": 65.87363803878665,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 6 earlier games.",
+        "Last 6 listed averages: 4.8; last three listed: 5.3.",
+        "Cleared 5 in 3/6 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: targets 10.3 per game.",
+        "Recent snap share 88.3%; target share 32.9%.",
+        "Opponent WR opportunity allowance / league baseline: 0.76x (10 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 6,
+        "targets": 10.333333333333334,
+        "carries": 0,
+        "passingAttempts": 0,
+        "targetShare": 32.903225806451594,
+        "snapShare": 88.33333333333333,
+        "status": "unverified",
+        "defenseRatio": 0.7644891122278057
+      }
+    },
+    {
+      "id": "nflverse:00-0041511:receptions:3",
+      "athleteId": "nflverse:00-0041511",
+      "player": "Omar Cooper Jr.",
+      "teamId": "20",
+      "position": "WR",
+      "market": "receptions",
+      "line": 3,
+      "label": "3+ receptions",
+      "projection": 5.7,
+      "sampleGames": 4,
+      "historicalHits": 3,
+      "recentValues": [
+        8,
+        5,
+        6,
+        1
+      ],
+      "researchScore": 60,
+      "grade": "RESEARCH",
+      "decisionReasons": [],
+      "factors": {
+        "usage": 81.17222222222222,
+        "matchup": 42.93467336683417,
+        "gameScript": 50,
+        "efficiency": 62.15343170242525,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 4 earlier games.",
+        "Last 4 listed averages: 5.0; last three listed: 6.3.",
+        "Cleared 3 in 3/4 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: targets 7.7 per game.",
+        "Recent snap share unknown; target share 26%.",
+        "Opponent WR opportunity allowance / league baseline: 0.76x (10 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 4,
+        "targets": 7.666666666666667,
+        "carries": 0,
+        "passingAttempts": 0,
+        "targetShare": 26.015325670498097,
+        "snapShare": null,
+        "status": "unverified",
+        "defenseRatio": 0.7644891122278057
+      }
+    },
+    {
+      "id": "nflverse:00-0041511:receptions:2",
+      "athleteId": "nflverse:00-0041511",
+      "player": "Omar Cooper Jr.",
+      "teamId": "20",
+      "position": "WR",
+      "market": "receptions",
+      "line": 2,
+      "label": "2+ receptions",
+      "projection": 5.7,
+      "sampleGames": 4,
+      "historicalHits": 3,
+      "recentValues": [
+        8,
+        5,
+        6,
+        1
+      ],
+      "researchScore": 60,
+      "grade": "RESEARCH",
+      "decisionReasons": [],
+      "factors": {
+        "usage": 81.17222222222222,
+        "matchup": 42.93467336683417,
+        "gameScript": 50,
+        "efficiency": 62.15343170242525,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 4 earlier games.",
+        "Last 4 listed averages: 5.0; last three listed: 6.3.",
+        "Cleared 2 in 3/4 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: targets 7.7 per game.",
+        "Recent snap share unknown; target share 26%.",
+        "Opponent WR opportunity allowance / league baseline: 0.76x (10 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 4,
+        "targets": 7.666666666666667,
+        "carries": 0,
+        "passingAttempts": 0,
+        "targetShare": 26.015325670498097,
+        "snapShare": null,
+        "status": "unverified",
+        "defenseRatio": 0.7644891122278057
+      }
+    },
+    {
+      "id": "nflverse:00-0041511:receivingYards:50",
+      "athleteId": "nflverse:00-0041511",
+      "player": "Omar Cooper Jr.",
+      "teamId": "20",
+      "position": "WR",
+      "market": "receivingYards",
+      "line": 50,
+      "label": "50+ receiving yards",
+      "projection": 85,
+      "sampleGames": 4,
+      "historicalHits": 3,
+      "recentValues": [
+        58,
+        115,
+        103,
+        30
+      ],
+      "researchScore": 60,
+      "grade": "RESEARCH",
+      "decisionReasons": [],
+      "factors": {
+        "usage": 79.77747222222223,
+        "matchup": 42.93467336683417,
+        "gameScript": 50,
+        "efficiency": 64.33549304439347,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 4 earlier games.",
+        "Last 4 listed averages: 76.5; last three listed: 92.0.",
+        "Cleared 50 in 3/4 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: targets 7.7 per game.",
+        "Recent snap share unknown; target share 26%.",
+        "Opponent WR opportunity allowance / league baseline: 0.76x (10 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 4,
+        "targets": 7.666666666666667,
+        "carries": 0,
+        "passingAttempts": 0,
+        "targetShare": 26.015325670498097,
+        "snapShare": null,
+        "status": "unverified",
+        "defenseRatio": 0.7644891122278057
+      }
+    },
+    {
+      "id": "nflverse:00-0040198:rushingYards:75",
+      "athleteId": "nflverse:00-0040198",
+      "player": "Ollie Gordon II",
+      "teamId": "15",
+      "position": "RB",
+      "market": "rushingYards",
+      "line": 75,
+      "label": "75+ rushing yards",
+      "projection": 71.2,
+      "sampleGames": 6,
+      "historicalHits": 3,
+      "recentValues": [
+        69,
+        76,
+        55,
+        69,
+        103,
+        88
+      ],
+      "researchScore": 60,
+      "grade": "RESEARCH",
+      "decisionReasons": [
+        "Historical weighted mean is below the line."
+      ],
+      "factors": {
+        "usage": 68.15833333333333,
+        "matchup": 54.19109078378548,
+        "gameScript": 50,
+        "efficiency": 73.00330891060796,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 6 earlier games.",
+        "Last 6 listed averages: 76.7; last three listed: 66.7.",
+        "Cleared 75 in 3/6 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: carries 15.7 per game.",
+        "Recent snap share unknown; target share 9.8%.",
+        "Opponent RB opportunity allowance / league baseline: 1.14x (11 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 6,
+        "targets": 3,
+        "carries": 15.666666666666666,
+        "passingAttempts": 0,
+        "targetShare": 9.82593795093795,
+        "snapShare": null,
+        "status": "unverified",
+        "defenseRatio": 1.1397030261261825
+      }
+    },
+    {
+      "id": "nflverse:00-0039794:rushingYards:25",
+      "athleteId": "nflverse:00-0039794",
+      "player": "Braelon Allen",
+      "teamId": "20",
+      "position": "RB",
+      "market": "rushingYards",
+      "line": 25,
+      "label": "25+ rushing yards",
+      "projection": 62.9,
+      "sampleGames": 6,
+      "historicalHits": 6,
+      "recentValues": [
+        75,
+        40,
+        33,
+        147,
+        104,
+        78
+      ],
+      "researchScore": 59,
+      "grade": "RESEARCH",
+      "decisionReasons": [],
+      "factors": {
+        "usage": 68.62733333333333,
+        "matchup": 53.16168159889732,
+        "gameScript": 50,
+        "efficiency": 63.04269277516488,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 6 earlier games.",
+        "Last 6 listed averages: 79.5; last three listed: 49.3.",
+        "Cleared 25 in 6/6 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: carries 10.7 per game.",
+        "Recent snap share 48%; target share 4.7%.",
+        "Opponent RB opportunity allowance / league baseline: 1.11x (10 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 6,
+        "targets": 1.3333333333333333,
+        "carries": 10.666666666666666,
+        "passingAttempts": 0,
+        "targetShare": 4.722222222222224,
+        "snapShare": 48,
+        "status": "unverified",
+        "defenseRatio": 1.1053893866299105
+      }
+    },
+    {
+      "id": "nflverse:00-0038120:rushingYards:50",
+      "athleteId": "nflverse:00-0038120",
+      "player": "Breece Hall",
+      "teamId": "20",
+      "position": "RB",
+      "market": "rushingYards",
+      "line": 50,
+      "label": "50+ rushing yards",
+      "projection": 60.8,
+      "sampleGames": 6,
+      "historicalHits": 3,
+      "recentValues": [
+        86,
+        41,
+        61,
+        32,
+        29,
+        102
+      ],
+      "researchScore": 59,
+      "grade": "RESEARCH",
+      "decisionReasons": [],
+      "factors": {
+        "usage": 70.24691666666668,
+        "matchup": 53.16168159889732,
+        "gameScript": 50,
+        "efficiency": 63.554262153203915,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 6 earlier games.",
+        "Last 6 listed averages: 58.5; last three listed: 62.7.",
+        "Cleared 50 in 3/6 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: carries 15.3 per game.",
+        "Recent snap share 54.7%; target share 12.8%.",
+        "Opponent RB opportunity allowance / league baseline: 1.11x (10 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 6,
+        "targets": 3.6666666666666665,
+        "carries": 15.333333333333334,
+        "passingAttempts": 0,
+        "targetShare": 12.777777777777766,
+        "snapShare": 54.666666666666664,
+        "status": "unverified",
+        "defenseRatio": 1.1053893866299105
+      }
+    },
+    {
+      "id": "nflverse:00-0038120:receptions:2",
+      "athleteId": "nflverse:00-0038120",
+      "player": "Breece Hall",
+      "teamId": "20",
+      "position": "RB",
+      "market": "receptions",
+      "line": 2,
+      "label": "2+ receptions",
+      "projection": 3.3,
+      "sampleGames": 6,
+      "historicalHits": 6,
+      "recentValues": [
+        3,
+        4,
+        3,
+        3,
+        5,
+        2
+      ],
+      "researchScore": 58,
+      "grade": "RESEARCH",
+      "decisionReasons": [],
+      "factors": {
+        "usage": 65.95288888888889,
+        "matchup": 52.13581599123768,
+        "gameScript": 50,
+        "efficiency": 70.10050506338834,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 6 earlier games.",
+        "Last 6 listed averages: 3.3; last three listed: 3.3.",
+        "Cleared 2 in 6/6 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: targets 3.7 per game.",
+        "Recent snap share 54.7%; target share 12.8%.",
+        "Opponent RB opportunity allowance / league baseline: 1.07x (10 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 6,
+        "targets": 3.6666666666666665,
+        "carries": 15.333333333333334,
+        "passingAttempts": 0,
+        "targetShare": 12.777777777777766,
+        "snapShare": 54.666666666666664,
+        "status": "unverified",
+        "defenseRatio": 1.0711938663745892
+      }
+    },
+    {
+      "id": "nflverse:00-0041511:receptions:5",
+      "athleteId": "nflverse:00-0041511",
+      "player": "Omar Cooper Jr.",
+      "teamId": "20",
+      "position": "WR",
+      "market": "receptions",
+      "line": 5,
+      "label": "5+ receptions",
+      "projection": 5.7,
+      "sampleGames": 4,
+      "historicalHits": 3,
+      "recentValues": [
+        8,
+        5,
+        6,
+        1
+      ],
+      "researchScore": 58,
+      "grade": "RESEARCH",
+      "decisionReasons": [],
+      "factors": {
+        "usage": 73.96222222222222,
+        "matchup": 42.93467336683417,
+        "gameScript": 50,
+        "efficiency": 62.15343170242525,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 4 earlier games.",
+        "Last 4 listed averages: 5.0; last three listed: 6.3.",
+        "Cleared 5 in 3/4 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: targets 7.7 per game.",
+        "Recent snap share unknown; target share 26%.",
+        "Opponent WR opportunity allowance / league baseline: 0.76x (10 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 4,
+        "targets": 7.666666666666667,
+        "carries": 0,
+        "passingAttempts": 0,
+        "targetShare": 26.015325670498097,
+        "snapShare": null,
+        "status": "unverified",
+        "defenseRatio": 0.7644891122278057
+      }
+    },
+    {
+      "id": "nflverse:00-0039880:receptions:2",
+      "athleteId": "nflverse:00-0039880",
+      "player": "Malik Washington",
+      "teamId": "15",
+      "position": "WR",
+      "market": "receptions",
+      "line": 2,
+      "label": "2+ receptions",
+      "projection": 3.1,
+      "sampleGames": 6,
+      "historicalHits": 6,
+      "recentValues": [
+        3,
+        3,
+        2,
+        5,
+        3,
+        6
+      ],
+      "researchScore": 57,
+      "grade": "RESEARCH",
+      "decisionReasons": [],
+      "factors": {
+        "usage": 68.52183333333332,
+        "matchup": 45.01964367291001,
+        "gameScript": 50,
+        "efficiency": 66.88102755485289,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 6 earlier games.",
+        "Last 6 listed averages: 3.7; last three listed: 2.7.",
+        "Cleared 2 in 6/6 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: targets 4.0 per game.",
+        "Recent snap share 83.7%; target share 13.9%.",
+        "Opponent WR opportunity allowance / league baseline: 0.83x (11 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 6,
+        "targets": 4,
+        "carries": 1,
+        "passingAttempts": 0.3333333333333333,
+        "targetShare": 13.947510822510834,
+        "snapShare": 83.66666666666667,
+        "status": "unverified",
+        "defenseRatio": 0.8339881224303335
+      }
+    },
+    {
+      "id": "nflverse:00-0039880:receivingYards:25",
+      "athleteId": "nflverse:00-0039880",
+      "player": "Malik Washington",
+      "teamId": "15",
+      "position": "WR",
+      "market": "receivingYards",
+      "line": 25,
+      "label": "25+ receiving yards",
+      "projection": 34.3,
+      "sampleGames": 6,
+      "historicalHits": 5,
+      "recentValues": [
+        30,
+        50,
+        21,
+        40,
+        27,
+        43
+      ],
+      "researchScore": 57,
+      "grade": "RESEARCH",
+      "decisionReasons": [],
+      "factors": {
+        "usage": 66.58283333333333,
+        "matchup": 45.01964367291001,
+        "gameScript": 50,
+        "efficiency": 70.05707421852891,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 6 earlier games.",
+        "Last 6 listed averages: 35.2; last three listed: 33.7.",
+        "Cleared 25 in 5/6 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: targets 4.0 per game.",
+        "Recent snap share 83.7%; target share 13.9%.",
+        "Opponent WR opportunity allowance / league baseline: 0.83x (11 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 6,
+        "targets": 4,
+        "carries": 1,
+        "passingAttempts": 0.3333333333333333,
+        "targetShare": 13.947510822510834,
+        "snapShare": 83.66666666666667,
+        "status": "unverified",
+        "defenseRatio": 0.8339881224303335
+      }
+    },
+    {
+      "id": "nflverse:00-0039890:receivingYards:25",
+      "athleteId": "nflverse:00-0039890",
+      "player": "Adonai Mitchell",
+      "teamId": "20",
+      "position": "WR",
+      "market": "receivingYards",
+      "line": 25,
+      "label": "25+ receiving yards",
+      "projection": 38.4,
+      "sampleGames": 6,
+      "historicalHits": 4,
+      "recentValues": [
+        30,
+        59,
+        0,
+        142,
+        0,
+        63
+      ],
+      "researchScore": 57,
+      "grade": "RESEARCH",
+      "decisionReasons": [],
+      "factors": {
+        "usage": 76.602,
+        "matchup": 42.93467336683417,
+        "gameScript": 50,
+        "efficiency": 45.363893637627534,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 6 earlier games.",
+        "Last 6 listed averages: 49.0; last three listed: 29.7.",
+        "Cleared 25 in 4/6 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: targets 6.0 per game.",
+        "Recent snap share 79.3%; target share 19.4%.",
+        "Opponent WR opportunity allowance / league baseline: 0.76x (10 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 6,
+        "targets": 6,
+        "carries": 0,
+        "passingAttempts": 0,
+        "targetShare": 19.444444444444432,
+        "snapShare": 79.33333333333333,
+        "status": "unverified",
+        "defenseRatio": 0.7644891122278057
+      }
+    },
+    {
+      "id": "nflverse:00-0039794:rushingYards:50",
+      "athleteId": "nflverse:00-0039794",
+      "player": "Braelon Allen",
+      "teamId": "20",
+      "position": "RB",
+      "market": "rushingYards",
+      "line": 50,
+      "label": "50+ rushing yards",
+      "projection": 62.9,
+      "sampleGames": 6,
+      "historicalHits": 4,
+      "recentValues": [
+        75,
+        40,
+        33,
+        147,
+        104,
+        78
+      ],
+      "researchScore": 57,
+      "grade": "RESEARCH",
+      "decisionReasons": [],
+      "factors": {
+        "usage": 62.58808333333333,
+        "matchup": 53.16168159889732,
+        "gameScript": 50,
+        "efficiency": 63.04269277516488,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 6 earlier games.",
+        "Last 6 listed averages: 79.5; last three listed: 49.3.",
+        "Cleared 50 in 4/6 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: carries 10.7 per game.",
+        "Recent snap share 48%; target share 4.7%.",
+        "Opponent RB opportunity allowance / league baseline: 1.11x (10 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 6,
+        "targets": 1.3333333333333333,
+        "carries": 10.666666666666666,
+        "passingAttempts": 0,
+        "targetShare": 4.722222222222224,
+        "snapShare": 48,
+        "status": "unverified",
+        "defenseRatio": 1.1053893866299105
+      }
+    },
+    {
+      "id": "nflverse:00-0037740:receivingYards:75",
+      "athleteId": "nflverse:00-0037740",
+      "player": "Garrett Wilson",
+      "teamId": "20",
+      "position": "WR",
+      "market": "receivingYards",
+      "line": 75,
+      "label": "75+ receiving yards",
+      "projection": 72,
+      "sampleGames": 6,
+      "historicalHits": 3,
+      "recentValues": [
+        39,
+        106,
+        83,
+        26,
+        44,
+        104
+      ],
+      "researchScore": 57,
+      "grade": "RESEARCH",
+      "decisionReasons": [],
+      "factors": {
+        "usage": 72.55666666666667,
+        "matchup": 42.93467336683417,
+        "gameScript": 50,
+        "efficiency": 63.2890245177969,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 6 earlier games.",
+        "Last 6 listed averages: 67.0; last three listed: 76.0.",
+        "Cleared 75 in 3/6 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: targets 10.3 per game.",
+        "Recent snap share 88.3%; target share 32.9%.",
+        "Opponent WR opportunity allowance / league baseline: 0.76x (10 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 6,
+        "targets": 10.333333333333334,
+        "carries": 0,
+        "passingAttempts": 0,
+        "targetShare": 32.903225806451594,
+        "snapShare": 88.33333333333333,
+        "status": "unverified",
+        "defenseRatio": 0.7644891122278057
+      }
+    },
+    {
+      "id": "nflverse:00-0038120:receivingYards:25",
+      "athleteId": "nflverse:00-0038120",
+      "player": "Breece Hall",
+      "teamId": "20",
+      "position": "RB",
+      "market": "receivingYards",
+      "line": 25,
+      "label": "25+ receiving yards",
+      "projection": 35.3,
+      "sampleGames": 6,
+      "historicalHits": 3,
+      "recentValues": [
+        14,
+        67,
+        26,
+        23,
+        63,
+        16
+      ],
+      "researchScore": 56,
+      "grade": "RESEARCH",
+      "decisionReasons": [],
+      "factors": {
+        "usage": 63.2753888888889,
+        "matchup": 52.13581599123768,
+        "gameScript": 50,
+        "efficiency": 58.1595718006544,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 6 earlier games.",
+        "Last 6 listed averages: 34.8; last three listed: 35.7.",
+        "Cleared 25 in 3/6 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: targets 3.7 per game.",
+        "Recent snap share 54.7%; target share 12.8%.",
+        "Opponent RB opportunity allowance / league baseline: 1.07x (10 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 6,
+        "targets": 3.6666666666666665,
+        "carries": 15.333333333333334,
+        "passingAttempts": 0,
+        "targetShare": 12.777777777777766,
+        "snapShare": 54.666666666666664,
+        "status": "unverified",
+        "defenseRatio": 1.0711938663745892
+      }
+    },
+    {
+      "id": "nflverse:00-0038120:receptions:3",
+      "athleteId": "nflverse:00-0038120",
+      "player": "Breece Hall",
+      "teamId": "20",
+      "position": "RB",
+      "market": "receptions",
+      "line": 3,
+      "label": "3+ receptions",
+      "projection": 3.3,
+      "sampleGames": 6,
+      "historicalHits": 5,
+      "recentValues": [
+        3,
+        4,
+        3,
+        3,
+        5,
+        2
+      ],
+      "researchScore": 56,
+      "grade": "RESEARCH",
+      "decisionReasons": [],
+      "factors": {
+        "usage": 60.11955555555556,
+        "matchup": 52.13581599123768,
+        "gameScript": 50,
+        "efficiency": 70.10050506338834,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 6 earlier games.",
+        "Last 6 listed averages: 3.3; last three listed: 3.3.",
+        "Cleared 3 in 5/6 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: targets 3.7 per game.",
+        "Recent snap share 54.7%; target share 12.8%.",
+        "Opponent RB opportunity allowance / league baseline: 1.07x (10 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 6,
+        "targets": 3.6666666666666665,
+        "carries": 15.333333333333334,
+        "passingAttempts": 0,
+        "targetShare": 12.777777777777766,
+        "snapShare": 54.666666666666664,
+        "status": "unverified",
+        "defenseRatio": 1.0711938663745892
+      }
+    },
+    {
+      "id": "nflverse:00-0039890:receptions:2",
+      "athleteId": "nflverse:00-0039890",
+      "player": "Adonai Mitchell",
+      "teamId": "20",
+      "position": "WR",
+      "market": "receptions",
+      "line": 2,
+      "label": "2+ receptions",
+      "projection": 2.3,
+      "sampleGames": 6,
+      "historicalHits": 4,
+      "recentValues": [
+        2,
+        3,
+        0,
+        7,
+        0,
+        6
+      ],
+      "researchScore": 56,
+      "grade": "RESEARCH",
+      "decisionReasons": [],
+      "factors": {
+        "usage": 72.388,
+        "matchup": 42.93467336683417,
+        "gameScript": 50,
+        "efficiency": 48.4065173153046,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 6 earlier games.",
+        "Last 6 listed averages: 3.0; last three listed: 1.7.",
+        "Cleared 2 in 4/6 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: targets 6.0 per game.",
+        "Recent snap share 79.3%; target share 19.4%.",
+        "Opponent WR opportunity allowance / league baseline: 0.76x (10 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 6,
+        "targets": 6,
+        "carries": 0,
+        "passingAttempts": 0,
+        "targetShare": 19.444444444444432,
+        "snapShare": 79.33333333333333,
+        "status": "unverified",
+        "defenseRatio": 0.7644891122278057
+      }
+    },
+    {
+      "id": "nflverse:00-0039794:rushingYards:75",
+      "athleteId": "nflverse:00-0039794",
+      "player": "Braelon Allen",
+      "teamId": "20",
+      "position": "RB",
+      "market": "rushingYards",
+      "line": 75,
+      "label": "75+ rushing yards",
+      "projection": 62.9,
+      "sampleGames": 6,
+      "historicalHits": 4,
+      "recentValues": [
+        75,
+        40,
+        33,
+        147,
+        104,
+        78
+      ],
+      "researchScore": 56,
+      "grade": "RESEARCH",
+      "decisionReasons": [
+        "Historical weighted mean is below the line."
+      ],
+      "factors": {
+        "usage": 59.87733333333333,
+        "matchup": 53.16168159889732,
+        "gameScript": 50,
+        "efficiency": 63.04269277516488,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 6 earlier games.",
+        "Last 6 listed averages: 79.5; last three listed: 49.3.",
+        "Cleared 75 in 4/6 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: carries 10.7 per game.",
+        "Recent snap share 48%; target share 4.7%.",
+        "Opponent RB opportunity allowance / league baseline: 1.11x (10 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 6,
+        "targets": 1.3333333333333333,
+        "carries": 10.666666666666666,
+        "passingAttempts": 0,
+        "targetShare": 4.722222222222224,
+        "snapShare": 48,
+        "status": "unverified",
+        "defenseRatio": 1.1053893866299105
+      }
+    },
+    {
+      "id": "nflverse:00-0030565:passingYards:150",
+      "athleteId": "nflverse:00-0030565",
+      "player": "Geno Smith",
+      "teamId": "20",
+      "position": "QB",
+      "market": "passingYards",
+      "line": 150,
+      "label": "150+ passing yards",
+      "projection": 188.5,
+      "sampleGames": 6,
+      "historicalHits": 5,
+      "recentValues": [
+        176,
+        148,
+        165,
+        290,
+        287,
+        252
+      ],
+      "researchScore": 55,
+      "grade": "RESEARCH",
+      "decisionReasons": [],
+      "factors": {
+        "usage": 62.51875757575758,
+        "matchup": 46.13707049073471,
+        "gameScript": 50,
+        "efficiency": 70.67365131867946,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 6 earlier games.",
+        "Last 6 listed averages: 219.7; last three listed: 163.0.",
+        "Cleared 150 in 5/6 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: attempts 24.7 per game.",
+        "Recent snap share 82.7%; target share 0%.",
+        "Opponent QB opportunity allowance / league baseline: 0.87x (10 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 6,
+        "targets": 0,
+        "carries": 0.6666666666666666,
+        "passingAttempts": 24.666666666666668,
+        "targetShare": 0,
+        "snapShare": 82.66666666666667,
+        "status": "unverified",
+        "defenseRatio": 0.8712356830244902
+      }
+    },
+    {
+      "id": "nflverse:00-0039880:receptions:3",
+      "athleteId": "nflverse:00-0039880",
+      "player": "Malik Washington",
+      "teamId": "15",
+      "position": "WR",
+      "market": "receptions",
+      "line": 3,
+      "label": "3+ receptions",
+      "projection": 3.1,
+      "sampleGames": 6,
+      "historicalHits": 5,
+      "recentValues": [
+        3,
+        3,
+        2,
+        5,
+        3,
+        6
+      ],
+      "researchScore": 55,
+      "grade": "RESEARCH",
+      "decisionReasons": [],
+      "factors": {
+        "usage": 63.06766666666667,
+        "matchup": 45.01964367291001,
+        "gameScript": 50,
+        "efficiency": 66.88102755485289,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 6 earlier games.",
+        "Last 6 listed averages: 3.7; last three listed: 2.7.",
+        "Cleared 3 in 5/6 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: targets 4.0 per game.",
+        "Recent snap share 83.7%; target share 13.9%.",
+        "Opponent WR opportunity allowance / league baseline: 0.83x (11 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 6,
+        "targets": 4,
+        "carries": 1,
+        "passingAttempts": 0.3333333333333333,
+        "targetShare": 13.947510822510834,
+        "snapShare": 83.66666666666667,
+        "status": "unverified",
+        "defenseRatio": 0.8339881224303335
+      }
+    },
+    {
+      "id": "nflverse:00-0037252:receptions:2",
+      "athleteId": "nflverse:00-0037252",
+      "player": "Greg Dulcich",
+      "teamId": "15",
+      "position": "TE",
+      "market": "receptions",
+      "line": 2,
+      "label": "2+ receptions",
+      "projection": 2,
+      "sampleGames": 6,
+      "historicalHits": 5,
+      "recentValues": [
+        2,
+        0,
+        2,
+        4,
+        5,
+        4
+      ],
+      "researchScore": 55,
+      "grade": "RESEARCH",
+      "decisionReasons": [],
+      "factors": {
+        "usage": 62.45752777777777,
+        "matchup": 50.1636137962162,
+        "gameScript": 50,
+        "efficiency": 59.30907960357464,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 6 earlier games.",
+        "Last 6 listed averages: 2.8; last three listed: 1.3.",
+        "Cleared 2 in 5/6 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: targets 4.3 per game.",
+        "Recent snap share 62%; target share 15.5%.",
+        "Opponent TE opportunity allowance / league baseline: 1.01x (11 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 6,
+        "targets": 4.333333333333333,
+        "carries": 0,
+        "passingAttempts": 0,
+        "targetShare": 15.503246753246733,
+        "snapShare": 62,
+        "status": "unverified",
+        "defenseRatio": 1.0054537932072065
+      }
+    },
+    {
+      "id": "nflverse:00-0030565:passingYards:250",
+      "athleteId": "nflverse:00-0030565",
+      "player": "Geno Smith",
+      "teamId": "20",
+      "position": "QB",
+      "market": "passingYards",
+      "line": 250,
+      "label": "250+ passing yards",
+      "projection": 188.5,
+      "sampleGames": 6,
+      "historicalHits": 3,
+      "recentValues": [
+        176,
+        148,
+        165,
+        290,
+        287,
+        252
+      ],
+      "researchScore": 55,
+      "grade": "RESEARCH",
+      "decisionReasons": [
+        "Historical weighted mean is below the line."
+      ],
+      "factors": {
+        "usage": 59.82375757575758,
+        "matchup": 46.13707049073471,
+        "gameScript": 50,
+        "efficiency": 70.67365131867946,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 6 earlier games.",
+        "Last 6 listed averages: 219.7; last three listed: 163.0.",
+        "Cleared 250 in 3/6 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: attempts 24.7 per game.",
+        "Recent snap share 82.7%; target share 0%.",
+        "Opponent QB opportunity allowance / league baseline: 0.87x (10 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 6,
+        "targets": 0,
+        "carries": 0.6666666666666666,
+        "passingAttempts": 24.666666666666668,
+        "targetShare": 0,
+        "snapShare": 82.66666666666667,
+        "status": "unverified",
+        "defenseRatio": 0.8712356830244902
+      }
+    },
+    {
+      "id": "nflverse:00-0030565:passingYards:200",
+      "athleteId": "nflverse:00-0030565",
+      "player": "Geno Smith",
+      "teamId": "20",
+      "position": "QB",
+      "market": "passingYards",
+      "line": 200,
+      "label": "200+ passing yards",
+      "projection": 188.5,
+      "sampleGames": 6,
+      "historicalHits": 3,
+      "recentValues": [
+        176,
+        148,
+        165,
+        290,
+        287,
+        252
+      ],
+      "researchScore": 55,
+      "grade": "RESEARCH",
+      "decisionReasons": [
+        "Historical weighted mean is below the line."
+      ],
+      "factors": {
+        "usage": 59.82375757575758,
+        "matchup": 46.13707049073471,
+        "gameScript": 50,
+        "efficiency": 70.67365131867946,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 6 earlier games.",
+        "Last 6 listed averages: 219.7; last three listed: 163.0.",
+        "Cleared 200 in 3/6 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: attempts 24.7 per game.",
+        "Recent snap share 82.7%; target share 0%.",
+        "Opponent QB opportunity allowance / league baseline: 0.87x (10 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 6,
+        "targets": 0,
+        "carries": 0.6666666666666666,
+        "passingAttempts": 24.666666666666668,
+        "targetShare": 0,
+        "snapShare": 82.66666666666667,
+        "status": "unverified",
+        "defenseRatio": 0.8712356830244902
+      }
+    },
+    {
+      "id": "nflverse:00-0037252:receptions:3",
+      "athleteId": "nflverse:00-0037252",
+      "player": "Greg Dulcich",
+      "teamId": "15",
+      "position": "TE",
+      "market": "receptions",
+      "line": 3,
+      "label": "3+ receptions",
+      "projection": 2,
+      "sampleGames": 6,
+      "historicalHits": 3,
+      "recentValues": [
+        2,
+        0,
+        2,
+        4,
+        5,
+        4
+      ],
+      "researchScore": 55,
+      "grade": "RESEARCH",
+      "decisionReasons": [
+        "Historical weighted mean is below the line."
+      ],
+      "factors": {
+        "usage": 62.413777777777774,
+        "matchup": 50.1636137962162,
+        "gameScript": 50,
+        "efficiency": 59.30907960357464,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 6 earlier games.",
+        "Last 6 listed averages: 2.8; last three listed: 1.3.",
+        "Cleared 3 in 3/6 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: targets 4.3 per game.",
+        "Recent snap share 62%; target share 15.5%.",
+        "Opponent TE opportunity allowance / league baseline: 1.01x (11 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 6,
+        "targets": 4.333333333333333,
+        "carries": 0,
+        "passingAttempts": 0,
+        "targetShare": 15.503246753246733,
+        "snapShare": 62,
+        "status": "unverified",
+        "defenseRatio": 1.0054537932072065
+      }
+    },
+    {
+      "id": "nflverse:00-0039890:receivingYards:50",
+      "athleteId": "nflverse:00-0039890",
+      "player": "Adonai Mitchell",
+      "teamId": "20",
+      "position": "WR",
+      "market": "receivingYards",
+      "line": 50,
+      "label": "50+ receiving yards",
+      "projection": 38.4,
+      "sampleGames": 6,
+      "historicalHits": 3,
+      "recentValues": [
+        30,
+        59,
+        0,
+        142,
+        0,
+        63
+      ],
+      "researchScore": 55,
+      "grade": "RESEARCH",
+      "decisionReasons": [
+        "Historical weighted mean is below the line."
+      ],
+      "factors": {
+        "usage": 70.988,
+        "matchup": 42.93467336683417,
+        "gameScript": 50,
+        "efficiency": 45.363893637627534,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 6 earlier games.",
+        "Last 6 listed averages: 49.0; last three listed: 29.7.",
+        "Cleared 50 in 3/6 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: targets 6.0 per game.",
+        "Recent snap share 79.3%; target share 19.4%.",
+        "Opponent WR opportunity allowance / league baseline: 0.76x (10 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 6,
+        "targets": 6,
+        "carries": 0,
+        "passingAttempts": 0,
+        "targetShare": 19.444444444444432,
+        "snapShare": 79.33333333333333,
+        "status": "unverified",
+        "defenseRatio": 0.7644891122278057
+      }
+    },
+    {
+      "id": "nflverse:00-0039890:receptions:3",
+      "athleteId": "nflverse:00-0039890",
+      "player": "Adonai Mitchell",
+      "teamId": "20",
+      "position": "WR",
+      "market": "receptions",
+      "line": 3,
+      "label": "3+ receptions",
+      "projection": 2.3,
+      "sampleGames": 6,
+      "historicalHits": 3,
+      "recentValues": [
+        2,
+        3,
+        0,
+        7,
+        0,
+        6
+      ],
+      "researchScore": 55,
+      "grade": "RESEARCH",
+      "decisionReasons": [
+        "Historical weighted mean is below the line."
+      ],
+      "factors": {
+        "usage": 70.988,
+        "matchup": 42.93467336683417,
+        "gameScript": 50,
+        "efficiency": 48.4065173153046,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 6 earlier games.",
+        "Last 6 listed averages: 3.0; last three listed: 1.7.",
+        "Cleared 3 in 3/6 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: targets 6.0 per game.",
+        "Recent snap share 79.3%; target share 19.4%.",
+        "Opponent WR opportunity allowance / league baseline: 0.76x (10 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 6,
+        "targets": 6,
+        "carries": 0,
+        "passingAttempts": 0,
+        "targetShare": 19.444444444444432,
+        "snapShare": 79.33333333333333,
+        "status": "unverified",
+        "defenseRatio": 0.7644891122278057
+      }
+    },
+    {
+      "id": "nflverse:00-0041523:receptions:4",
+      "athleteId": "nflverse:00-0041523",
+      "player": "Caleb Douglas",
+      "teamId": "15",
+      "position": "WR",
+      "market": "receptions",
+      "line": 4,
+      "label": "4+ receptions",
+      "projection": 3.4,
+      "sampleGames": 6,
+      "historicalHits": 2,
+      "recentValues": [
+        2,
+        3,
+        6,
+        4,
+        2,
+        2
+      ],
+      "researchScore": 61,
+      "grade": "PASS",
+      "decisionReasons": [
+        "Fewer than three recent clears of this threshold.",
+        "Historical clears insufficient for this alternate line.",
+        "Historical weighted mean is below the line."
+      ],
+      "factors": {
+        "usage": 80.4,
+        "matchup": 45.01964367291001,
+        "gameScript": 50,
+        "efficiency": 63.83559191796188,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 6 earlier games.",
+        "Last 6 listed averages: 3.2; last three listed: 3.7.",
+        "Cleared 4 in 2/6 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: targets 8.7 per game.",
+        "Recent snap share 77.7%; target share 31.1%.",
+        "Opponent WR opportunity allowance / league baseline: 0.83x (11 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 6,
+        "targets": 8.666666666666666,
+        "carries": 0,
+        "passingAttempts": 0,
+        "targetShare": 31.13275613275613,
+        "snapShare": 77.66666666666667,
+        "status": "unverified",
+        "defenseRatio": 0.8339881224303335
+      }
+    },
+    {
+      "id": "nflverse:00-0038120:rushingYards:75",
+      "athleteId": "nflverse:00-0038120",
+      "player": "Breece Hall",
+      "teamId": "20",
+      "position": "RB",
+      "market": "rushingYards",
+      "line": 75,
+      "label": "75+ rushing yards",
+      "projection": 60.8,
+      "sampleGames": 6,
+      "historicalHits": 2,
+      "recentValues": [
+        86,
+        41,
+        61,
+        32,
+        29,
+        102
+      ],
+      "researchScore": 58,
+      "grade": "PASS",
+      "decisionReasons": [
+        "Fewer than three recent clears of this threshold.",
+        "Historical clears insufficient for this alternate line.",
+        "Historical weighted mean is below the line."
+      ],
+      "factors": {
+        "usage": 67.98066666666668,
+        "matchup": 53.16168159889732,
+        "gameScript": 50,
+        "efficiency": 63.554262153203915,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 6 earlier games.",
+        "Last 6 listed averages: 58.5; last three listed: 62.7.",
+        "Cleared 75 in 2/6 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: carries 15.3 per game.",
+        "Recent snap share 54.7%; target share 12.8%.",
+        "Opponent RB opportunity allowance / league baseline: 1.11x (10 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 6,
+        "targets": 3.6666666666666665,
+        "carries": 15.333333333333334,
+        "passingAttempts": 0,
+        "targetShare": 12.777777777777766,
+        "snapShare": 54.666666666666664,
+        "status": "unverified",
+        "defenseRatio": 1.1053893866299105
+      }
+    },
+    {
+      "id": "nflverse:00-0038120:receptions:4",
+      "athleteId": "nflverse:00-0038120",
+      "player": "Breece Hall",
+      "teamId": "20",
+      "position": "RB",
+      "market": "receptions",
+      "line": 4,
+      "label": "4+ receptions",
+      "projection": 3.3,
+      "sampleGames": 6,
+      "historicalHits": 2,
+      "recentValues": [
+        3,
+        4,
+        3,
+        3,
+        5,
+        2
+      ],
+      "researchScore": 56,
+      "grade": "PASS",
+      "decisionReasons": [
+        "Fewer than three recent clears of this threshold.",
+        "Historical clears insufficient for this alternate line.",
+        "Historical weighted mean is below the line."
+      ],
+      "factors": {
+        "usage": 58.95288888888889,
+        "matchup": 52.13581599123768,
+        "gameScript": 50,
+        "efficiency": 70.10050506338834,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 6 earlier games.",
+        "Last 6 listed averages: 3.3; last three listed: 3.3.",
+        "Cleared 4 in 2/6 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: targets 3.7 per game.",
+        "Recent snap share 54.7%; target share 12.8%.",
+        "Opponent RB opportunity allowance / league baseline: 1.07x (10 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 6,
+        "targets": 3.6666666666666665,
+        "carries": 15.333333333333334,
+        "passingAttempts": 0,
+        "targetShare": 12.777777777777766,
+        "snapShare": 54.666666666666664,
+        "status": "unverified",
+        "defenseRatio": 1.0711938663745892
+      }
+    },
+    {
+      "id": "nflverse:00-0040736:receptions:2",
+      "athleteId": "nflverse:00-0040736",
+      "player": "Mason Taylor",
+      "teamId": "20",
+      "position": "TE",
+      "market": "receptions",
+      "line": 2,
+      "label": "2+ receptions",
+      "projection": 2.7,
+      "sampleGames": 6,
+      "historicalHits": 5,
+      "recentValues": [
+        2,
+        4,
+        1,
+        3,
+        5,
+        4
+      ],
+      "researchScore": 55,
+      "grade": "PASS",
+      "decisionReasons": [
+        "Not enough recent opportunity."
+      ],
+      "factors": {
+        "usage": 59.82030555555556,
+        "matchup": 49.53827058336781,
+        "gameScript": 50,
+        "efficiency": 65.14847256892372,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 6 earlier games.",
+        "Last 6 listed averages: 3.2; last three listed: 2.3.",
+        "Cleared 2 in 5/6 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: targets 2.7 per game.",
+        "Recent snap share 73.7%; target share 8.9%.",
+        "Opponent TE opportunity allowance / league baseline: 0.98x (10 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Observed opportunity is below the minimum threshold for this market.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 6,
+        "targets": 2.6666666666666665,
+        "carries": 0,
+        "passingAttempts": 0,
+        "targetShare": 8.888888888888891,
+        "snapShare": 73.66666666666667,
+        "status": "unverified",
+        "defenseRatio": 0.9846090194455938
+      }
+    },
+    {
+      "id": "nflverse:00-0039880:receptions:4",
+      "athleteId": "nflverse:00-0039880",
+      "player": "Malik Washington",
+      "teamId": "15",
+      "position": "WR",
+      "market": "receptions",
+      "line": 4,
+      "label": "4+ receptions",
+      "projection": 3.1,
+      "sampleGames": 6,
+      "historicalHits": 2,
+      "recentValues": [
+        3,
+        3,
+        2,
+        5,
+        3,
+        6
+      ],
+      "researchScore": 55,
+      "grade": "PASS",
+      "decisionReasons": [
+        "Fewer than three recent clears of this threshold.",
+        "Historical clears insufficient for this alternate line.",
+        "Historical weighted mean is below the line."
+      ],
+      "factors": {
+        "usage": 62.65933333333333,
+        "matchup": 45.01964367291001,
+        "gameScript": 50,
+        "efficiency": 66.88102755485289,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 6 earlier games.",
+        "Last 6 listed averages: 3.7; last three listed: 2.7.",
+        "Cleared 4 in 2/6 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: targets 4.0 per game.",
+        "Recent snap share 83.7%; target share 13.9%.",
+        "Opponent WR opportunity allowance / league baseline: 0.83x (11 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 6,
+        "targets": 4,
+        "carries": 1,
+        "passingAttempts": 0.3333333333333333,
+        "targetShare": 13.947510822510834,
+        "snapShare": 83.66666666666667,
+        "status": "unverified",
+        "defenseRatio": 0.8339881224303335
+      }
+    },
+    {
+      "id": "nflverse:00-0039880:receivingYards:50",
+      "athleteId": "nflverse:00-0039880",
+      "player": "Malik Washington",
+      "teamId": "15",
+      "position": "WR",
+      "market": "receivingYards",
+      "line": 50,
+      "label": "50+ receiving yards",
+      "projection": 34.3,
+      "sampleGames": 6,
+      "historicalHits": 1,
+      "recentValues": [
+        30,
+        50,
+        21,
+        40,
+        27,
+        43
+      ],
+      "researchScore": 55,
+      "grade": "PASS",
+      "decisionReasons": [
+        "Fewer than three recent clears of this threshold.",
+        "Historical clears insufficient for this alternate line.",
+        "Historical weighted mean is below the line."
+      ],
+      "factors": {
+        "usage": 62.65933333333333,
+        "matchup": 45.01964367291001,
+        "gameScript": 50,
+        "efficiency": 70.05707421852891,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 6 earlier games.",
+        "Last 6 listed averages: 35.2; last three listed: 33.7.",
+        "Cleared 50 in 1/6 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: targets 4.0 per game.",
+        "Recent snap share 83.7%; target share 13.9%.",
+        "Opponent WR opportunity allowance / league baseline: 0.83x (11 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 6,
+        "targets": 4,
+        "carries": 1,
+        "passingAttempts": 0.3333333333333333,
+        "targetShare": 13.947510822510834,
+        "snapShare": 83.66666666666667,
+        "status": "unverified",
+        "defenseRatio": 0.8339881224303335
+      }
+    },
+    {
+      "id": "nflverse:00-0040736:receptions:3",
+      "athleteId": "nflverse:00-0040736",
+      "player": "Mason Taylor",
+      "teamId": "20",
+      "position": "TE",
+      "market": "receptions",
+      "line": 3,
+      "label": "3+ receptions",
+      "projection": 2.7,
+      "sampleGames": 6,
+      "historicalHits": 4,
+      "recentValues": [
+        2,
+        4,
+        1,
+        3,
+        5,
+        4
+      ],
+      "researchScore": 54,
+      "grade": "PASS",
+      "decisionReasons": [
+        "Not enough recent opportunity.",
+        "Research score below the 55/100 minimum.",
+        "Historical weighted mean is below the line."
+      ],
+      "factors": {
+        "usage": 56.101555555555564,
+        "matchup": 49.53827058336781,
+        "gameScript": 50,
+        "efficiency": 65.14847256892372,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 6 earlier games.",
+        "Last 6 listed averages: 3.2; last three listed: 2.3.",
+        "Cleared 3 in 4/6 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: targets 2.7 per game.",
+        "Recent snap share 73.7%; target share 8.9%.",
+        "Opponent TE opportunity allowance / league baseline: 0.98x (10 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Observed opportunity is below the minimum threshold for this market.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 6,
+        "targets": 2.6666666666666665,
+        "carries": 0,
+        "passingAttempts": 0,
+        "targetShare": 8.888888888888891,
+        "snapShare": 73.66666666666667,
+        "status": "unverified",
+        "defenseRatio": 0.9846090194455938
+      }
+    },
+    {
+      "id": "nflverse:00-0040736:receptions:4",
+      "athleteId": "nflverse:00-0040736",
+      "player": "Mason Taylor",
+      "teamId": "20",
+      "position": "TE",
+      "market": "receptions",
+      "line": 4,
+      "label": "4+ receptions",
+      "projection": 2.7,
+      "sampleGames": 6,
+      "historicalHits": 3,
+      "recentValues": [
+        2,
+        4,
+        1,
+        3,
+        5,
+        4
+      ],
+      "researchScore": 54,
+      "grade": "PASS",
+      "decisionReasons": [
+        "Not enough recent opportunity.",
+        "Research score below the 55/100 minimum.",
+        "Historical weighted mean is below the line."
+      ],
+      "factors": {
+        "usage": 56.101555555555564,
+        "matchup": 49.53827058336781,
+        "gameScript": 50,
+        "efficiency": 65.14847256892372,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 6 earlier games.",
+        "Last 6 listed averages: 3.2; last three listed: 2.3.",
+        "Cleared 4 in 3/6 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: targets 2.7 per game.",
+        "Recent snap share 73.7%; target share 8.9%.",
+        "Opponent TE opportunity allowance / league baseline: 0.98x (10 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Observed opportunity is below the minimum threshold for this market.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 6,
+        "targets": 2.6666666666666665,
+        "carries": 0,
+        "passingAttempts": 0,
+        "targetShare": 8.888888888888891,
+        "snapShare": 73.66666666666667,
+        "status": "unverified",
+        "defenseRatio": 0.9846090194455938
+      }
+    },
+    {
+      "id": "nflverse:00-0038120:receivingYards:50",
+      "athleteId": "nflverse:00-0038120",
+      "player": "Breece Hall",
+      "teamId": "20",
+      "position": "RB",
+      "market": "receivingYards",
+      "line": 50,
+      "label": "50+ receiving yards",
+      "projection": 35.3,
+      "sampleGames": 6,
+      "historicalHits": 2,
+      "recentValues": [
+        14,
+        67,
+        26,
+        23,
+        63,
+        16
+      ],
+      "researchScore": 54,
+      "grade": "PASS",
+      "decisionReasons": [
+        "Fewer than three recent clears of this threshold.",
+        "Research score below the 55/100 minimum.",
+        "Historical clears insufficient for this alternate line.",
+        "Historical weighted mean is below the line."
+      ],
+      "factors": {
+        "usage": 58.95288888888889,
+        "matchup": 52.13581599123768,
+        "gameScript": 50,
+        "efficiency": 58.1595718006544,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 6 earlier games.",
+        "Last 6 listed averages: 34.8; last three listed: 35.7.",
+        "Cleared 50 in 2/6 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: targets 3.7 per game.",
+        "Recent snap share 54.7%; target share 12.8%.",
+        "Opponent RB opportunity allowance / league baseline: 1.07x (10 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 6,
+        "targets": 3.6666666666666665,
+        "carries": 15.333333333333334,
+        "passingAttempts": 0,
+        "targetShare": 12.777777777777766,
+        "snapShare": 54.666666666666664,
+        "status": "unverified",
+        "defenseRatio": 1.0711938663745892
+      }
+    },
+    {
+      "id": "nflverse:00-0037252:receivingYards:25",
+      "athleteId": "nflverse:00-0037252",
+      "player": "Greg Dulcich",
+      "teamId": "15",
+      "position": "TE",
+      "market": "receivingYards",
+      "line": 25,
+      "label": "25+ receiving yards",
+      "projection": 19.2,
+      "sampleGames": 6,
+      "historicalHits": 3,
+      "recentValues": [
+        12,
+        0,
+        14,
+        43,
+        86,
+        37
+      ],
+      "researchScore": 54,
+      "grade": "PASS",
+      "decisionReasons": [
+        "Research score below the 55/100 minimum.",
+        "Historical weighted mean is below the line."
+      ],
+      "factors": {
+        "usage": 62.413777777777774,
+        "matchup": 50.1636137962162,
+        "gameScript": 50,
+        "efficiency": 49.03187017102637,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 6 earlier games.",
+        "Last 6 listed averages: 32.0; last three listed: 8.7.",
+        "Cleared 25 in 3/6 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: targets 4.3 per game.",
+        "Recent snap share 62%; target share 15.5%.",
+        "Opponent TE opportunity allowance / league baseline: 1.01x (11 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 6,
+        "targets": 4.333333333333333,
+        "carries": 0,
+        "passingAttempts": 0,
+        "targetShare": 15.503246753246733,
+        "snapShare": 62,
+        "status": "unverified",
+        "defenseRatio": 1.0054537932072065
+      }
+    },
+    {
+      "id": "nflverse:00-0030565:passingTds:1",
+      "athleteId": "nflverse:00-0030565",
+      "player": "Geno Smith",
+      "teamId": "20",
+      "position": "QB",
+      "market": "passingTds",
+      "line": 1,
+      "label": "1+ passing TDs",
+      "projection": 1.2,
+      "sampleGames": 6,
+      "historicalHits": 4,
+      "recentValues": [
+        3,
+        0,
+        0,
+        2,
+        3,
+        1
+      ],
+      "researchScore": 53,
+      "grade": "PASS",
+      "decisionReasons": [
+        "Research score below the 55/100 minimum."
+      ],
+      "factors": {
+        "usage": 62.18625757575758,
+        "matchup": 46.13707049073471,
+        "gameScript": 50,
+        "efficiency": 50.63953275172486,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 6 earlier games.",
+        "Last 6 listed averages: 1.5; last three listed: 1.0.",
+        "Cleared 1 in 4/6 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: attempts 24.7 per game.",
+        "Recent snap share 82.7%; target share 0%.",
+        "Opponent QB opportunity allowance / league baseline: 0.87x (10 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 6,
+        "targets": 0,
+        "carries": 0.6666666666666666,
+        "passingAttempts": 24.666666666666668,
+        "targetShare": 0,
+        "snapShare": 82.66666666666667,
+        "status": "unverified",
+        "defenseRatio": 0.8712356830244902
+      }
+    },
+    {
+      "id": "nflverse:00-0040736:receivingYards:25",
+      "athleteId": "nflverse:00-0040736",
+      "player": "Mason Taylor",
+      "teamId": "20",
+      "position": "TE",
+      "market": "receivingYards",
+      "line": 25,
+      "label": "25+ receiving yards",
+      "projection": 23,
+      "sampleGames": 6,
+      "historicalHits": 3,
+      "recentValues": [
+        25,
+        20,
+        11,
+        19,
+        62,
+        33
+      ],
+      "researchScore": 53,
+      "grade": "PASS",
+      "decisionReasons": [
+        "Not enough recent opportunity.",
+        "Research score below the 55/100 minimum.",
+        "Historical weighted mean is below the line."
+      ],
+      "factors": {
+        "usage": 56.101555555555564,
+        "matchup": 49.53827058336781,
+        "gameScript": 50,
+        "efficiency": 59.68117446109946,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 6 earlier games.",
+        "Last 6 listed averages: 28.3; last three listed: 18.7.",
+        "Cleared 25 in 3/6 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: targets 2.7 per game.",
+        "Recent snap share 73.7%; target share 8.9%.",
+        "Opponent TE opportunity allowance / league baseline: 0.98x (10 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Observed opportunity is below the minimum threshold for this market.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 6,
+        "targets": 2.6666666666666665,
+        "carries": 0,
+        "passingAttempts": 0,
+        "targetShare": 8.888888888888891,
+        "snapShare": 73.66666666666667,
+        "status": "unverified",
+        "defenseRatio": 0.9846090194455938
+      }
+    },
+    {
+      "id": "nflverse:00-0041032:receptions:3",
+      "athleteId": "nflverse:00-0041032",
+      "player": "Kenyon Sadiq",
+      "teamId": "20",
+      "position": "TE",
+      "market": "receptions",
+      "line": 3,
+      "label": "3+ receptions",
+      "projection": 2.3,
+      "sampleGames": 6,
+      "historicalHits": 2,
+      "recentValues": [
+        3,
+        1,
+        4,
+        1,
+        1,
+        1
+      ],
+      "researchScore": 53,
+      "grade": "PASS",
+      "decisionReasons": [
+        "Fewer than three recent clears of this threshold.",
+        "Research score below the 55/100 minimum.",
+        "Historical clears insufficient for this alternate line.",
+        "Historical weighted mean is below the line."
+      ],
+      "factors": {
+        "usage": 55.856,
+        "matchup": 49.53827058336781,
+        "gameScript": 50,
+        "efficiency": 56.836013988652894,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 6 earlier games.",
+        "Last 6 listed averages: 1.8; last three listed: 2.7.",
+        "Cleared 3 in 2/6 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: targets 3.0 per game.",
+        "Recent snap share 52%; target share 11.1%.",
+        "Opponent TE opportunity allowance / league baseline: 0.98x (10 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 6,
+        "targets": 3,
+        "carries": 0,
+        "passingAttempts": 0,
+        "targetShare": 11.1111111111111,
+        "snapShare": 52,
+        "status": "unverified",
+        "defenseRatio": 0.9846090194455938
+      }
+    },
+    {
+      "id": "nflverse:00-0030565:passingTds:2",
+      "athleteId": "nflverse:00-0030565",
+      "player": "Geno Smith",
+      "teamId": "20",
+      "position": "QB",
+      "market": "passingTds",
+      "line": 2,
+      "label": "2+ passing TDs",
+      "projection": 1.2,
+      "sampleGames": 6,
+      "historicalHits": 3,
+      "recentValues": [
+        3,
+        0,
+        0,
+        2,
+        3,
+        1
+      ],
+      "researchScore": 53,
+      "grade": "PASS",
+      "decisionReasons": [
+        "Research score below the 55/100 minimum.",
+        "Historical weighted mean is below the line."
+      ],
+      "factors": {
+        "usage": 59.82375757575758,
+        "matchup": 46.13707049073471,
+        "gameScript": 50,
+        "efficiency": 50.63953275172486,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 6 earlier games.",
+        "Last 6 listed averages: 1.5; last three listed: 1.0.",
+        "Cleared 2 in 3/6 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: attempts 24.7 per game.",
+        "Recent snap share 82.7%; target share 0%.",
+        "Opponent QB opportunity allowance / league baseline: 0.87x (10 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 6,
+        "targets": 0,
+        "carries": 0.6666666666666666,
+        "passingAttempts": 24.666666666666668,
+        "targetShare": 0,
+        "snapShare": 82.66666666666667,
+        "status": "unverified",
+        "defenseRatio": 0.8712356830244902
+      }
+    },
+    {
+      "id": "nflverse:00-0041511:receivingYards:75",
+      "athleteId": "nflverse:00-0041511",
+      "player": "Omar Cooper Jr.",
+      "teamId": "20",
+      "position": "WR",
+      "market": "receivingYards",
+      "line": 75,
+      "label": "75+ receiving yards",
+      "projection": 85,
+      "sampleGames": 4,
+      "historicalHits": 2,
+      "recentValues": [
+        58,
+        115,
+        103,
+        30
+      ],
+      "researchScore": 53,
+      "grade": "PASS",
+      "decisionReasons": [
+        "Fewer than three recent clears of this threshold.",
+        "Research score below the 55/100 minimum.",
+        "Historical clears insufficient for this alternate line."
+      ],
+      "factors": {
+        "usage": 60.53683333333334,
+        "matchup": 42.93467336683417,
+        "gameScript": 50,
+        "efficiency": 64.33549304439347,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 4 earlier games.",
+        "Last 4 listed averages: 76.5; last three listed: 92.0.",
+        "Cleared 75 in 2/4 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: targets 7.7 per game.",
+        "Recent snap share unknown; target share 26%.",
+        "Opponent WR opportunity allowance / league baseline: 0.76x (10 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 4,
+        "targets": 7.666666666666667,
+        "carries": 0,
+        "passingAttempts": 0,
+        "targetShare": 26.015325670498097,
+        "snapShare": null,
+        "status": "unverified",
+        "defenseRatio": 0.7644891122278057
+      }
+    },
+    {
+      "id": "nflverse:00-0041032:receivingYards:25",
+      "athleteId": "nflverse:00-0041032",
+      "player": "Kenyon Sadiq",
+      "teamId": "20",
+      "position": "TE",
+      "market": "receivingYards",
+      "line": 25,
+      "label": "25+ receiving yards",
+      "projection": 24.2,
+      "sampleGames": 6,
+      "historicalHits": 2,
+      "recentValues": [
+        30,
+        3,
+        49,
+        22,
+        6,
+        12
+      ],
+      "researchScore": 52,
+      "grade": "PASS",
+      "decisionReasons": [
+        "Fewer than three recent clears of this threshold.",
+        "Research score below the 55/100 minimum.",
+        "Historical clears insufficient for this alternate line."
+      ],
+      "factors": {
+        "usage": 55.856,
+        "matchup": 49.53827058336781,
+        "gameScript": 50,
+        "efficiency": 52.84422394642799,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 6 earlier games.",
+        "Last 6 listed averages: 20.3; last three listed: 27.3.",
+        "Cleared 25 in 2/6 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: targets 3.0 per game.",
+        "Recent snap share 52%; target share 11.1%.",
+        "Opponent TE opportunity allowance / league baseline: 0.98x (10 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 6,
+        "targets": 3,
+        "carries": 0,
+        "passingAttempts": 0,
+        "targetShare": 11.1111111111111,
+        "snapShare": 52,
+        "status": "unverified",
+        "defenseRatio": 0.9846090194455938
+      }
+    },
+    {
+      "id": "nflverse:00-0038128:passingYards:150",
+      "athleteId": "nflverse:00-0038128",
+      "player": "Malik Willis",
+      "teamId": "15",
+      "position": "QB",
+      "market": "passingYards",
+      "line": 150,
+      "label": "150+ passing yards",
+      "projection": 173.7,
+      "sampleGames": 6,
+      "historicalHits": 3,
+      "recentValues": [
+        128,
+        211,
+        208,
+        137,
+        85,
+        210
+      ],
+      "researchScore": 51,
+      "grade": "PASS",
+      "decisionReasons": [
+        "Player officially unavailable.",
+        "Research score below the 55/100 minimum."
+      ],
+      "factors": {
+        "usage": 63.6232196969697,
+        "matchup": 45.83074435574668,
+        "gameScript": 50,
+        "efficiency": 69.44673960013819,
+        "context": 0
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 6 earlier games.",
+        "Last 6 listed averages: 163.2; last three listed: 182.3.",
+        "Cleared 150 in 3/6 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: attempts 26.0 per game.",
+        "Recent snap share 100%; target share 0%.",
+        "Opponent QB opportunity allowance / league baseline: 0.86x (11 opponent games).",
+        "Roster availability: RES — nflverse season roster status.",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Player listed OUT in the report; automatically PASS.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 6,
+        "targets": 0,
+        "carries": 3.6666666666666665,
+        "passingAttempts": 26,
+        "targetShare": 0,
+        "snapShare": 100,
+        "status": "RES",
+        "defenseRatio": 0.8610248118582228
+      }
+    },
+    {
+      "id": "nflverse:00-0038128:passingYards:200",
+      "athleteId": "nflverse:00-0038128",
+      "player": "Malik Willis",
+      "teamId": "15",
+      "position": "QB",
+      "market": "passingYards",
+      "line": 200,
+      "label": "200+ passing yards",
+      "projection": 173.7,
+      "sampleGames": 6,
+      "historicalHits": 3,
+      "recentValues": [
+        128,
+        211,
+        208,
+        137,
+        85,
+        210
+      ],
+      "researchScore": 50,
+      "grade": "PASS",
+      "decisionReasons": [
+        "Player officially unavailable.",
+        "Research score below the 55/100 minimum.",
+        "Historical weighted mean is below the line."
+      ],
+      "factors": {
+        "usage": 61.96363636363637,
+        "matchup": 45.83074435574668,
+        "gameScript": 50,
+        "efficiency": 69.44673960013819,
+        "context": 0
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 6 earlier games.",
+        "Last 6 listed averages: 163.2; last three listed: 182.3.",
+        "Cleared 200 in 3/6 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: attempts 26.0 per game.",
+        "Recent snap share 100%; target share 0%.",
+        "Opponent QB opportunity allowance / league baseline: 0.86x (11 opponent games).",
+        "Roster availability: RES — nflverse season roster status.",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Player listed OUT in the report; automatically PASS.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 6,
+        "targets": 0,
+        "carries": 3.6666666666666665,
+        "passingAttempts": 26,
+        "targetShare": 0,
+        "snapShare": 100,
+        "status": "RES",
+        "defenseRatio": 0.8610248118582228
+      }
+    },
+    {
+      "id": "nflverse:00-0038128:rushingYards:25",
+      "athleteId": "nflverse:00-0038128",
+      "player": "Malik Willis",
+      "teamId": "15",
+      "position": "QB",
+      "market": "rushingYards",
+      "line": 25,
+      "label": "25+ rushing yards",
+      "projection": 22.5,
+      "sampleGames": 6,
+      "historicalHits": 3,
+      "recentValues": [
+        7,
+        2,
+        37,
+        74,
+        11,
+        56
+      ],
+      "researchScore": 50,
+      "grade": "PASS",
+      "decisionReasons": [
+        "Player officially unavailable.",
+        "Not enough recent opportunity.",
+        "Research score below the 55/100 minimum.",
+        "Historical weighted mean is below the line."
+      ],
+      "factors": {
+        "usage": 58.51666666666667,
+        "matchup": 59.16061100400415,
+        "gameScript": 50,
+        "efficiency": 49.843068716349876,
+        "context": 0
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 6 earlier games.",
+        "Last 6 listed averages: 31.2; last three listed: 15.3.",
+        "Cleared 25 in 3/6 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: carries 3.7 per game.",
+        "Recent snap share 100%; target share 0%.",
+        "Opponent QB opportunity allowance / league baseline: 1.31x (11 opponent games).",
+        "Roster availability: RES — nflverse season roster status.",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Player listed OUT in the report; automatically PASS.",
+        "Observed opportunity is below the minimum threshold for this market.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 6,
+        "targets": 0,
+        "carries": 3.6666666666666665,
+        "passingAttempts": 26,
+        "targetShare": 0,
+        "snapShare": 100,
+        "status": "RES",
+        "defenseRatio": 1.3053537001334719
+      }
+    },
+    {
+      "id": "nflverse:00-0039794:receptions:3",
+      "athleteId": "nflverse:00-0039794",
+      "player": "Braelon Allen",
+      "teamId": "20",
+      "position": "RB",
+      "market": "receptions",
+      "line": 3,
+      "label": "3+ receptions",
+      "projection": 1.8,
+      "sampleGames": 6,
+      "historicalHits": 1,
+      "recentValues": [
+        1,
+        1,
+        2,
+        2,
+        6,
+        2
+      ],
+      "researchScore": 50,
+      "grade": "PASS",
+      "decisionReasons": [
+        "Not enough recent opportunity.",
+        "Fewer than three recent clears of this threshold.",
+        "Research score below the 55/100 minimum.",
+        "Historical clears insufficient for this alternate line.",
+        "Historical weighted mean is below the line."
+      ],
+      "factors": {
+        "usage": 48.321777777777775,
+        "matchup": 52.13581599123768,
+        "gameScript": 50,
+        "efficiency": 54.504902432036076,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 6 earlier games.",
+        "Last 6 listed averages: 2.3; last three listed: 1.3.",
+        "Cleared 3 in 1/6 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: targets 1.3 per game.",
+        "Recent snap share 48%; target share 4.7%.",
+        "Opponent RB opportunity allowance / league baseline: 1.07x (10 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Observed opportunity is below the minimum threshold for this market.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 6,
+        "targets": 1.3333333333333333,
+        "carries": 10.666666666666666,
+        "passingAttempts": 0,
+        "targetShare": 4.722222222222224,
+        "snapShare": 48,
+        "status": "unverified",
+        "defenseRatio": 1.0711938663745892
+      }
+    },
+    {
+      "id": "nflverse:00-0041525:receptions:2",
+      "athleteId": "nflverse:00-0041525",
+      "player": "Chris Bell",
+      "teamId": "15",
+      "position": "WR",
+      "market": "receptions",
+      "line": 2,
+      "label": "2+ receptions",
+      "projection": 1.5,
+      "sampleGames": 6,
+      "historicalHits": 2,
+      "recentValues": [
+        1,
+        0,
+        4,
+        3,
+        0,
+        0
+      ],
+      "researchScore": 50,
+      "grade": "PASS",
+      "decisionReasons": [
+        "Fewer than three recent clears of this threshold.",
+        "Research score below the 55/100 minimum.",
+        "Historical clears insufficient for this alternate line.",
+        "Historical weighted mean is below the line."
+      ],
+      "factors": {
+        "usage": 58.31444444444444,
+        "matchup": 45.01964367291001,
+        "gameScript": 50,
+        "efficiency": 38.0364741710137,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 6 earlier games.",
+        "Last 6 listed averages: 1.3; last three listed: 1.7.",
+        "Cleared 2 in 2/6 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: targets 3.3 per game.",
+        "Recent snap share 65%; target share 11.2%.",
+        "Opponent WR opportunity allowance / league baseline: 0.83x (11 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 6,
+        "targets": 3.3333333333333335,
+        "carries": 0.3333333333333333,
+        "passingAttempts": 0,
+        "targetShare": 11.183261183261187,
+        "snapShare": 65,
+        "status": "unverified",
+        "defenseRatio": 0.8339881224303335
+      }
+    },
+    {
+      "id": "nflverse:00-0040198:receptions:3",
+      "athleteId": "nflverse:00-0040198",
+      "player": "Ollie Gordon II",
+      "teamId": "15",
+      "position": "RB",
+      "market": "receptions",
+      "line": 3,
+      "label": "3+ receptions",
+      "projection": 1.9,
+      "sampleGames": 6,
+      "historicalHits": 1,
+      "recentValues": [
+        2,
+        4,
+        1,
+        0,
+        1,
+        0
+      ],
+      "researchScore": 50,
+      "grade": "PASS",
+      "decisionReasons": [
+        "Fewer than three recent clears of this threshold.",
+        "Research score below the 55/100 minimum.",
+        "Historical clears insufficient for this alternate line.",
+        "Historical weighted mean is below the line."
+      ],
+      "factors": {
+        "usage": 55.7,
+        "matchup": 43.371502539081945,
+        "gameScript": 50,
+        "efficiency": 43.92282577584546,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 6 earlier games.",
+        "Last 6 listed averages: 1.3; last three listed: 2.3.",
+        "Cleared 3 in 1/6 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: targets 3.0 per game.",
+        "Recent snap share unknown; target share 9.8%.",
+        "Opponent RB opportunity allowance / league baseline: 0.78x (11 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 6,
+        "targets": 3,
+        "carries": 15.666666666666666,
+        "passingAttempts": 0,
+        "targetShare": 9.82593795093795,
+        "snapShare": null,
+        "status": "unverified",
+        "defenseRatio": 0.7790500846360648
+      }
+    },
+    {
+      "id": "nflverse:00-0038128:passingTds:1",
+      "athleteId": "nflverse:00-0038128",
+      "player": "Malik Willis",
+      "teamId": "15",
+      "position": "QB",
+      "market": "passingTds",
+      "line": 1,
+      "label": "1+ passing TDs",
+      "projection": 1.1,
+      "sampleGames": 6,
+      "historicalHits": 3,
+      "recentValues": [
+        0,
+        2,
+        2,
+        1,
+        0,
+        0
+      ],
+      "researchScore": 48,
+      "grade": "PASS",
+      "decisionReasons": [
+        "Player officially unavailable.",
+        "Research score below the 55/100 minimum."
+      ],
+      "factors": {
+        "usage": 63.10113636363637,
+        "matchup": 45.83074435574668,
+        "gameScript": 50,
+        "efficiency": 42.30384635005847,
+        "context": 0
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 6 earlier games.",
+        "Last 6 listed averages: 0.8; last three listed: 1.3.",
+        "Cleared 1 in 3/6 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: attempts 26.0 per game.",
+        "Recent snap share 100%; target share 0%.",
+        "Opponent QB opportunity allowance / league baseline: 0.86x (11 opponent games).",
+        "Roster availability: RES — nflverse season roster status.",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Player listed OUT in the report; automatically PASS.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 6,
+        "targets": 0,
+        "carries": 3.6666666666666665,
+        "passingAttempts": 26,
+        "targetShare": 0,
+        "snapShare": 100,
+        "status": "RES",
+        "defenseRatio": 0.8610248118582228
+      }
+    },
+    {
+      "id": "nflverse:00-0039451:receptions:2",
+      "athleteId": "nflverse:00-0039451",
+      "player": "Isaiah Williams",
+      "teamId": "20",
+      "position": "WR",
+      "market": "receptions",
+      "line": 2,
+      "label": "2+ receptions",
+      "projection": 1.4,
+      "sampleGames": 6,
+      "historicalHits": 1,
+      "recentValues": [
+        4,
+        0,
+        1,
+        0,
+        0,
+        1
+      ],
+      "researchScore": 48,
+      "grade": "PASS",
+      "decisionReasons": [
+        "Not enough recent opportunity.",
+        "Fewer than three recent clears of this threshold.",
+        "Research score below the 55/100 minimum.",
+        "Historical clears insufficient for this alternate line.",
+        "Historical weighted mean is below the line."
+      ],
+      "factors": {
+        "usage": 54.151555555555554,
+        "matchup": 42.93467336683417,
+        "gameScript": 50,
+        "efficiency": 30.50252531694167,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 6 earlier games.",
+        "Last 6 listed averages: 1.0; last three listed: 1.7.",
+        "Cleared 2 in 1/6 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: targets 2.7 per game.",
+        "Recent snap share 48.7%; target share 6.9%.",
+        "Opponent WR opportunity allowance / league baseline: 0.76x (10 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Observed opportunity is below the minimum threshold for this market.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 6,
+        "targets": 2.6666666666666665,
+        "carries": 0.3333333333333333,
+        "passingAttempts": 0,
+        "targetShare": 6.908602150537633,
+        "snapShare": 48.666666666666664,
+        "status": "unverified",
+        "defenseRatio": 0.7644891122278057
+      }
+    },
+    {
+      "id": "nflverse:00-0037805:receptions:2",
+      "athleteId": "nflverse:00-0037805",
+      "player": "Jeremy Ruckert",
+      "teamId": "20",
+      "position": "TE",
+      "market": "receptions",
+      "line": 2,
+      "label": "2+ receptions",
+      "projection": 1.6,
+      "sampleGames": 5,
+      "historicalHits": 2,
+      "recentValues": [
+        0,
+        0,
+        5,
+        2,
+        1
+      ],
+      "researchScore": 48,
+      "grade": "PASS",
+      "decisionReasons": [
+        "Not enough recent opportunity.",
+        "Not enough offensive snaps.",
+        "Fewer than three recent clears of this threshold.",
+        "Research score below the 55/100 minimum.",
+        "Historical clears insufficient for this alternate line.",
+        "Historical weighted mean is below the line.",
+        "Research evidence below minimum quality threshold (55/100)."
+      ],
+      "factors": {
+        "usage": 46.92422222222223,
+        "matchup": 49.53827058336781,
+        "gameScript": 50,
+        "efficiency": 39.4279190822063,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 5 earlier games.",
+        "Last 5 listed averages: 1.6; last three listed: 1.7.",
+        "Cleared 2 in 2/5 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: targets 1.7 per game.",
+        "Recent snap share 34%; target share 4.6%.",
+        "Opponent TE opportunity allowance / league baseline: 0.98x (10 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Observed opportunity is below the minimum threshold for this market.",
+        "Observed offensive snap participation is low.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 5,
+        "targets": 1.6666666666666667,
+        "carries": 0,
+        "passingAttempts": 0,
+        "targetShare": 4.629629629629633,
+        "snapShare": 34,
+        "status": "unverified",
+        "defenseRatio": 0.9846090194455938
+      }
+    },
+    {
+      "id": "nflverse:00-0038128:passingTds:2",
+      "athleteId": "nflverse:00-0038128",
+      "player": "Malik Willis",
+      "teamId": "15",
+      "position": "QB",
+      "market": "passingTds",
+      "line": 2,
+      "label": "2+ passing TDs",
+      "projection": 1.1,
+      "sampleGames": 6,
+      "historicalHits": 2,
+      "recentValues": [
+        0,
+        2,
+        2,
+        1,
+        0,
+        0
+      ],
+      "researchScore": 47,
+      "grade": "PASS",
+      "decisionReasons": [
+        "Player officially unavailable.",
+        "Fewer than three recent clears of this threshold.",
+        "Research score below the 55/100 minimum.",
+        "Historical clears insufficient for this alternate line.",
+        "Historical weighted mean is below the line."
+      ],
+      "factors": {
+        "usage": 61.96363636363637,
+        "matchup": 45.83074435574668,
+        "gameScript": 50,
+        "efficiency": 42.30384635005847,
+        "context": 0
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 6 earlier games.",
+        "Last 6 listed averages: 0.8; last three listed: 1.3.",
+        "Cleared 2 in 2/6 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: attempts 26.0 per game.",
+        "Recent snap share 100%; target share 0%.",
+        "Opponent QB opportunity allowance / league baseline: 0.86x (11 opponent games).",
+        "Roster availability: RES — nflverse season roster status.",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Player listed OUT in the report; automatically PASS.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 6,
+        "targets": 0,
+        "carries": 3.6666666666666665,
+        "passingAttempts": 26,
+        "targetShare": 0,
+        "snapShare": 100,
+        "status": "RES",
+        "defenseRatio": 0.8610248118582228
+      }
+    },
+    {
+      "id": "nflverse:00-0037666:receptions:2",
+      "athleteId": "nflverse:00-0037666",
+      "player": "Jalen Tolbert",
+      "teamId": "15",
+      "position": "WR",
+      "market": "receptions",
+      "line": 2,
+      "label": "2+ receptions",
+      "projection": 1.2,
+      "sampleGames": 5,
+      "historicalHits": 1,
+      "recentValues": [
+        1,
+        2,
+        1,
+        1,
+        0
+      ],
+      "researchScore": 47,
+      "grade": "PASS",
+      "decisionReasons": [
+        "Not enough recent opportunity.",
+        "Not enough offensive snaps.",
+        "Fewer than three recent clears of this threshold.",
+        "Research score below the 55/100 minimum.",
+        "Historical clears insufficient for this alternate line.",
+        "Historical weighted mean is below the line."
+      ],
+      "factors": {
+        "usage": 43.84177777777778,
+        "matchup": 45.01964367291001,
+        "gameScript": 50,
+        "efficiency": 57.864056378821346,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 5 earlier games.",
+        "Last 5 listed averages: 1.0; last three listed: 1.3.",
+        "Cleared 2 in 1/5 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: targets 1.3 per game.",
+        "Recent snap share 13%; target share 4.2%.",
+        "Opponent WR opportunity allowance / league baseline: 0.83x (11 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Observed opportunity is below the minimum threshold for this market.",
+        "Observed offensive snap participation is low.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 5,
+        "targets": 1.3333333333333333,
+        "carries": 0,
+        "passingAttempts": 0,
+        "targetShare": 4.204545454545453,
+        "snapShare": 13,
+        "status": "unverified",
+        "defenseRatio": 0.8339881224303335
+      }
+    },
+    {
+      "id": "nflverse:00-0037666:receivingYards:25",
+      "athleteId": "nflverse:00-0037666",
+      "player": "Jalen Tolbert",
+      "teamId": "15",
+      "position": "WR",
+      "market": "receivingYards",
+      "line": 25,
+      "label": "25+ receiving yards",
+      "projection": 22.2,
+      "sampleGames": 5,
+      "historicalHits": 1,
+      "recentValues": [
+        17,
+        49,
+        8,
+        22,
+        0
+      ],
+      "researchScore": 47,
+      "grade": "PASS",
+      "decisionReasons": [
+        "Not enough recent opportunity.",
+        "Not enough offensive snaps.",
+        "Fewer than three recent clears of this threshold.",
+        "Research score below the 55/100 minimum.",
+        "Historical clears insufficient for this alternate line.",
+        "Historical weighted mean is below the line."
+      ],
+      "factors": {
+        "usage": 43.84177777777778,
+        "matchup": 45.01964367291001,
+        "gameScript": 50,
+        "efficiency": 49.55347142233526,
+        "context": 50
+      },
+      "evidence": [
+        "Listed in ESPN game box scores for 5 earlier games.",
+        "Last 5 listed averages: 19.2; last three listed: 24.7.",
+        "Cleared 25 in 1/5 listed games (descriptive, not a probability).",
+        "No verified opponent positional allowance sample.",
+        "nflverse last-3 listed games: targets 1.3 per game.",
+        "Recent snap share 13%; target share 4.2%.",
+        "Opponent WR opportunity allowance / league baseline: 0.83x (11 opponent games).",
+        "No matched current-week injury report. This does NOT confirm the player is active."
+      ],
+      "risks": [
+        "A game absent from a player's statistical category may not be a true zero; listed-game averages can overstate production.",
+        "No sportsbook odds or independently calibrated probability. Research score is NOT hit probability.",
+        "Route participation, verified starter status, game-day actives and weather remain unconnected.",
+        "Observed opportunity is below the minimum threshold for this market.",
+        "Observed offensive snap participation is low.",
+        "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names."
+      ],
+      "calibratedProbability": null,
+      "fairOdds": null,
+      "intelligence": {
+        "source": "nflverse weekly stats/snap counts/injuries",
+        "sampleGames": 5,
+        "targets": 1.3333333333333333,
+        "carries": 0,
+        "passingAttempts": 0,
+        "targetShare": 4.204545454545453,
+        "snapShare": 13,
+        "status": "unverified",
+        "defenseRatio": 0.8339881224303335
+      }
+    }
+  ],
+  "playerSimulation": {
+    "gameId": "401873089",
+    "modelVersion": "nfl-usage-opportunity-monte-carlo-v0.1",
+    "runs": 30000,
+    "seed": 1822036366,
+    "modelStatus": "UNCALIBRATED",
+    "inputSeason": 2026,
+    "inputWeek": 12,
+    "props": [
+      {
+        "id": "nflverse:00-0040198:rushingYards:25",
+        "player": "Ollie Gordon II",
+        "market": "rushingYards",
+        "line": 25,
+        "rawModelHitRate": 0.9105,
+        "simulatedMean": 53.2,
+        "p10": 26,
+        "p50": 50,
+        "p90": 85,
+        "historicalWeeks": 6,
+        "modelStatus": "UNCALIBRATED"
+      },
+      {
+        "id": "nflverse:00-0039794:rushingYards:25",
+        "player": "Braelon Allen",
+        "market": "rushingYards",
+        "line": 25,
+        "rawModelHitRate": 0.8975,
+        "simulatedMean": 55,
+        "p10": 24,
+        "p50": 51,
+        "p90": 91,
+        "historicalWeeks": 6,
+        "modelStatus": "UNCALIBRATED"
+      },
+      {
+        "id": "nflverse:00-0038120:rushingYards:25",
+        "player": "Breece Hall",
+        "market": "rushingYards",
+        "line": 25,
+        "rawModelHitRate": 0.8628,
+        "simulatedMean": 46.3,
+        "p10": 22,
+        "p50": 44,
+        "p90": 74,
+        "historicalWeeks": 6,
+        "modelStatus": "UNCALIBRATED"
+      },
+      {
+        "id": "nflverse:00-0041523:receptions:2",
+        "player": "Caleb Douglas",
+        "market": "receptions",
+        "line": 2,
+        "rawModelHitRate": 0.832,
+        "simulatedMean": 3.4,
+        "p10": 1,
+        "p50": 3,
+        "p90": 6,
+        "historicalWeeks": 6,
+        "modelStatus": "UNCALIBRATED"
+      },
+      {
+        "id": "nflverse:00-0041511:receptions:2",
+        "player": "Omar Cooper Jr.",
+        "market": "receptions",
+        "line": 2,
+        "rawModelHitRate": 0.8247,
+        "simulatedMean": 3.4,
+        "p10": 1,
+        "p50": 3,
+        "p90": 6,
+        "historicalWeeks": 4,
+        "modelStatus": "UNCALIBRATED"
+      },
+      {
+        "id": "nflverse:00-0037740:receptions:2",
+        "player": "Garrett Wilson",
+        "market": "receptions",
+        "line": 2,
+        "rawModelHitRate": 0.8106,
+        "simulatedMean": 3.2,
+        "p10": 1,
+        "p50": 3,
+        "p90": 6,
+        "historicalWeeks": 6,
+        "modelStatus": "UNCALIBRATED"
+      },
+      {
+        "id": "nflverse:00-0030565:passingYards:150",
+        "player": "Geno Smith",
+        "market": "passingYards",
+        "line": 150,
+        "rawModelHitRate": 0.7787,
+        "simulatedMean": 218.2,
+        "p10": 117,
+        "p50": 207,
+        "p90": 334,
+        "historicalWeeks": 6,
+        "modelStatus": "UNCALIBRATED"
+      },
+      {
+        "id": "nflverse:00-0041523:receivingYards:25",
+        "player": "Caleb Douglas",
+        "market": "receivingYards",
+        "line": 25,
+        "rawModelHitRate": 0.7692,
+        "simulatedMean": 53.4,
+        "p10": 12,
+        "p50": 47,
+        "p90": 103,
+        "historicalWeeks": 6,
+        "modelStatus": "UNCALIBRATED"
+      },
+      {
+        "id": "nflverse:00-0039880:receptions:2",
+        "player": "Malik Washington",
+        "market": "receptions",
+        "line": 2,
+        "rawModelHitRate": 0.752,
+        "simulatedMean": 2.8,
+        "p10": 1,
+        "p50": 3,
+        "p90": 5,
+        "historicalWeeks": 6,
+        "modelStatus": "UNCALIBRATED"
+      },
+      {
+        "id": "nflverse:00-0041511:receivingYards:25",
+        "player": "Omar Cooper Jr.",
+        "market": "receivingYards",
+        "line": 25,
+        "rawModelHitRate": 0.7496,
+        "simulatedMean": 50.6,
+        "p10": 11,
+        "p50": 44,
+        "p90": 98,
+        "historicalWeeks": 4,
+        "modelStatus": "UNCALIBRATED"
+      },
+      {
+        "id": "nflverse:00-0037740:receivingYards:25",
+        "player": "Garrett Wilson",
+        "market": "receivingYards",
+        "line": 25,
+        "rawModelHitRate": 0.699,
+        "simulatedMean": 44.5,
+        "p10": 9,
+        "p50": 39,
+        "p90": 87,
+        "historicalWeeks": 6,
+        "modelStatus": "UNCALIBRATED"
+      },
+      {
+        "id": "nflverse:00-0037252:receptions:2",
+        "player": "Greg Dulcich",
+        "market": "receptions",
+        "line": 2,
+        "rawModelHitRate": 0.6562,
+        "simulatedMean": 2.3,
+        "p10": 0,
+        "p50": 2,
+        "p90": 4,
+        "historicalWeeks": 6,
+        "modelStatus": "UNCALIBRATED"
+      },
+      {
+        "id": "nflverse:00-0041523:receptions:3",
+        "player": "Caleb Douglas",
+        "market": "receptions",
+        "line": 3,
+        "rawModelHitRate": 0.6421,
+        "simulatedMean": 3.4,
+        "p10": 1,
+        "p50": 3,
+        "p90": 6,
+        "historicalWeeks": 6,
+        "modelStatus": "UNCALIBRATED"
+      },
+      {
+        "id": "nflverse:00-0041511:receptions:3",
+        "player": "Omar Cooper Jr.",
+        "market": "receptions",
+        "line": 3,
+        "rawModelHitRate": 0.6319,
+        "simulatedMean": 3.4,
+        "p10": 1,
+        "p50": 3,
+        "p90": 6,
+        "historicalWeeks": 4,
+        "modelStatus": "UNCALIBRATED"
+      },
+      {
+        "id": "nflverse:00-0037740:receptions:3",
+        "player": "Garrett Wilson",
+        "market": "receptions",
+        "line": 3,
+        "rawModelHitRate": 0.5982,
+        "simulatedMean": 3.2,
+        "p10": 1,
+        "p50": 3,
+        "p90": 6,
+        "historicalWeeks": 6,
+        "modelStatus": "UNCALIBRATED"
+      },
+      {
+        "id": "nflverse:00-0038120:receptions:2",
+        "player": "Breece Hall",
+        "market": "receptions",
+        "line": 2,
+        "rawModelHitRate": 0.5584,
+        "simulatedMean": 1.9,
+        "p10": 0,
+        "p50": 2,
+        "p90": 4,
+        "historicalWeeks": 6,
+        "modelStatus": "UNCALIBRATED"
+      },
+      {
+        "id": "nflverse:00-0030565:passingYards:200",
+        "player": "Geno Smith",
+        "market": "passingYards",
+        "line": 200,
+        "rawModelHitRate": 0.5383,
+        "simulatedMean": 218.2,
+        "p10": 117,
+        "p50": 207,
+        "p90": 334,
+        "historicalWeeks": 6,
+        "modelStatus": "UNCALIBRATED"
+      },
+      {
+        "id": "nflverse:00-0039794:rushingYards:50",
+        "player": "Braelon Allen",
+        "market": "rushingYards",
+        "line": 50,
+        "rawModelHitRate": 0.5285,
+        "simulatedMean": 55,
+        "p10": 24,
+        "p50": 51,
+        "p90": 91,
+        "historicalWeeks": 6,
+        "modelStatus": "UNCALIBRATED"
+      },
+      {
+        "id": "nflverse:00-0039880:receptions:3",
+        "player": "Malik Washington",
+        "market": "receptions",
+        "line": 3,
+        "rawModelHitRate": 0.5258,
+        "simulatedMean": 2.8,
+        "p10": 1,
+        "p50": 3,
+        "p90": 5,
+        "historicalWeeks": 6,
+        "modelStatus": "UNCALIBRATED"
+      },
+      {
+        "id": "nflverse:00-0040198:rushingYards:50",
+        "player": "Ollie Gordon II",
+        "market": "rushingYards",
+        "line": 50,
+        "rawModelHitRate": 0.5091,
+        "simulatedMean": 53.2,
+        "p10": 26,
+        "p50": 50,
+        "p90": 85,
+        "historicalWeeks": 6,
+        "modelStatus": "UNCALIBRATED"
+      },
+      {
+        "id": "nflverse:00-0039880:receivingYards:25",
+        "player": "Malik Washington",
+        "market": "receivingYards",
+        "line": 25,
+        "rawModelHitRate": 0.4885,
+        "simulatedMean": 27.8,
+        "p10": 5,
+        "p50": 24,
+        "p90": 56,
+        "historicalWeeks": 6,
+        "modelStatus": "UNCALIBRATED"
+      },
+      {
+        "id": "nflverse:00-0039890:receptions:2",
+        "player": "Adonai Mitchell",
+        "market": "receptions",
+        "line": 2,
+        "rawModelHitRate": 0.4828,
+        "simulatedMean": 1.7,
+        "p10": 0,
+        "p50": 1,
+        "p90": 3,
+        "historicalWeeks": 6,
+        "modelStatus": "UNCALIBRATED"
+      },
+      {
+        "id": "nflverse:00-0041523:receivingYards:50",
+        "player": "Caleb Douglas",
+        "market": "receivingYards",
+        "line": 50,
+        "rawModelHitRate": 0.4699,
+        "simulatedMean": 53.4,
+        "p10": 12,
+        "p50": 47,
+        "p90": 103,
+        "historicalWeeks": 6,
+        "modelStatus": "UNCALIBRATED"
+      },
+      {
+        "id": "nflverse:00-0041511:receivingYards:50",
+        "player": "Omar Cooper Jr.",
+        "market": "receivingYards",
+        "line": 50,
+        "rawModelHitRate": 0.4397,
+        "simulatedMean": 50.6,
+        "p10": 11,
+        "p50": 44,
+        "p90": 98,
+        "historicalWeeks": 4,
+        "modelStatus": "UNCALIBRATED"
+      },
+      {
+        "id": "nflverse:00-0039890:receivingYards:25",
+        "player": "Adonai Mitchell",
+        "market": "receivingYards",
+        "line": 25,
+        "rawModelHitRate": 0.439,
+        "simulatedMean": 26.4,
+        "p10": 0,
+        "p50": 21,
+        "p90": 60,
+        "historicalWeeks": 6,
+        "modelStatus": "UNCALIBRATED"
+      },
+      {
+        "id": "nflverse:00-0037252:receptions:3",
+        "player": "Greg Dulcich",
+        "market": "receptions",
+        "line": 3,
+        "rawModelHitRate": 0.4039,
+        "simulatedMean": 2.3,
+        "p10": 0,
+        "p50": 2,
+        "p90": 4,
+        "historicalWeeks": 6,
+        "modelStatus": "UNCALIBRATED"
+      },
+      {
+        "id": "nflverse:00-0038120:rushingYards:50",
+        "player": "Breece Hall",
+        "market": "rushingYards",
+        "line": 50,
+        "rawModelHitRate": 0.3864,
+        "simulatedMean": 46.3,
+        "p10": 22,
+        "p50": 44,
+        "p90": 74,
+        "historicalWeeks": 6,
+        "modelStatus": "UNCALIBRATED"
+      },
+      {
+        "id": "nflverse:00-0037740:receivingYards:50",
+        "player": "Garrett Wilson",
+        "market": "receivingYards",
+        "line": 50,
+        "rawModelHitRate": 0.3683,
+        "simulatedMean": 44.5,
+        "p10": 9,
+        "p50": 39,
+        "p90": 87,
+        "historicalWeeks": 6,
+        "modelStatus": "UNCALIBRATED"
+      },
+      {
+        "id": "nflverse:00-0038120:receivingYards:25",
+        "player": "Breece Hall",
+        "market": "receivingYards",
+        "line": 25,
+        "rawModelHitRate": 0.3335,
+        "simulatedMean": 20.4,
+        "p10": 0,
+        "p50": 16,
+        "p90": 45,
+        "historicalWeeks": 6,
+        "modelStatus": "UNCALIBRATED"
+      },
+      {
+        "id": "nflverse:00-0030565:passingYards:250",
+        "player": "Geno Smith",
+        "market": "passingYards",
+        "line": 250,
+        "rawModelHitRate": 0.3162,
+        "simulatedMean": 218.2,
+        "p10": 117,
+        "p50": 207,
+        "p90": 334,
+        "historicalWeeks": 6,
+        "modelStatus": "UNCALIBRATED"
+      },
+      {
+        "id": "nflverse:00-0038120:receptions:3",
+        "player": "Breece Hall",
+        "market": "receptions",
+        "line": 3,
+        "rawModelHitRate": 0.3049,
+        "simulatedMean": 1.9,
+        "p10": 0,
+        "p50": 2,
+        "p90": 4,
+        "historicalWeeks": 6,
+        "modelStatus": "UNCALIBRATED"
+      },
+      {
+        "id": "nflverse:00-0041511:receptions:5",
+        "player": "Omar Cooper Jr.",
+        "market": "receptions",
+        "line": 5,
+        "rawModelHitRate": 0.2587,
+        "simulatedMean": 3.4,
+        "p10": 1,
+        "p50": 3,
+        "p90": 6,
+        "historicalWeeks": 4,
+        "modelStatus": "UNCALIBRATED"
+      },
+      {
+        "id": "nflverse:00-0037740:receptions:5",
+        "player": "Garrett Wilson",
+        "market": "receptions",
+        "line": 5,
+        "rawModelHitRate": 0.2352,
+        "simulatedMean": 3.2,
+        "p10": 1,
+        "p50": 3,
+        "p90": 6,
+        "historicalWeeks": 6,
+        "modelStatus": "UNCALIBRATED"
+      },
+      {
+        "id": "nflverse:00-0039890:receptions:3",
+        "player": "Adonai Mitchell",
+        "market": "receptions",
+        "line": 3,
+        "rawModelHitRate": 0.234,
+        "simulatedMean": 1.7,
+        "p10": 0,
+        "p50": 1,
+        "p90": 3,
+        "historicalWeeks": 6,
+        "modelStatus": "UNCALIBRATED"
+      },
+      {
+        "id": "nflverse:00-0039794:rushingYards:75",
+        "player": "Braelon Allen",
+        "market": "rushingYards",
+        "line": 75,
+        "rawModelHitRate": 0.2065,
+        "simulatedMean": 55,
+        "p10": 24,
+        "p50": 51,
+        "p90": 91,
+        "historicalWeeks": 6,
+        "modelStatus": "UNCALIBRATED"
+      },
+      {
+        "id": "nflverse:00-0040198:rushingYards:75",
+        "player": "Ollie Gordon II",
+        "market": "rushingYards",
+        "line": 75,
+        "rawModelHitRate": 0.1751,
+        "simulatedMean": 53.2,
+        "p10": 26,
+        "p50": 50,
+        "p90": 85,
+        "historicalWeeks": 6,
+        "modelStatus": "UNCALIBRATED"
+      },
+      {
+        "id": "nflverse:00-0037740:receivingYards:75",
+        "player": "Garrett Wilson",
+        "market": "receivingYards",
+        "line": 75,
+        "rawModelHitRate": 0.1611,
+        "simulatedMean": 44.5,
+        "p10": 9,
+        "p50": 39,
+        "p90": 87,
+        "historicalWeeks": 6,
+        "modelStatus": "UNCALIBRATED"
+      },
+      {
+        "id": "nflverse:00-0039890:receivingYards:50",
+        "player": "Adonai Mitchell",
+        "market": "receivingYards",
+        "line": 50,
+        "rawModelHitRate": 0.1599,
+        "simulatedMean": 26.4,
+        "p10": 0,
+        "p50": 21,
+        "p90": 60,
+        "historicalWeeks": 6,
+        "modelStatus": "UNCALIBRATED"
+      }
+    ],
+    "joint": null,
+    "assumptions": [
+      "Uses only regular-season weekly stat lines before the fixture week.",
+      "Shared pace and complementary pass/run scripts drive correlated team opportunities.",
+      "A team's pass attempts are distributed across modeled receivers and an untracked-other bucket; receptions and yards follow target draws.",
+      "A team's carry attempts are distributed across modeled rushers and an other bucket; quarterback passing yards equal modeled + untracked receiving yards.",
+      "Spread and total are bounded scenario inputs when provided, not independently validated signals."
+    ],
+    "limitations": [
+      "UNCALIBRATED: raw simulated hit rates must not be interpreted as verified true probabilities or fair sportsbook odds.",
+      "No verified game-day actives, routes, weather, red-zone targets, receiver TD allocation, or offensive line grades.",
+      "Zero/missing stat distinctions, changing roles and opponent defensive efficiency remain imperfect.",
+      "Sampling variance is not model uncertainty. Thirty thousand draws cannot fix biased assumptions."
+    ],
+    "status": "READY",
+    "quarterbackQuality": {
+      "home": "RECENT_REPLACEMENT",
+      "away": "RECENT_STARTER"
+    }
+  },
+  "gameMarkets": {
+    "status": "READY",
+    "modelStatus": "UNCALIBRATED",
+    "runs": 30000,
+    "seed": 1131692565,
+    "home": "MIA",
+    "away": "NYJ",
+    "homeProjected": 20.3,
+    "awayProjected": 18.2,
+    "totalProjected": 38.5,
+    "marginProjected": 2.2,
+    "injuryEffects": [
+      {
+        "team": "MIA",
+        "lostPoints": 1,
+        "players": [
+          "De'Von Achane"
+        ]
+      },
+      {
+        "team": "NYJ",
+        "lostPoints": 0,
+        "players": []
+      }
+    ],
+    "sampleGames": {
+      "home": 8,
+      "away": 8
+    },
+    "markets": [
+      {
+        "id": "401873089:moneyline:home:na",
+        "market": "moneyline",
+        "side": "home",
+        "line": null,
+        "label": "MIA moneyline",
+        "rawRate": 0.5997
+      },
+      {
+        "id": "401873089:moneyline:away:na",
+        "market": "moneyline",
+        "side": "away",
+        "line": null,
+        "label": "NYJ moneyline",
+        "rawRate": 0.3999
+      },
+      {
+        "id": "401873089:spread:home:-13.5",
+        "market": "spread",
+        "side": "home",
+        "line": -13.5,
+        "label": "MIA -13.5",
+        "rawRate": 0.0917
+      },
+      {
+        "id": "401873089:spread:away:13.5",
+        "market": "spread",
+        "side": "away",
+        "line": 13.5,
+        "label": "NYJ +13.5",
+        "rawRate": 0.9083
+      },
+      {
+        "id": "401873089:spread:home:-10.5",
+        "market": "spread",
+        "side": "home",
+        "line": -10.5,
+        "label": "MIA -10.5",
+        "rawRate": 0.1667
+      },
+      {
+        "id": "401873089:spread:away:10.5",
+        "market": "spread",
+        "side": "away",
+        "line": 10.5,
+        "label": "NYJ +10.5",
+        "rawRate": 0.8333
+      },
+      {
+        "id": "401873089:spread:home:-7.5",
+        "market": "spread",
+        "side": "home",
+        "line": -7.5,
+        "label": "MIA -7.5",
+        "rawRate": 0.2688
+      },
+      {
+        "id": "401873089:spread:away:7.5",
+        "market": "spread",
+        "side": "away",
+        "line": 7.5,
+        "label": "NYJ +7.5",
+        "rawRate": 0.7312
+      },
+      {
+        "id": "401873089:spread:home:-3.5",
+        "market": "spread",
+        "side": "home",
+        "line": -3.5,
+        "label": "MIA -3.5",
+        "rawRate": 0.4399
+      },
+      {
+        "id": "401873089:spread:away:3.5",
+        "market": "spread",
+        "side": "away",
+        "line": 3.5,
+        "label": "NYJ +3.5",
+        "rawRate": 0.5601
+      },
+      {
+        "id": "401873089:spread:home:-0.5",
+        "market": "spread",
+        "side": "home",
+        "line": -0.5,
+        "label": "MIA -0.5",
+        "rawRate": 0.5997
+      },
+      {
+        "id": "401873089:spread:away:0.5",
+        "market": "spread",
+        "side": "away",
+        "line": 0.5,
+        "label": "NYJ +0.5",
+        "rawRate": 0.4003
+      },
+      {
+        "id": "401873089:spread:home:0.5",
+        "market": "spread",
+        "side": "home",
+        "line": 0.5,
+        "label": "MIA +0.5",
+        "rawRate": 0.6001
+      },
+      {
+        "id": "401873089:spread:away:-0.5",
+        "market": "spread",
+        "side": "away",
+        "line": -0.5,
+        "label": "NYJ -0.5",
+        "rawRate": 0.3999
+      },
+      {
+        "id": "401873089:spread:home:3.5",
+        "market": "spread",
+        "side": "home",
+        "line": 3.5,
+        "label": "MIA +3.5",
+        "rawRate": 0.7464
+      },
+      {
+        "id": "401873089:spread:away:-3.5",
+        "market": "spread",
+        "side": "away",
+        "line": -3.5,
+        "label": "NYJ -3.5",
+        "rawRate": 0.2536
+      },
+      {
+        "id": "401873089:spread:home:7.5",
+        "market": "spread",
+        "side": "home",
+        "line": 7.5,
+        "label": "MIA +7.5",
+        "rawRate": 0.8721
+      },
+      {
+        "id": "401873089:spread:away:-7.5",
+        "market": "spread",
+        "side": "away",
+        "line": -7.5,
+        "label": "NYJ -7.5",
+        "rawRate": 0.1279
+      },
+      {
+        "id": "401873089:spread:home:10.5",
+        "market": "spread",
+        "side": "home",
+        "line": 10.5,
+        "label": "MIA +10.5",
+        "rawRate": 0.9294
+      },
+      {
+        "id": "401873089:spread:away:-10.5",
+        "market": "spread",
+        "side": "away",
+        "line": -10.5,
+        "label": "NYJ -10.5",
+        "rawRate": 0.0706
+      },
+      {
+        "id": "401873089:spread:home:13.5",
+        "market": "spread",
+        "side": "home",
+        "line": 13.5,
+        "label": "MIA +13.5",
+        "rawRate": 0.9644
+      },
+      {
+        "id": "401873089:spread:away:-13.5",
+        "market": "spread",
+        "side": "away",
+        "line": -13.5,
+        "label": "NYJ -13.5",
+        "rawRate": 0.0356
+      },
+      {
+        "id": "401873089:total:over:30.5",
+        "market": "total",
+        "side": "over",
+        "line": 30.5,
+        "label": "Over 30.5",
+        "rawRate": 0.7425
+      },
+      {
+        "id": "401873089:total:under:30.5",
+        "market": "total",
+        "side": "under",
+        "line": 30.5,
+        "label": "Under 30.5",
+        "rawRate": 0.2575
+      },
+      {
+        "id": "401873089:total:over:35.5",
+        "market": "total",
+        "side": "over",
+        "line": 35.5,
+        "label": "Over 35.5",
+        "rawRate": 0.5853
+      },
+      {
+        "id": "401873089:total:under:35.5",
+        "market": "total",
+        "side": "under",
+        "line": 35.5,
+        "label": "Under 35.5",
+        "rawRate": 0.4147
+      },
+      {
+        "id": "401873089:total:over:40.5",
+        "market": "total",
+        "side": "over",
+        "line": 40.5,
+        "label": "Over 40.5",
+        "rawRate": 0.4272
+      },
+      {
+        "id": "401873089:total:under:40.5",
+        "market": "total",
+        "side": "under",
+        "line": 40.5,
+        "label": "Under 40.5",
+        "rawRate": 0.5728
+      },
+      {
+        "id": "401873089:total:over:45.5",
+        "market": "total",
+        "side": "over",
+        "line": 45.5,
+        "label": "Over 45.5",
+        "rawRate": 0.2752
+      },
+      {
+        "id": "401873089:total:under:45.5",
+        "market": "total",
+        "side": "under",
+        "line": 45.5,
+        "label": "Under 45.5",
+        "rawRate": 0.7248
+      },
+      {
+        "id": "401873089:total:over:50.5",
+        "market": "total",
+        "side": "over",
+        "line": 50.5,
+        "label": "Over 50.5",
+        "rawRate": 0.1613
+      },
+      {
+        "id": "401873089:total:under:50.5",
+        "market": "total",
+        "side": "under",
+        "line": 50.5,
+        "label": "Under 50.5",
+        "rawRate": 0.8387
+      },
+      {
+        "id": "401873089:total:over:55.5",
+        "market": "total",
+        "side": "over",
+        "line": 55.5,
+        "label": "Over 55.5",
+        "rawRate": 0.083
+      },
+      {
+        "id": "401873089:total:under:55.5",
+        "market": "total",
+        "side": "under",
+        "line": 55.5,
+        "label": "Under 55.5",
+        "rawRate": 0.917
+      },
+      {
+        "id": "401873089:total:over:60.5",
+        "market": "total",
+        "side": "over",
+        "line": 60.5,
+        "label": "Over 60.5",
+        "rawRate": 0.0391
+      },
+      {
+        "id": "401873089:total:under:60.5",
+        "market": "total",
+        "side": "under",
+        "line": 60.5,
+        "label": "Under 60.5",
+        "rawRate": 0.9609
+      }
+    ],
+    "notes": [
+      "All game and player outcomes share one indexed 30,000-trial NFL game state.",
+      "Team score shocks use sampled quarterback TDs, passing/rushing yardage, shared pace and same-game scoring conditions.",
+      "Team-score injury point adjustments and game residual dispersion are research heuristics awaiting walk-forward calibration.",
+      "Historical score-driven team model. Current opponent form and home-field are weighted research inputs.",
+      "Tied simulated scores are usually resolved by an uncalibrated overtime heuristic; rare ties remain.",
+      "Absence adjustments are heuristic; player replacements and game-day activations are not verified.",
+      "Uncalibrated raw frequencies are not fair odds, BetMGM prices, or verified betting edges."
+    ],
+    "trainedScores": {
+      "version": "nfl-score-regression-trained-v1",
+      "status": "TRAINED",
+      "trainingGames": 723,
+      "latestSeason": 2026,
+      "latestWeek": 11,
+      "leaguePointsPerTeam": 22.66,
+      "recencyWeight": 0.75,
+      "homeAdvantage": 1,
+      "scoreResidualStd": 9.51,
+      "sharedScoreStd": 1.75,
+      "notes": [
+        "Fit recency shrinkage, home edge, league points and residual variance to actual earlier-season games.",
+        "Chronological examples exclude the target week; prior completed weeks may update the live training set.",
+        "Training fit does NOT establish calibrated ML/spread/total outcome probabilities."
+      ]
+    },
+    "quarterbacks": {
+      "home": {
+        "team": "MIA",
+        "week": 12,
+        "currentId": "00-0040014",
+        "currentName": "Kyle McCord",
+        "observedStarts": 2,
+        "latestGameWeek": 11,
+        "historicalLeaderId": "00-0038128",
+        "status": "RECENT_REPLACEMENT",
+        "sampleGames": 10
+      },
+      "away": {
+        "team": "NYJ",
+        "week": 12,
+        "currentId": "00-0030565",
+        "currentName": "Geno Smith",
+        "observedStarts": 11,
+        "latestGameWeek": 11,
+        "historicalLeaderId": "00-0030565",
+        "status": "RECENT_STARTER",
+        "sampleGames": 11
+      }
+    },
+    "projectionQuality": "NORMAL"
+  },
+  "sharedDraws": true,
+  "archiveHash": "bd181ebf6004cebe68b77c65ed5a5f238234a753dd4d014a062116d48acc6513"
+}
