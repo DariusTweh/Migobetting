@@ -111,3 +111,7 @@
 .nfl-market-row small{font-size:9px;color:var(--muted);}
 .nfl-market-caveat{font-size:11px;color:var(--muted);line-height:1.6;margin:12px 0 0;}
 @media(max-width:560px){.nfl-market-list{grid-template-columns:1fr;}.nfl-projected-score{grid-template-columns:repeat(3,minmax(0,1fr));}.nfl-projected-score strong{font-size:17px;}}
+
+.nfl-market-select{margin-top:7px;padding:5px 8px;border:1px solid var(--line);border-radius:6px;background:#1c2b21;color:var(--lime);font-size:10px;cursor:pointer;}
+.nfl-market-select[aria-pressed="true"]{background:#33402b;border-color:var(--lime);}
+.nfl-market-row>div{align-items:flex-end;}
