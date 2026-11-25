@@ -122,13 +122,15 @@ describe("NFL Phase 3 seeded correlated scenarios",()=>{
     expect(result.props).toEqual([]);
     expect(result.joint).toBeNull();
   });
-  it("refuses a ruled-out starting QB rather than modeling a fictional healthy starter",()=>{
+  it("keeps non-QB opportunities using a clearly labeled unknown-QB proxy",()=>{
     const snap=snapshot();
     snap.injuries=[{name:"LAR Test Quarterback",team:"LAR",season:2099,week:12,
       status:"Out",practice:"DNP",injury:"Knee",modifiedAt:"",timestampVerified:false}];
     const sim=simulateNflMatchup(game,snap,candidateProps(snap),{runs:100});
-    expect(sim.status).toBe("PASS");
-    expect(sim.props).toHaveLength(0);
+    expect(sim.status).toBe("READY");
+    expect(sim.quarterbackQuality?.home).toBe("QB_PROXY");
+    expect(sim.props.some(p=>p.player==="LAR Test Quarterback")).toBe(false);
+    expect(sim.props.some(p=>p.player==="LAR Test Wideout One")).toBe(true);
   });
   it("keeps reported-out receiver targets out of a shared-game simulation",()=>{
     const snap=snapshot();

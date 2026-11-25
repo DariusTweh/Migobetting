@@ -71,7 +71,9 @@ describe("NFL team-score and availability research",()=>{
   const qb:WeeklyUsage={...usage[0],id:"qb",name:"Starting QB",position:"QB",targets:0,passingAttempts:35};
   const missing:UnavailablePlayer={id:"qb",name:"Starting QB",team:"LAR",status:"OUT",source:"official"};
   const model=simulateGameMarkets(game,scores,[missing],[...usage,qb],100);
-  expect(model.status).toBe("PASS");
-  expect(model.markets).toHaveLength(0);
+  expect(model.status).toBe("READY");
+  expect(model.markets.length).toBeGreaterThan(0);
+  expect(model.projectionQuality).toBe("LIMITED_QB");
+  expect(model.quarterbacks?.home.status).toBe("UNVERIFIED_REPLACEMENT");
  });
 });

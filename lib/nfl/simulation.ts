@@ -1,5 +1,6 @@
 import type { NflGame, NflMarket, NflProp } from "./engine";
 import { canonicalNflTeam, normalizePlayer, type NflverseSnapshot, type WeeklyUsage } from "./nflverse";
+import { inferQuarterbackRole } from "./qb-availability";
 
 /**
  * MIGO NFL scenario simulator v0.1.
@@ -30,11 +31,19 @@ export type NflSimulationSummary = {
   status: "READY" | "PASS";
   modelVersion: string; runs: number; seed: number; modelStatus: "UNCALIBRATED";
   gameId: string; inputSeason: number | null; inputWeek: number | null;
+  quarterbackQuality?: {home:string;away:string};
   props: SimulatedProp[]; joint: JointScenario | null;
   assumptions: string[]; limitations: string[];
   reason?: string;
 };
-type Metric = { passingYards: number; passingTds: number; rushingYards: number; receivingYards: number; receptions: number };
+export type Metric = { passingYards: number; passingTds: number; rushingYards: number; receivingYards: number; receptions: number };
+/** Same trial, same team and player events. Server-side callback never exposed to clients. */
+export type NflTrialSnapshot = {
+ index:number; pace:number; scoring:number; homeLead:number;
+ home:{passYards:number;passTds:number;rushYards:number};
+ away:{passYards:number;passTds:number;rushYards:number};
+ propValues:ReadonlyMap<string,number>;
+};
 type Participant = {
   id: string; name: string; position: string; history: WeeklyUsage[];
   targets: number; catchesPerTarget: number; yardsPerReception: number;
@@ -45,6 +54,7 @@ type TeamModel = {
   passAttempts: number; rushAttempts: number; qb: Participant;
   receivers: Participant[]; rushers: Participant[];
   otherTargetsWeight: number; otherRushWeight: number;
+  qbInput: "RECENT_STARTER" | "RECENT_REPLACEMENT" | "QB_PROXY";
 };
 type SimulationInputs = {
   home: TeamModel; away: TeamModel;
@@ -150,30 +160,36 @@ function buildTeam(game: NflGame, snapshot: NflverseSnapshot, id: string, abbrev
     const unique = new Set(r.map((row) => normalizePlayer(row.name)));
     return unique.size === 1 && new Set(r.map((row) => row.position)).size === 1;
   }).map(participant);
-  // If the historical top quarterback is ruled out, don't manufacture a
-  // replacement QB projection from insufficient backup opportunities.
-  const historicalQB = actors.filter((p)=>p.position==="QB")
-    .sort((a,b)=>b.passingAttempts-a.passingAttempts)[0];
-  if (historicalQB && unavailable.has(normalizePlayer(historicalQB.name))) return null;
   const eligibleActors = actors.filter((p)=>!unavailable.has(normalizePlayer(p.name)));
-  const quarterbacks = eligibleActors.filter((p) => p.position === "QB")
-    .sort((a, b) => b.passingAttempts - a.passingAttempts);
-  const qb = quarterbacks[0];
-  if (!qb || qb.passingAttempts < 14 || qb.history.length < MIN_WEEKS) return null;
-  // A QB committee cannot be represented honestly by a single pass-yard projection.
-  if (quarterbacks[1] && quarterbacks[1].passingAttempts > qb.passingAttempts * .35) return null;
+  const qbRole = inferQuarterbackRole(code, game.week, rows, snapshot.unavailable??[]);
+  const selectedQB = eligibleActors.find(p=>p.position==="QB" &&
+    qbRole.currentId!==null && p.id==="nflverse:"+qbRole.currentId);
+  const teamPassingAttempts = mean(passGame.slice(0,4));
+  const qbWeeks = games.flatMap(([,items])=>items.filter(p=>p.position==="QB"));
+  const teamQBTds = sum(qbWeeks.map(p=>number(p.passingTds)));
+  const teamQBAttempts = sum(qbWeeks.map(p=>number(p.passingAttempts)));
+  // A proxy preserves eligible WR/RB/TE opportunities when a replacement is
+  // unknown. It NEVER creates an eligible quarterback player prop.
+  const qb:Participant = selectedQB && selectedQB.passingAttempts>=10 ? selectedQB : {
+    id:"unknown-team-qb:"+code,name:"Unverified quarterback",position:"QB",history:[],
+    targets:0,catchesPerTarget:0,yardsPerReception:0,rushes:0,yardsPerCarry:4,
+    passingAttempts:clamp(teamPassingAttempts,17,54),
+    tdPerAttempt:clamp((teamQBTds+2)/(teamQBAttempts+80),.01,.11),
+  };
+  const qbInput:TeamModel["qbInput"]=qb.id.startsWith("unknown-team-qb:")?
+    "QB_PROXY":qbRole.status==="RECENT_REPLACEMENT"?"RECENT_REPLACEMENT":"RECENT_STARTER";
   const receivers = eligibleActors.filter((p) => ["WR", "TE", "RB"].includes(p.position) &&
     p.targets >= .25 && p.history.length >= 2).sort((a,b)=>b.targets-a.targets).slice(0,20);
   const rushers = eligibleActors.filter((p) => ["RB", "QB", "WR"].includes(p.position) &&
     p.rushes >= .2 && p.history.length >= 2).sort((a,b)=>b.rushes-a.rushes).slice(0,15);
-  if (!receivers.length || !rushers.length) return null;
+  // Residual other bucket handles unmodeled skill players; they do not become eligible props.
   const passAttempts = clamp(.6 * mean(passGame.slice(0,3)) + .4 * mean(passGame), 17, 54);
   const rushAttempts = clamp(.6 * mean(rushGame.slice(0,3)) + .4 * mean(rushGame), 12, 47);
   // "Other" includes untracked offensive roles, throwaways and low-volume players.
   const otherTargetsWeight = Math.max(2, passAttempts - sum(receivers.map((p) => p.targets)));
   const otherRushWeight = Math.max(1, rushAttempts - sum(rushers.map((p) => p.rushes)));
   return { id, code, weeks: games.length, passAttempts, rushAttempts, qb,
-    receivers, rushers, otherTargetsWeight, otherRushWeight };
+    receivers, rushers, otherTargetsWeight, otherRushWeight, qbInput };
 }
 function parseHomeAdvantage(game: NflGame): number {
   const details = game.spreadDetails ?? "";
@@ -188,7 +204,7 @@ function parseHomeAdvantage(game: NflGame): number {
 }
 function inputs(game: NflGame, snapshot: NflverseSnapshot): SimulationInputs | null {
   if (!game.week || !game.season ||
-    snapshot.coverage.stats !== "available" || snapshot.coverage.snaps !== "available" ||
+    snapshot.coverage.stats !== "available" ||
     snapshot.coverage.season !== game.season || snapshot.coverage.week !== game.week) return null;
   const home = buildTeam(game, snapshot, game.home.id, game.home.abbreviation);
   const away = buildTeam(game, snapshot, game.away.id, game.away.abbreviation);
@@ -249,7 +265,7 @@ function simulateTeam(team: TeamModel, rng: () => number, pace: number, script: 
 const round = (x: number) => Math.round(x * 10000) / 10000;
 export function simulateNflMatchup(
   game: NflGame, snapshot: NflverseSnapshot, props: NflProp[],
-  options: { runs?: number; seed?: number; jointLegIds?: string[]; historicalReplay?: boolean } = {},
+  options: { runs?: number; seed?: number; jointLegIds?: string[]; historicalReplay?: boolean; onTrial?: (trial:NflTrialSnapshot)=>void } = {},
 ): NflSimulationSummary {
   const runs = options.runs ?? NFL_SIM_DEFAULT_RUNS;
   if (!Number.isInteger(runs) || runs < 100 || runs > NFL_SIM_DEFAULT_RUNS)
@@ -286,6 +302,7 @@ export function simulateNflMatchup(
   const spec = inputs(game,snapshot);
   if (!spec) return { ...base,status:"PASS", reason:"Insufficient verified team QB/pass/run/snap history or ambiguous QB usage."};
   const seed = (options.seed ?? spec.seed) >>> 0;
+  const qbQuality={home:spec.home.qbInput,away:spec.away.qbInput};
   const rng = random(seed);
   const lookup = new Map<string, { player: NflProp; values: Float32Array }>();
   const models = new Set<string>([
@@ -296,7 +313,7 @@ export function simulateNflMatchup(
   for (const p of props) {
     if (models.has(p.athleteId) && p.grade === "RESEARCH") lookup.set(p.id,{player:p,values:new Float32Array(runs)});
   }
-  if (!lookup.size) return {...base, status:"PASS", seed, reason:"No eligible props with independently observed historical opportunities."};
+  if (!lookup.size) return {...base, status:"PASS", seed, quarterbackQuality:qbQuality, reason:"No eligible props with independently observed historical opportunities."};
   for (let i=0; i<runs; i++) {
     const pace = lognormal(rng,.15) * spec.gameTotalFactor;
     const homeLead = spec.homeAdvantage + .18*normal(rng);
@@ -304,10 +321,24 @@ export function simulateNflMatchup(
     const scoring = lognormal(rng,.17) * spec.gameTotalFactor;
     const home = simulateTeam(spec.home,rng,pace,homeLead,scoring);
     const away = simulateTeam(spec.away,rng,pace,-homeLead,scoring);
-    for (const record of lookup.values()) {
-      const player = record.player;
-      const source = player.teamId === game.home.id ? home : away;
-      record.values[i] = source.get(player.athleteId)?.[player.market] ?? 0;
+    const propValues = options.onTrial ? new Map<string,number>() : null;
+    for (const [id,record] of lookup) {
+      const player=record.player;
+      const source=player.teamId===game.home.id ? home : away;
+      const value=source.get(player.athleteId)?.[player.market] ?? 0;
+      record.values[i]=value;
+      if(propValues)propValues.set(id,value);
+    }
+    if(options.onTrial){
+      const totalRush=(rows:Map<string,Metric>)=>[...rows.values()].reduce((sum,row)=>sum+row.rushingYards,0);
+      options.onTrial({
+        index:i,pace,scoring,homeLead,
+        home:{passYards:home.get(spec.home.qb.id)?.passingYards??0,
+          passTds:home.get(spec.home.qb.id)?.passingTds??0,rushYards:totalRush(home)},
+        away:{passYards:away.get(spec.away.qb.id)?.passingYards??0,
+          passTds:away.get(spec.away.qb.id)?.passingTds??0,rushYards:totalRush(away)},
+        propValues:propValues!,
+      });
     }
   }
   const computed: SimulatedProp[] = [];
@@ -339,5 +370,6 @@ export function simulateNflMatchup(
         p*(computed.find((prop)=>prop.id===id)?.rawModelHitRate??0),1)),
       modelStatus:"UNCALIBRATED" };
   }
-  return { ...base,status:"READY",seed,props:computed,joint };
+  return { ...base,status:"READY",seed,props:computed,joint,quarterbackQuality:qbQuality,
+    limitations:[...base.limitations,...(Object.values(qbQuality).includes("QB_PROXY")?["Unknown QB proxy preserves team passing volume but cannot generate a quarterback prop."] : [])] };
 }
