@@ -28,6 +28,7 @@ export type NflProp = {
   factors: { usage: number; matchup: number; gameScript: number; efficiency: number; context: number };
   evidence: string[]; risks: string[];
   calibratedProbability: null; fairOdds: null;
+  decisionReasons?: string[];
   intelligence?: {
     source: string; sampleGames: number; targets: number | null; carries: number | null;
     passingAttempts: number | null; targetShare: number | null; snapShare: number | null;
@@ -114,8 +115,9 @@ export function rankNflProps(
       const coefficient = baseline > 0 ? Math.sqrt(average(values.map((v) => (v - baseline) ** 2))) / baseline : 1;
       for (const line of RANGES[market]) {
         const hits = values.filter((value) => value >= line).length;
-        // Hard minimums prevent creating a misleading highly rated pick from a few explosive games.
-        if (hits < 3 || projection < line * 1.08) continue;
+        // Model alternatives separately from recommendation eligibility. Do not
+        // hide 200+ when the higher QB alternative is unappealing or arbitrary.
+        if (line > Math.max(projection * 1.7,market==="passingTds"?3:0)) continue;
         const rate = hits / observed.length; // descriptive only, not a forward probability
         const usage = clamp(40 + observed.length * 5 + Math.min(25, Math.max(0, (projection / line - 1) * 30)));
         // Positional team totals cannot be compared directly with an individual projection.
@@ -134,7 +136,13 @@ export function rankNflProps(
           market, line, label: line + "+ " + LABELS[market],
           projection: Math.round(projection * 10) / 10,
           sampleGames: observed.length, historicalHits: hits, recentValues: values,
-          researchScore, grade: rate >= .6 && researchScore >= 60 ? "RESEARCH" : "PASS",
+          researchScore,
+          grade: hits >= 3 && projection >= line*.95 && researchScore>=55 ? "RESEARCH" : "PASS",
+          decisionReasons:[
+            ...(hits<3?["Historical clears insufficient for this alternate line."]:[]),
+            ...(projection<line*.95?["Historical weighted mean is below the line."]:[]),
+            ...(researchScore<55?["Research evidence below minimum quality threshold (55/100)."]:[]),
+          ],
           factors,
           evidence: [
             "Listed in ESPN game box scores for " + observed.length + " earlier games.",
@@ -152,17 +160,25 @@ export function rankNflProps(
       }
     }
   }
-  // One alt per market per player is kept, preferring a meaningful threshold with support.
-  const byMarket = new Map<string, NflProp>();
-  for (const pick of candidates) {
-    const key = pick.athleteId + ":" + pick.market;
-    const previous = byMarket.get(key);
-    if (!previous || (pick.grade === "RESEARCH" && previous.grade === "PASS") ||
-      (pick.grade === previous.grade && pick.line > previous.line &&
-      pick.historicalHits >= Math.max(3, Math.ceil(pick.sampleGames * .6)))) {
-      byMarket.set(key, pick);
-    }
+  // Keep a sensible baseline alternate AND one higher alternative per
+  // player/market. Large unsupported alternatives remain PASS, not hidden.
+  const byMarket = new Map<string,NflProp[]>();
+  for(const pick of candidates){
+    const key=pick.athleteId+":"+pick.market;
+    byMarket.set(key,[...(byMarket.get(key)??[]),pick]);
   }
-  return [...byMarket.values()].sort((a, b) => Number(b.grade === "RESEARCH") - Number(a.grade === "RESEARCH") ||
+  const selected:NflProp[]=[];
+  for(const options of byMarket.values()){
+    const ascending=options.slice().sort((a,b)=>a.line-b.line);
+    const eligible=ascending.filter(p=>p.grade==="RESEARCH");
+    const baseline=eligible[0]??ascending[0];
+    if(!baseline)continue;
+    selected.push(baseline);
+    // Differentiate the base alt from a higher upside research alternative.
+    const extra=eligible.filter(p=>p.line>baseline.line).at(-1) ??
+      ascending.filter(p=>p.line>baseline.line).find(p=>p.historicalHits>=1);
+    if(extra)selected.push(extra);
+  }
+  return selected.sort((a, b) => Number(b.grade === "RESEARCH") - Number(a.grade === "RESEARCH") ||
     b.researchScore - a.researchScore || b.historicalHits - a.historicalHits || b.line - a.line);
 }
