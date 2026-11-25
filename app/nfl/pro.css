@@ -267,3 +267,18 @@
  .nm-dashboard-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.nm-dashboard-metrics>div:last-child{grid-column:1/-1;min-height:auto}
  .nm-stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.nm-stats-grid>div:last-child{grid-column:1/-1}
 }
+
+.nm-game-validation{margin-top:26px}
+.nm-game-validation .nm-link-outline{cursor:pointer}
+.nm-game-validation-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;padding:17px}
+.nm-game-validation-grid>div{background:#12232a;border:1px solid #2b4149;padding:15px;border-radius:9px;min-width:0}
+.nm-game-validation-grid span{display:block;font-size:10px;color:#91a6b0;line-height:1.5}
+.nm-game-validation-grid strong{display:block;font-size:25px;font-weight:850;color:var(--nm-accent);margin-top:7px;letter-spacing:-.04em}
+.nm-game-validation-table{overflow-x:auto;padding:0 17px 17px}
+.nm-game-validation-table table{width:100%;border-collapse:collapse;text-align:left;font-size:12px}
+.nm-game-validation-table th{font-size:10px;color:#8fa5af;letter-spacing:.06em;padding:11px 8px;border-bottom:1px solid #31414a;white-space:nowrap}
+.nm-game-validation-table td{padding:13px 8px;border-bottom:1px solid #263840;color:#e0edef}
+.nm-game-validation-table td:first-child{text-transform:capitalize;font-weight:800}
+.nm-game-validation .nm-empty-inner>strong{display:block;margin-bottom:7px}
+.nm-game-validation .nm-empty-inner p{color:#8ba2aa;line-height:1.65}
+@media(max-width:710px){.nm-game-validation-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.nm-game-validation-grid strong{font-size:20px}.nm-game-validation>.nm-section-header{align-items:flex-start;flex-direction:column}}
