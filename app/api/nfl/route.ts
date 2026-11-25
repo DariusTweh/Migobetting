@@ -14,6 +14,14 @@ export async function GET(request: NextRequest) {
   const jointLegIds = requestedLegs ? requestedLegs.split(",") : [];
   if (jointLegIds.length > 6 || new Set(jointLegIds).size !== jointLegIds.length)
     return NextResponse.json({ error: "Limit joint analysis to six distinct legs" }, { status: 400 });
-  const preview = await getNflPreview(game, new Date(), jointLegIds);
+  const requestedMarkets = request.nextUrl.searchParams.get("marketLegs");
+  if (requestedMarkets && (requestedMarkets.length > 700 || !/^[a-zA-Z0-9:.,_-]+$/.test(requestedMarkets)))
+    return NextResponse.json({ error: "Invalid game market IDs" }, { status: 400 });
+  const marketLegIds = requestedMarkets ? requestedMarkets.split(",") : [];
+  if (marketLegIds.length + jointLegIds.length > 6 ||
+    new Set(marketLegIds).size !== marketLegIds.length ||
+    marketLegIds.some((id) => !id.startsWith(game.id + ":")))
+    return NextResponse.json({ error: "Invalid mixed slip selection" }, { status: 400 });
+  const preview = await getNflPreview(game, new Date(), jointLegIds, marketLegIds);
   return NextResponse.json(preview, { headers: { "Cache-Control": "no-store" } });
 }
