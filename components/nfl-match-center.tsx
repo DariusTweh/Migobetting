@@ -40,7 +40,7 @@ export function NflMatchCenter({game}:{game:NflGame}){
  const [tab,setTab]=useState<DetailTab>("overview");
  const [market,setMarket]=useState<MarketType>("moneyline");
  const [propMarket,setPropMarket]=useState<NflMarket|"all">("all");
- const [showPass,setShowPass]=useState(false);
+ const [showPass,setShowPass]=useState(true);
  const [selection,setSelection]=useState<Selected[]>([]);
  const [copied,setCopied]=useState(false);
  const [joint,setJoint]=useState<{rawModelJointRate:number;hitRuns:number;runs:number}|null>(null);
@@ -184,7 +184,7 @@ export function NflMatchCenter({game}:{game:NflGame}){
     <div className="nm-player-toolbar">
       <div className="nm-filter-wrap"><ListFilter size={16}/><select aria-label="Filter player market" value={propMarket} onChange={e=>setPropMarket(e.target.value as NflMarket|"all")}>
        <option value="all">All player markets</option>{Object.entries(groupLabel).map(([id,label])=><option value={id} key={id}>{label}</option>)}</select></div>
-      <label className="nm-checkbox"><input type="checkbox" checked={showPass} onChange={e=>setShowPass(e.target.checked)}/> Show passes / unavailable</label>
+      <label className="nm-checkbox"><input type="checkbox" checked={showPass} onChange={e=>setShowPass(e.target.checked)}/> Show PASS / unavailable</label>
     </div>
     <div className="nm-player-list">{playerProps.length?playerProps.map(p=>{
       const s=simLookup.get(p.id);const isEligible=p.grade==="RESEARCH"&&!!s;
