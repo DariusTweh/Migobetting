@@ -139,19 +139,29 @@ function buildTeam(game: NflGame, snapshot: NflverseSnapshot, id: string, abbrev
       rushGame.filter((x) => x >= 8).length < MIN_WEEKS) return null;
   const byId = new Map<string, WeeklyUsage[]>();
   for (const row of rows) byId.set(row.id, [...(byId.get(row.id) ?? []), row]);
+  const unavailable = new Set(snapshot.injuries.filter((row) =>
+    row.team === code && row.season === game.season && row.week === game.week &&
+    ["out", "ir", "injured reserve", "doubtful", "unverified-conflict"].includes(row.status.toLowerCase()))
+    .map((row) => normalizePlayer(row.name)));
   const actors = [...byId.values()].filter((r) => {
     const unique = new Set(r.map((row) => normalizePlayer(row.name)));
     return unique.size === 1 && new Set(r.map((row) => row.position)).size === 1;
   }).map(participant);
-  const quarterbacks = actors.filter((p) => p.position === "QB")
+  // If the historical top quarterback is ruled out, don't manufacture a
+  // replacement QB projection from insufficient backup opportunities.
+  const historicalQB = actors.filter((p)=>p.position==="QB")
+    .sort((a,b)=>b.passingAttempts-a.passingAttempts)[0];
+  if (historicalQB && unavailable.has(normalizePlayer(historicalQB.name))) return null;
+  const eligibleActors = actors.filter((p)=>!unavailable.has(normalizePlayer(p.name)));
+  const quarterbacks = eligibleActors.filter((p) => p.position === "QB")
     .sort((a, b) => b.passingAttempts - a.passingAttempts);
   const qb = quarterbacks[0];
   if (!qb || qb.passingAttempts < 14 || qb.history.length < MIN_WEEKS) return null;
   // A QB committee cannot be represented honestly by a single pass-yard projection.
   if (quarterbacks[1] && quarterbacks[1].passingAttempts > qb.passingAttempts * .35) return null;
-  const receivers = actors.filter((p) => ["WR", "TE", "RB"].includes(p.position) &&
+  const receivers = eligibleActors.filter((p) => ["WR", "TE", "RB"].includes(p.position) &&
     p.targets >= .25 && p.history.length >= 2).sort((a,b)=>b.targets-a.targets).slice(0,20);
-  const rushers = actors.filter((p) => ["RB", "QB", "WR"].includes(p.position) &&
+  const rushers = eligibleActors.filter((p) => ["RB", "QB", "WR"].includes(p.position) &&
     p.rushes >= .2 && p.history.length >= 2).sort((a,b)=>b.rushes-a.rushes).slice(0,15);
   if (!receivers.length || !rushers.length) return null;
   const passAttempts = clamp(.6 * mean(passGame.slice(0,3)) + .4 * mean(passGame), 17, 54);
