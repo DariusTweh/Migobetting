@@ -31,7 +31,7 @@ jobs:
         with:
           node-version: '22'
       - name: Verify snapshot/grade parsing
-        run: node --test scripts/nfl-prospective.test.mjs
+        run: node --test scripts/nfl-ledger-checks.mjs
       - name: Capture pregame research forecasts
         run: node scripts/nfl-prospective.mjs capture
         env:
