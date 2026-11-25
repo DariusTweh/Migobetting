@@ -143,6 +143,9 @@ function buildTeam(game: NflGame, snapshot: NflverseSnapshot, id: string, abbrev
     row.team === code && row.season === game.season && row.week === game.week &&
     ["out", "ir", "injured reserve", "doubtful", "unverified-conflict"].includes(row.status.toLowerCase()))
     .map((row) => normalizePlayer(row.name)));
+  for(const row of snapshot.unavailable??[]){
+    if(row.team===code)unavailable.add(normalizePlayer(row.name));
+  }
   const actors = [...byId.values()].filter((r) => {
     const unique = new Set(r.map((row) => normalizePlayer(row.name)));
     return unique.size === 1 && new Set(r.map((row) => row.position)).size === 1;
