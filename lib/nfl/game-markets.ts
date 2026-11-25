@@ -48,6 +48,7 @@ export function simulateGameMarkets(game:NflGame,games:PlayedGame[],unavailable:
  const base:GameMarketReport={status:"PASS",modelStatus:"UNCALIBRATED",runs,seed:randomSeed,home,away,homeProjected:null,awayProjected:null,totalProjected:null,marginProjected:null,injuryEffects:[],sampleGames:{home:0,away:0},markets:[],notes:[
  "Historical score-driven team model. Current opponent form and home-field are weighted research inputs.",
  "Shared game-pace shocks link wins, margins and totals; no independent multiplication of market probabilities.",
+ "Tied simulated scores are usually resolved by an uncalibrated overtime heuristic; rare ties remain.",
  "Absence adjustments are heuristic; player replacements and game-day activations are not verified.",
  "Uncalibrated raw frequencies are not fair odds, BetMGM prices, or verified betting edges."
  ]};
@@ -63,7 +64,18 @@ export function simulateGameMarkets(game:NflGame,games:PlayedGame[],unavailable:
  const hMean=clamp(.68*(weighted(h.scored)+weighted(a.allowed))*.5+.32*22.5+1.2-hi.lostPoints,8,37);
  const aMean=clamp(.68*(weighted(a.scored)+weighted(h.allowed))*.5+.32*22.5-1.2-ai.lostPoints,8,37);
  const r=prng(randomSeed),homeScores=new Int16Array(runs),awayScores=new Int16Array(runs);
- for(let i=0;i<runs;i++){const shared=gaussian(r)*3.6;homeScores[i]=Math.round(clamp(hMean+shared+gaussian(r)*8.9,0,62));awayScores[i]=Math.round(clamp(aMean+shared+gaussian(r)*8.9,0,62));}
+ for(let i=0;i<runs;i++){
+  const shared=gaussian(r)*3.6;
+  let hs=Math.round(clamp(hMean+shared+gaussian(r)*8.9,0,62));
+  let as=Math.round(clamp(aMean+shared+gaussian(r)*8.9,0,62));
+  if(hs===as && r()>.006){
+    // NFL overtime usually resolves tied regulation scores. Heuristic only;
+    // not a calibrated OT model; ties remain possible.
+    if(r()<clamp(.5+(hMean-aMean)/60,.35,.65))hs+=3;
+    else as+=3;
+  }
+  homeScores[i]=hs;awayScores[i]=as;
+}
  const markets:GameMarket[]=[];
  const record=(market:GameMarket["market"],side:GameMarket["side"],line:number|null,label:string,test:(h:number,a:number)=>boolean)=>{
  let wins=0;for(let i=0;i<runs;i++)if(test(homeScores[i],awayScores[i]))wins++;
