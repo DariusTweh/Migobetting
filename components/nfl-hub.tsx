@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { RefreshCw, ArrowRight, Copy, ShieldAlert } from "lucide-react";
 import type { NflGame, NflProp } from "@/lib/nfl/engine";
 import type { NflSimulationSummary, JointScenario } from "@/lib/nfl/simulation";
@@ -90,7 +91,7 @@ export function NflHub({ initialData }: { initialData: Board }) {
       <div><div className="eyebrow">MIGO Football Intelligence · NFL scenario lab</div>
         <h1>NFL Prop Lab</h1>
         <p>Data-first alternate yardage and receptions research, with explicit evidence and risk gates. No hindsight forecasts.</p></div>
-      <button className="button" onClick={refreshBoard} disabled={loading}><RefreshCw size={16}/> Refresh</button>
+      <div className="nfl-cal-actions"><Link className="button" href="/nfl/validation">Validation &amp; calibration</Link><button className="button" onClick={refreshBoard} disabled={loading}><RefreshCw size={16}/> Refresh</button></div>
     </header>
     <div className="nfl-warning"><ShieldAlert size={18}/><span><strong>UNCALIBRATED RESEARCH ONLY.</strong> The 30,000-trial simulation estimates what its assumptions would produce, not independently verified win probabilities, value odds, or guarantees. Historical targets and snap counts are available; game-day active status, routes, weather and BetMGM prices remain unverified.</span></div>
     {error && <p className="nfl-error" role="alert">{error}</p>}
