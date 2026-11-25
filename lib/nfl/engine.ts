@@ -160,9 +160,13 @@ export function rankNflProps(
       }
     }
   }
-  // Keep a sensible baseline alternate AND one higher alternative per
-  // player/market. Large unsupported alternatives remain PASS, not hidden.
-  const byMarket = new Map<string,NflProp[]>();
+  // Always expose the standard baseline threshold (QB 200+, 1+ pass TD,
+  // WR 50+, RB 50+) even when a different alt scores higher.
+  // Also show one conservative lower and one upside alt; PASS is explicit.
+  const anchors:Record<NflMarket,number>={
+    passingYards:200,passingTds:1,rushingYards:50,receivingYards:50,receptions:3,
+  };
+  const byMarket=new Map<string,NflProp[]>();
   for(const pick of candidates){
     const key=pick.athleteId+":"+pick.market;
     byMarket.set(key,[...(byMarket.get(key)??[]),pick]);
@@ -171,13 +175,15 @@ export function rankNflProps(
   for(const options of byMarket.values()){
     const ascending=options.slice().sort((a,b)=>a.line-b.line);
     const eligible=ascending.filter(p=>p.grade==="RESEARCH");
-    const baseline=eligible[0]??ascending[0];
-    if(!baseline)continue;
-    selected.push(baseline);
-    // Differentiate the base alt from a higher upside research alternative.
-    const extra=eligible.filter(p=>p.line>baseline.line).at(-1) ??
-      ascending.filter(p=>p.line>baseline.line).find(p=>p.historicalHits>=1);
-    if(extra)selected.push(extra);
+    const anchor=ascending.find(p=>p.line===anchors[options[0].market])??
+      eligible[0]??ascending[0];
+    if(!anchor)continue;
+    const lower=eligible.filter(p=>p.line<anchor.line).at(-1)??null;
+    const upper=eligible.filter(p=>p.line>anchor.line).at(-1)??
+      ascending.find(p=>p.line>anchor.line&&p.historicalHits>=1)??null;
+    for(const pick of [lower,anchor,upper]){
+      if(pick&&!selected.some(row=>row.id===pick.id))selected.push(pick);
+    }
   }
   return selected.sort((a, b) => Number(b.grade === "RESEARCH") - Number(a.grade === "RESEARCH") ||
     b.researchScore - a.researchScore || b.historicalHits - a.historicalHits || b.line - a.line);
