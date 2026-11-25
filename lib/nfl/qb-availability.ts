@@ -32,10 +32,13 @@ export function inferQuarterbackRole(
   const bannedNames=new Set(unavailable.filter(p=>p.team===team).map(p=>normalize(p.name)));
   const eligible=(p:WeeklyUsage)=>!banned.has(p.id)&&!bannedNames.has(normalize(p.name));
   const latest=leaders[0];
-  const latestActive=leaders.find(l=>eligible(l.player));
-  const candidates=leaders.slice(0,4).filter(l=>eligible(l.player));
-  // Prefer whoever played the most recent full team game; never historical total.
-  const picked=candidates[0]??latestActive??null;
+  // When the last week's starter is OUT, an old backup appearance from
+  // several weeks ago is not proof of who will start this week.
+  const concurrentBackup=latest ? (byWeek.get(latest.week)??[])
+    .filter(p=>eligible(p)&&(p.passingAttempts??0)>=8)
+    .sort((a,b)=>(b.passingAttempts??0)-(a.passingAttempts??0))[0] : undefined;
+  const picked=latest&&eligible(latest.player)?latest:
+    concurrentBackup?{week:latest!.week,player:concurrentBackup}:null;
   if(!picked){
     return {team,week,currentId:null,currentName:null,observedStarts:0,
       latestGameWeek:latest?.week??null,historicalLeaderId,
