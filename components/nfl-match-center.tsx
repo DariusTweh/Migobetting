@@ -10,9 +10,11 @@ import {
 import type { NflGame, NflProp, NflMarket } from "@/lib/nfl/engine";
 import type { NflSimulationSummary } from "@/lib/nfl/simulation";
 import type { GameMarket, GameMarketReport, UnavailablePlayer } from "@/lib/nfl/game-markets";
+import type { UnifiedJoint } from "@/lib/nfl/unified";
 type Preview = {
  game:NflGame; fetchedAt:string; props:NflProp[]; simulation?:NflSimulationSummary;
  gameMarkets?:GameMarketReport; unavailablePlayers?:UnavailablePlayer[];
+ mixedJoint?:UnifiedJoint|null; sharedDraws?:boolean;
  coverage?:{completedGames:number;playerLines:number;note:string};
  supplementalCoverage?:{stats:string;snaps:string;injuries:string;rosters?:string;schedules?:string;injuryRows:number;unavailableCount?:number;week?:number|null;season?:number|null;sourceWarnings?:string[]};
  error?:string;
@@ -87,18 +89,23 @@ export function NflMatchCenter({game}:{game:NflGame}){
    await navigator.clipboard.writeText("MIGO NFL RESEARCH SLIP — NOT BOOKMAKER ODDS\n"+
      game.away.abbreviation+" @ "+game.home.abbreviation+"\n"+
      selection.map((l,i)=>(i+1)+". "+l.label).join("\n")+
-     "\nUncalibrated research, verify game-day injuries & offered prices. No proven mixed-market joint probability.");
+     "\nUncalibrated research, verify game-day injuries & offered prices. Shared-draw estimates are uncalibrated and require independent validation.");
    setCopied(true);
   }catch{setCopied(false);}
  }
  async function runJoint(){
-  if(jointBusy||selection.length<2||selection.some(p=>p.kind==="game"))return;
+  if(jointBusy||selection.length<2)return;
   setJointBusy(true);setJointError("");setJoint(null);
   try{
-   const response=await fetch("/api/nfl?"+new URLSearchParams({eventId:game.id,legs:selection.map(s=>s.id).join(",")}),{cache:"no-store"});
+   const props=selection.filter(s=>s.kind==="prop").map(s=>s.id);
+   const gameMarkets=selection.filter(s=>s.kind==="game").map(s=>s.id);
+   const response=await fetch("/api/nfl?"+new URLSearchParams({
+     eventId:game.id,legs:props.join(","),marketLegs:gameMarkets.join(","),
+   }),{cache:"no-store"});
    const data=await response.json() as Preview;
-   const result=data.simulation?.joint;
-   if(!response.ok||!result)throw Error(data.error||"Unable to build joint result");
+   const result=data.mixedJoint??data.simulation?.joint;
+   if(!response.ok||!result||!data.sharedDraws)
+     throw Error(data.error||"Shared game-state analysis unavailable for this selection");
    setJoint(result);
   }catch(e){setJointError(e instanceof Error?e.message:"Joint analysis failed");}
   finally{setJointBusy(false);}
@@ -111,7 +118,7 @@ export function NflMatchCenter({game}:{game:NflGame}){
   <div className="nm-breadcrumb"><Link href="/nfl"><ArrowLeft size={15}/> All NFL games</Link><ChevronRight size={13}/><span>{game.away.abbreviation} @ {game.home.abbreviation}</span></div>
   <section className="nm-match-hero">
    <div className="nm-hero-overline"><span className="nm-game-state nm-scheduled">{game.status==="scheduled"?"PRE-GAME":game.status.toUpperCase()}</span>
-    <span>2026 NFL · WEEK {game.week??"—"}</span><Uncalibrated/></div>
+    <span>{game.season??"NFL"} NFL · WEEK {game.week??"—"}</span><Uncalibrated/></div>
    <div className="nm-hero-main"><TeamBadge team={game.away}/>
     <div className="nm-hero-center">
       {game.status==="final"||game.status==="live"?<strong className="nm-live-score">{game.away.score??"–"} <span>:</span> {game.home.score??"–"}</strong>:
@@ -136,6 +143,8 @@ export function NflMatchCenter({game}:{game:NflGame}){
      <Stat label="MODEL MARGIN" value={fmt(preview.gameMarkets?.marginProjected)} sub={game.home.abbreviation+" minus "+game.away.abbreviation}/>
      <Stat label="HISTORICAL GAMES" value={preview.gameMarkets?.sampleGames?preview.gameMarkets.sampleGames.away+" / "+preview.gameMarkets.sampleGames.home:"—"} sub="away / home"/>
     </div>
+    {preview.gameMarkets?.projectionQuality==="LIMITED_QB"?<div className="nm-info-strip nm-danger">
+      <ShieldAlert size={17}/><p>Quarterback replacement is not verified by recent game starts. Score estimates remain available with additional uncertainty; player-specific QB projections may be withheld.</p></div>:null}
     <section className="nm-card nm-win-model"><div className="nm-card-head"><div><h3>Win scenarios</h3><span>Full-time outcome from simulated team scores</span></div><Uncalibrated/></div>
      {status==="READY"&&mlHome&&mlAway?<><div className="nm-win-numbers"><div><small>{game.away.abbreviation}</small><strong>{pct(mlAway.rawRate)}</strong></div><div><small>{game.home.abbreviation}</small><strong>{pct(mlHome.rawRate)}</strong></div></div>
       <RateBar home={mlAway.rawRate} away={mlHome.rawRate}/>
@@ -212,7 +221,9 @@ export function NflMatchCenter({game}:{game:NflGame}){
    {tab==="method"?<>
     <div className="nm-section-header"><div><h2>Model methodology</h2><p>What goes into the forecast and which outputs are not production-ready.</p></div><Uncalibrated/></div>
     <section className="nm-card"><div className="nm-card-head"><div><h3>Research model status</h3><span>Data quality and transparency</span></div></div>
-     <div className="nm-method-grid"><Stat label="PLAYER TRIALS" value={preview.simulation?.runs.toLocaleString()??"—"}/><Stat label="GAME TRIALS" value={preview.gameMarkets?.runs.toLocaleString()??"—"}/><Stat label="PROP SAMPLE LINES" value={String(preview.coverage?.playerLines??0)}/></div>
+     <div className="nm-method-grid"><Stat label="TRAINING FIXTURES" value={String(preview.gameMarkets?.trainedScores?.trainingGames??0)}
+       sub={(preview.gameMarkets?.trainedScores?.status??"PRIOR_ONLY")+" · through "+(preview.gameMarkets?.trainedScores?.latestSeason??"—")+" W"+(preview.gameMarkets?.trainedScores?.latestWeek??"—")}/>
+       <Stat label="PLAYER TRIALS" value={preview.simulation?.runs.toLocaleString()??"—"}/><Stat label="GAME TRIALS" value={preview.gameMarkets?.runs.toLocaleString()??"—"}/><Stat label="PROP SAMPLE LINES" value={String(preview.coverage?.playerLines??0)}/></div>
      <div className="nm-method-list">{[...(preview.simulation?.assumptions??[]),...(preview.gameMarkets?.notes??[]),...(preview.simulation?.limitations??[])].map((v,i)=><p key={i}><span>{String(i+1).padStart(2,"0")}</span>{v}</p>)}</div>
     </section>
     <div className="nm-info-strip"><ShieldCheck size={18}/><p>Historical out-of-sample calibration is available separately. The game-score model and player-prop engine are still separate samplers; mixed-market joint pricing remains disabled.</p></div>
@@ -228,9 +239,9 @@ export function NflMatchCenter({game}:{game:NflGame}){
    </div>
    {selection.length?<div className="nm-slip-actions">
     <button onClick={copySlip}><Clipboard size={15}/>{copied?"Copied":"Copy selections"}</button>
-    <button disabled={selection.length<2||jointBusy||selection.some(s=>s.kind==="game")} onClick={runJoint}><Target size={15}/>{jointBusy?"Simulating…":"Analyze player-only joint"}</button>
-    {selection.some(s=>s.kind==="game")?<p className="nm-slip-limit">Mixed game + player joint probability is not currently validated.</p>:null}
-    {joint?<p className="nm-slip-result">Model joint: {pct(joint.rawModelJointRate)} ({joint.hitRuns.toLocaleString()}/{joint.runs.toLocaleString()} draws). Uncalibrated.</p>:null}
+    <button disabled={selection.length<2||jointBusy} onClick={runJoint}><Target size={15}/>{jointBusy?"Simulating…":"Analyze shared-game outcome"}</button>
+    {selection.some(s=>s.kind==="game")?<p className="nm-slip-limit">Mixed-market draws now share one game simulation. Rates remain uncalibrated.</p>:null}
+    {joint?<p className="nm-slip-result">Shared-trial joint: {pct(joint.rawModelJointRate)} ({joint.hitRuns.toLocaleString()}/{joint.runs.toLocaleString()} draws). Uncalibrated.</p>:null}
     {jointError?<p className="nm-slip-limit">{jointError}</p>:null}
    </div>:null}
    <div className="nm-slip-foot"><ShieldCheck size={14}/> No book prices · no guaranteed picks</div>
