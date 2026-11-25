@@ -34,7 +34,14 @@ export type NflSimulationSummary = {
   assumptions: string[]; limitations: string[];
   reason?: string;
 };
-type Metric = { passingYards: number; passingTds: number; rushingYards: number; receivingYards: number; receptions: number };
+export type Metric = { passingYards: number; passingTds: number; rushingYards: number; receivingYards: number; receptions: number };
+/** Same trial, same team and player events. Server-side callback never exposed to clients. */
+export type NflTrialSnapshot = {
+ index:number; pace:number; scoring:number; homeLead:number;
+ home:{passYards:number;passTds:number;rushYards:number};
+ away:{passYards:number;passTds:number;rushYards:number};
+ propValues:ReadonlyMap<string,number>;
+};
 type Participant = {
   id: string; name: string; position: string; history: WeeklyUsage[];
   targets: number; catchesPerTarget: number; yardsPerReception: number;
@@ -249,7 +256,7 @@ function simulateTeam(team: TeamModel, rng: () => number, pace: number, script: 
 const round = (x: number) => Math.round(x * 10000) / 10000;
 export function simulateNflMatchup(
   game: NflGame, snapshot: NflverseSnapshot, props: NflProp[],
-  options: { runs?: number; seed?: number; jointLegIds?: string[]; historicalReplay?: boolean } = {},
+  options: { runs?: number; seed?: number; jointLegIds?: string[]; historicalReplay?: boolean; onTrial?: (trial:NflTrialSnapshot)=>void } = {},
 ): NflSimulationSummary {
   const runs = options.runs ?? NFL_SIM_DEFAULT_RUNS;
   if (!Number.isInteger(runs) || runs < 100 || runs > NFL_SIM_DEFAULT_RUNS)
@@ -304,10 +311,24 @@ export function simulateNflMatchup(
     const scoring = lognormal(rng,.17) * spec.gameTotalFactor;
     const home = simulateTeam(spec.home,rng,pace,homeLead,scoring);
     const away = simulateTeam(spec.away,rng,pace,-homeLead,scoring);
-    for (const record of lookup.values()) {
-      const player = record.player;
-      const source = player.teamId === game.home.id ? home : away;
-      record.values[i] = source.get(player.athleteId)?.[player.market] ?? 0;
+    const propValues = options.onTrial ? new Map<string,number>() : null;
+    for (const [id,record] of lookup) {
+      const player=record.player;
+      const source=player.teamId===game.home.id ? home : away;
+      const value=source.get(player.athleteId)?.[player.market] ?? 0;
+      record.values[i]=value;
+      if(propValues)propValues.set(id,value);
+    }
+    if(options.onTrial){
+      const totalRush=(rows:Map<string,Metric>)=>[...rows.values()].reduce((sum,row)=>sum+row.rushingYards,0);
+      options.onTrial({
+        index:i,pace,scoring,homeLead,
+        home:{passYards:home.get(spec.home.qb.id)?.passingYards??0,
+          passTds:home.get(spec.home.qb.id)?.passingTds??0,rushYards:totalRush(home)},
+        away:{passYards:away.get(spec.away.qb.id)?.passingYards??0,
+          passTds:away.get(spec.away.qb.id)?.passingTds??0,rushYards:totalRush(away)},
+        propValues:propValues!,
+      });
     }
   }
   const computed: SimulatedProp[] = [];
