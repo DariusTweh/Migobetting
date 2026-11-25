@@ -44,7 +44,7 @@ function injuryAdjustment(team:string,week:number,unavailable:UnavailablePlayer[
  }
  return {lostPoints:Math.round(Math.min(4,penalty)*10)/10,players:selected,lostQB};
 }
-export function simulateGameMarkets(game:NflGame,games:PlayedGame[],unavailable:UnavailablePlayer[],usage:WeeklyUsage[],runs=30000,seed?:number):GameMarketReport{
+export function simulateGameMarkets(game:NflGame,games:PlayedGame[],unavailable:UnavailablePlayer[],usage:WeeklyUsage[],runs=30000,seed?:number,historicalReplay=false):GameMarketReport{
  const home=norm(game.home.abbreviation),away=norm(game.away.abbreviation),randomSeed=seed??seedHash(game.id+":score-v1");
  const base:GameMarketReport={status:"PASS",modelStatus:"UNCALIBRATED",runs,seed:randomSeed,home,away,homeProjected:null,awayProjected:null,totalProjected:null,marginProjected:null,injuryEffects:[],sampleGames:{home:0,away:0},markets:[],notes:[
  "Historical score-driven team model. Current opponent form and home-field are weighted research inputs.",
@@ -54,7 +54,11 @@ export function simulateGameMarkets(game:NflGame,games:PlayedGame[],unavailable:
  "Uncalibrated raw frequencies are not fair odds, BetMGM prices, or verified betting edges."
  ]};
  if(!Number.isInteger(runs)||runs<100||runs>30000)throw Error("Invalid trial count");
- if(game.status!=="scheduled"||!game.week||!game.season||!Number.isFinite(Date.parse(game.kickoff))||Date.parse(game.kickoff)<=Date.now())return {...base,reason:"Fixture is not upcoming with verified week/season"};
+ const isReplay=historicalReplay===true&&game.status==="final"&&game.kickoff===""&&
+  Number.isInteger(game.week)&&Number.isInteger(game.season);
+ if(!isReplay&&(game.status!=="scheduled"||!game.week||!game.season||
+  !Number.isFinite(Date.parse(game.kickoff))||Date.parse(game.kickoff)<=Date.now()))
+   return {...base,reason:"Only upcoming fixtures or strict historical week-based replays are supported"};
  const earlier=games.filter(g=>g.season===game.season&&g.week<game.week!);
  const h=recentScores(home,earlier),a=recentScores(away,earlier);
  base.sampleGames={home:h.scored.length,away:a.scored.length};
