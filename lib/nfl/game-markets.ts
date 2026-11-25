@@ -1,9 +1,10 @@
 import type { NflGame } from "./engine";
 import type { WeeklyUsage } from "./nflverse";
+import { inferQuarterbackRole, type QuarterbackRole } from "./qb-availability";
 export type PlayedGame={id:string;season:number;week:number;home:string;away:string;homeScore:number;awayScore:number};
 export type UnavailablePlayer={id:string;name:string;team:string;status:string;source:string};
 export type GameMarket={id:string;market:"moneyline"|"spread"|"total";side:"home"|"away"|"over"|"under";line:number|null;label:string;rawRate:number};
-export type GameMarketReport={status:"READY"|"PASS";reason?:string;modelStatus:"UNCALIBRATED";runs:number;seed:number;home:string;away:string;homeProjected:number|null;awayProjected:number|null;totalProjected:number|null;marginProjected:number|null;injuryEffects:Array<{team:string;lostPoints:number;players:string[]}>;sampleGames:{home:number;away:number};markets:GameMarket[];notes:string[]};
+export type GameMarketReport={status:"READY"|"PASS";reason?:string;modelStatus:"UNCALIBRATED";runs:number;seed:number;home:string;away:string;homeProjected:number|null;awayProjected:number|null;totalProjected:number|null;marginProjected:number|null;injuryEffects:Array<{team:string;lostPoints:number;players:string[]}>;sampleGames:{home:number;away:number};markets:GameMarket[];notes:string[];quarterbacks?:{home:QuarterbackRole;away:QuarterbackRole};projectionQuality?:"NORMAL"|"LIMITED_QB";};
 const norm=(s:string)=>({WSH:"WAS",JAX:"JAC",LA:"LAR",ARZ:"ARI",STL:"LAR"} as Record<string,string>)[s.toUpperCase()]??s.toUpperCase();
 const clamp=(x:number,a:number,b:number)=>Math.max(a,Math.min(x,b));
 const average=(a:number[])=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;
@@ -37,7 +38,7 @@ function injuryAdjustment(team:string,week:number,unavailable:UnavailablePlayer[
   const rows=usage.filter(r=>r.team===team&&r.id===p.id&&r.week<week).sort((a,b)=>b.week-a.week).slice(0,3);
   if(!rows.length)continue;
   const t=average(rows.map(r=>r.targets??0)),c=average(rows.map(r=>r.carries??0)),a=average(rows.map(r=>r.passingAttempts??0));
-  if(a>=18){lostQB=true;selected.push(p.name);continue;}
+  if(a>=18){lostQB=true;continue;}
   const effect=clamp(Math.max(t*.2,c*.09),0,2.3);
   if(effect>.1){penalty+=effect;selected.push(p.name);}
  }
@@ -59,15 +60,29 @@ export function simulateGameMarkets(game:NflGame,games:PlayedGame[],unavailable:
  base.sampleGames={home:h.scored.length,away:a.scored.length};
  if(h.scored.length<4||a.scored.length<4)return {...base,reason:"Insufficient verified prior scoring histories"};
  const hi=injuryAdjustment(home,game.week,unavailable,usage),ai=injuryAdjustment(away,game.week,unavailable,usage);
- base.injuryEffects=[{team:home,lostPoints:hi.lostPoints,players:hi.players},{team:away,lostPoints:ai.lostPoints,players:ai.players}];
- if(hi.lostQB||ai.lostQB)return {...base,reason:"Unavailable starting quarterback requires verified replacement scenario"};
- const hMean=clamp(.68*(weighted(h.scored)+weighted(a.allowed))*.5+.32*22.5+1.2-hi.lostPoints,8,37);
- const aMean=clamp(.68*(weighted(a.scored)+weighted(h.allowed))*.5+.32*22.5-1.2-ai.lostPoints,8,37);
+ const homeQB=inferQuarterbackRole(home,game.week,usage,unavailable);
+ const awayQB=inferQuarterbackRole(away,game.week,usage,unavailable);
+ const homeUncertain=homeQB.status==="UNVERIFIED_REPLACEMENT"||homeQB.status==="NO_TEAM_QB_HISTORY";
+ const awayUncertain=awayQB.status==="UNVERIFIED_REPLACEMENT"||awayQB.status==="NO_TEAM_QB_HISTORY";
+ base.quarterbacks={home:homeQB,away:awayQB};
+ base.projectionQuality=homeUncertain||awayUncertain?"LIMITED_QB":"NORMAL";
+ // Team points remain researchable from scored-game histories even when
+ // replacement starter is unconfirmed; uncertainty is wider and confidence LOWER.
+ // Already replaced historical starters are not penalized twice.
+ const homeQBAdjustment=homeUncertain?2.0:0;
+ const awayQBAdjustment=awayUncertain?2.0:0;
+ base.injuryEffects=[{team:home,lostPoints:hi.lostPoints+homeQBAdjustment,players:hi.players},
+   {team:away,lostPoints:ai.lostPoints+awayQBAdjustment,players:ai.players}];
+ if(homeUncertain||awayUncertain)base.notes.push(
+   "Quarterback replacement is not confirmed by recent starts; model uses wider score uncertainty and conservative team-score adjustment. This is NOT a verified starter forecast."
+ );
+ const hMean=clamp(.68*(weighted(h.scored)+weighted(a.allowed))*.5+.32*22.5+1.2-hi.lostPoints-homeQBAdjustment,8,37);
+ const aMean=clamp(.68*(weighted(a.scored)+weighted(h.allowed))*.5+.32*22.5-1.2-ai.lostPoints-awayQBAdjustment,8,37);
  const r=prng(randomSeed),homeScores=new Int16Array(runs),awayScores=new Int16Array(runs);
  for(let i=0;i<runs;i++){
   const shared=gaussian(r)*3.6;
-  let hs=Math.round(clamp(hMean+shared+gaussian(r)*8.9,0,62));
-  let as=Math.round(clamp(aMean+shared+gaussian(r)*8.9,0,62));
+  let hs=Math.round(clamp(hMean+shared+gaussian(r)*(homeUncertain?11.9:8.9),0,62));
+  let as=Math.round(clamp(aMean+shared+gaussian(r)*(awayUncertain?11.9:8.9),0,62));
   if(hs===as && r()>.006){
     // NFL overtime usually resolves tied regulation scores. Heuristic only;
     // not a calibrated OT model; ties remain possible.
