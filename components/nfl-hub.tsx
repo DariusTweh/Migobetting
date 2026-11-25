@@ -1,14 +1,18 @@
 "use client";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { RefreshCw, ArrowRight, Copy, ShieldAlert } from "lucide-react";
 import type { NflGame, NflProp } from "@/lib/nfl/engine";
 import type { NflSimulationSummary, JointScenario } from "@/lib/nfl/simulation";
+import type { GameMarketReport, UnavailablePlayer } from "@/lib/nfl/game-markets";
 type Board = { games: NflGame[]; errors: string[]; fetchedAt: string };
 type Preview = {
   game: NflGame; version: string; fetchedAt: string;
   coverage: { completedGames: number; playerLines: number; homeHistory: number; awayHistory: number; note: string };
   props: NflProp[]; probabilityStatus: "UNCALIBRATED"; error?: string;
   simulation?: NflSimulationSummary;
+  gameMarkets?: GameMarketReport;
+  unavailablePlayers?: UnavailablePlayer[];
   supplementalCoverage?: {
     stats: "available" | "unavailable"; snaps: "available" | "unavailable";
     injuries: "available" | "unavailable"; statsRows: number; snapsRows: number;
@@ -28,11 +32,13 @@ export function NflHub({ initialData }: { initialData: Board }) {
   const [selectedLegs, setSelectedLegs] = useState<string[]>([]);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
+  const [marketTab, setMarketTab] = useState<"moneyline"|"spread"|"total">("moneyline");
+  const [selectedMarkets, setSelectedMarkets] = useState<string[]>([]);
   const [joint, setJoint] = useState<JointScenario | null>(null);
   const [jointBusy, setJointBusy] = useState(false);
   const [jointError, setJointError] = useState("");
   const current = board.games.find((game) => game.id === selected);
-  useEffect(() => { setSelectedLegs([]); setPreview(null); setError(""); setJoint(null); setJointError(""); }, [selected]);
+  useEffect(() => { setSelectedLegs([]); setSelectedMarkets([]); setPreview(null); setError(""); setJoint(null); setJointError(""); }, [selected]);
   async function refreshBoard() {
     setLoading(true);
     try {
@@ -59,13 +65,24 @@ export function NflHub({ initialData }: { initialData: Board }) {
     setJoint(null); setJointError("");
     setSelectedLegs((before) => {
       if (before.includes(p.id)) return before.filter((id) => id !== p.id);
-      if (before.length >= 6) return before;
+      if (before.length + selectedMarkets.length >= 6) return before;
       // Limit one prop per player, and avoid same-player markets as independent legs.
       return [...before.filter((id) => !id.startsWith(p.athleteId + ":")), p.id];
     });
   }
+  function toggleMarket(id:string, market:"moneyline"|"spread"|"total"){
+    setJoint(null);setJointError("");
+    setSelectedMarkets(before=>{
+      if(before.includes(id))return before.filter(item=>item!==id);
+      const markets=preview?.gameMarkets?.markets??[];
+      const existing=before.filter(item=>markets.find(m=>m.id===item)?.market!==market);
+      if(existing.length+selectedLegs.length>=6)return before;
+      return [...existing,id];
+    });
+  }
+  const chosenMarkets=(preview?.gameMarkets?.markets??[]).filter(m=>selectedMarkets.includes(m.id));
   async function analyzeJoint() {
-    if (!selected || selectedLegs.length < 2 || jointBusy) return;
+    if (!selected || selectedLegs.length < 2 || selectedMarkets.length || jointBusy) return;
     setJoint(null); setJointError(""); setJointBusy(true);
     try {
       const params = new URLSearchParams({eventId:selected, legs:selectedLegs.join(",")});
@@ -79,10 +96,14 @@ export function NflHub({ initialData }: { initialData: Board }) {
   }
   const simulationLookup = new Map((preview?.simulation?.props ?? []).map((p) => [p.id,p]));
   async function copy() {
-    if (!selectedProps.length) return;
-    await navigator.clipboard.writeText("MIGO NFL RESEARCH SLIP — NOT A BOOKMAKER BET\n" +
-      selectedProps.map((p,i) => (i + 1) + ". " + printLeg(p)).join("\n") +
-      "\nUncalibrated analysis. Verify active players, final odds and market availability.");
+    if(!selectedProps.length&&!chosenMarkets.length)return;
+    const lines=[
+      ...chosenMarkets.map(m=>m.label+" — game market (hypothetical line)"),
+      ...selectedProps.map(printLeg),
+    ];
+    await navigator.clipboard.writeText("MIGO NFL RESEARCH SLIP — NO VERIFIED SPORTSBOOK ODDS\n"+
+      lines.map((p,i)=>(i+1)+". "+p).join("\n")+
+      "\nUNCALIBRATED. Mixed game-and-player joint probability not validated. Verify final injuries, prices and market availability.");
     setCopied(true);
   }
   return <div className="nfl-page">
@@ -90,9 +111,9 @@ export function NflHub({ initialData }: { initialData: Board }) {
       <div><div className="eyebrow">MIGO Football Intelligence · NFL scenario lab</div>
         <h1>NFL Prop Lab</h1>
         <p>Data-first alternate yardage and receptions research, with explicit evidence and risk gates. No hindsight forecasts.</p></div>
-      <button className="button" onClick={refreshBoard} disabled={loading}><RefreshCw size={16}/> Refresh</button>
+      <div className="nfl-cal-actions"><Link className="button" href="/nfl/validation">Validation &amp; calibration</Link><button className="button" onClick={refreshBoard} disabled={loading}><RefreshCw size={16}/> Refresh</button></div>
     </header>
-    <div className="nfl-warning"><ShieldAlert size={18}/><span><strong>UNCALIBRATED RESEARCH ONLY.</strong> The 30,000-trial simulation estimates what its assumptions would produce, not independently verified win probabilities, value odds, or guarantees. Historical targets and snap counts are available; game-day active status, routes, weather and BetMGM prices remain unverified.</span></div>
+    <div className="nfl-warning"><ShieldAlert size={18}/><span><strong>UNCALIBRATED RESEARCH ONLY.</strong> Game markets and player props use distinct research simulations. Their rates cannot yet be combined into a validated cross-market parlay probability. Verified IR exclusions are applied, but game-day actives, weather, routes and BetMGM quotes remain unverified.</span></div>
     {error && <p className="nfl-error" role="alert">{error}</p>}
     {board.errors.length > 0 && <p className="nfl-footnote">Some ESPN dates could not refresh; games may be missing.</p>}
     <section className="nfl-layout">
@@ -126,6 +147,42 @@ export function NflHub({ initialData }: { initialData: Board }) {
             <small>Source: {preview.supplementalCoverage.attribution}. Incomplete sources do not count as verified player availability.</small>
           </div> : null}
           <p className="nfl-footnote">{preview.coverage.note} Pick ratings use Usage 35%, Matchup 25%, Script 20%, Efficiency 10%, Context 10%; unknown inputs cannot count as confirmed strengths. Player opportunities are historical; official game-day active status is still unverified.</p>
+          <div className="nfl-injury-board">
+            <strong>Injury / roster exclusions ({preview.unavailablePlayers?.length ?? 0})</strong>
+            {preview.unavailablePlayers?.length ?
+              <div className="nfl-injury-list">{preview.unavailablePlayers.slice(0,15).map(p=>
+                <div key={p.team+":"+p.id}><b>{p.team} · {p.name}</b><span>{p.status} · {p.source}</span></div>)}</div>
+              : <p className="nfl-footnote">No matched confirmed unavailable players in the current sources. This does NOT verify all athletes are active.</p>}
+            <p className="nfl-footnote">Roster unavailable statuses are separate from weekly injury designations; injured-reserve athletes may not appear in a game-week report.</p>
+          </div>
+          <div className="nfl-game-markets">
+            <div className="nfl-section-head"><h3>Game odds research · moneyline, spread &amp; total</h3><span>Model-only · no bookmaker prices</span></div>
+            {preview.gameMarkets?.status==="READY" ? <>
+              <div className="nfl-projected-score">
+                <div><span>{preview.game.away.abbreviation}</span><strong>{preview.gameMarkets.awayProjected?.toFixed(1) ?? "—"}</strong></div>
+                <div><span>{preview.game.home.abbreviation}</span><strong>{preview.gameMarkets.homeProjected?.toFixed(1) ?? "—"}</strong></div>
+                <div><span>Projected combined points</span><strong>{preview.gameMarkets.totalProjected?.toFixed(1) ?? "—"}</strong></div>
+              </div>
+              <div className="nfl-markets-tabs">
+                {(["moneyline","spread","total"] as const).map(m=><button key={m} type="button"
+                  className={marketTab===m?"active":""} onClick={()=>setMarketTab(m)}>{m==="total"?"Totals":m==="moneyline"?"Moneyline":"Spreads"}</button>)}
+              </div>
+              <div className="nfl-market-list">{preview.gameMarkets.markets.filter(m=>m.market===marketTab)
+                .slice(0,marketTab==="moneyline"?2:marketTab==="spread"?20:14)
+                .map(m=><div className="nfl-market-row" key={m.id}>
+                  <span>{m.label}</span><div><strong>{(m.rawRate*100).toFixed(1)}%</strong><small>raw scenario frequency</small>
+                  <button type="button" className="nfl-market-select" onClick={()=>toggleMarket(m.id,m.market)}
+                    aria-pressed={selectedMarkets.includes(m.id)}>
+                    {selectedMarkets.includes(m.id)?"Remove":"Add to research slip"}
+                  </button></div>
+                </div>)}</div>
+              <div className="nfl-market-caveat">
+                Scored history: {preview.gameMarkets.sampleGames.away} {preview.gameMarkets.away} / {preview.gameMarkets.sampleGames.home} {preview.gameMarkets.home} games.
+                Injury adjustments: {preview.gameMarkets.injuryEffects.map(i=>i.team+" -"+i.lostPoints.toFixed(1)+" pts"+(i.players.length?" ("+i.players.join(", ")+")":"")).join(" · ")}.
+                These adjustment values are uncalibrated heuristics and alternative lines are hypothetical unless offered by BetMGM.
+              </div>
+            </> : <p className="nfl-error">Game market PASS: {preview.gameMarkets?.reason || "Verified scoring inputs are unavailable."}</p>}
+          </div>
           {preview.simulation?.status === "READY" ? <div className="nfl-simulation-summary">
             <strong>Model simulation · {preview.simulation.runs.toLocaleString()} trials</strong>
             <span>Seed {preview.simulation.seed} · {preview.simulation.modelVersion}</span>
@@ -163,15 +220,16 @@ export function NflHub({ initialData }: { initialData: Board }) {
         </div>}
       </div>
     </section>
-    {selectedProps.length ? <section className="panel nfl-slip">
-      <div className="panel-head"><div><h2>Research slip · {selectedProps.length}/6</h2><span>No fabricated combined odds or parlay win probability</span></div></div>
-      <ol>{selectedProps.map((p) => <li key={p.id}>{printLeg(p)} · {p.researchScore}/100 research score</li>)}</ol>
+    {(selectedProps.length||chosenMarkets.length) ? <section className="panel nfl-slip">
+      <div className="panel-head"><div><h2>Research slip · {selectedProps.length+chosenMarkets.length}/6</h2><span>Mixed-market joint probability unavailable; no sportsbook price</span></div></div>
+      <ol>{chosenMarkets.map(m=><li key={m.id}>{m.label} · {(m.rawRate*100).toFixed(1)}% raw simulated, uncalibrated</li>)}{selectedProps.map((p) => <li key={p.id}>{printLeg(p)} · {p.researchScore}/100 research score</li>)}</ol>
       <div className="nfl-slip-actions">
         <button className="button button-primary" onClick={copy}><Copy size={16}/>{copied ? "Copied" : "Copy research slip"}</button>
-        <button className="button" onClick={analyzeJoint} disabled={selectedLegs.length < 2 || jointBusy}>
+        <button className="button" onClick={analyzeJoint} disabled={selectedLegs.length < 2 || selectedMarkets.length>0 || jointBusy}>
           {jointBusy ? "Simulating joint outcomes…" : "Run correlated joint simulation"}
         </button>
       </div>
+      {selectedMarkets.length ? <p className="nfl-footnote nfl-slip-message">Cross-market correlated joint analysis is not yet implemented; adding a game market disables the player-only joint probability tool.</p>:null}
       {jointError ? <p className="nfl-error nfl-slip-message">{jointError}</p> : null}
       {joint ? <div className="nfl-joint">
         <strong>{(joint.rawModelJointRate * 100).toFixed(1)}% in-model joint hit rate</strong>

@@ -97,3 +97,76 @@ Implemented `lib/nfl/simulation.ts`, `tests/nfl-simulation.test.ts` and an inter
 3. Fit calibrators only on earlier periods; validate on held-out weeks and seasons. Require minimum counts and shrinkage where data is sparse.
 4. Persist versioned pregame predictions and actual graded outcomes for forward evaluation. Compare to simple baseline models before interpreting new complexity as improvement.
 5. Add verified game-day actives, routes/red-zone roles, opponent pressure/coverage, weather and bookmaker input. Only then enable credible fair-odds decisions and an automatic Anchor/Glory builder.
+
+## Phase 4 — Chronological diagnostic implementation (Nov 24, 2026)
+
+**User-facing page:** `/nfl/validation` with read-only `/api/nfl/validation`.
+
+**Implemented:** Verified nflverse historical fixture reconstruction, strict game-week input isolation,
+held-out scoring with Brier score / log loss / expected calibration error (ECE),
+a prior-hit-rate baseline, monotone regularized calibration fitted ONLY on training weeks,
+market-level sample counts and explicit production deployment gating.
+
+**Initial 2026 diagnostic snapshot:** From 31 eligible historical games, 299 graded eligible
+alternate prop selections were obtained. Weeks **7–8** trained an aggregate research
+mapping (156 examples); Weeks **9–10** were held out (143 examples). Held-out Brier:
+raw model **0.2128**, historical-hit-rate baseline **0.2319**, regularized aggregate
+research mapping **0.2092**. Raw ECE **0.0748**, mapped ECE **0.0557**.
+These are descriptive retrospective replay findings, NOT prospective verified odds.
+
+**Why research-only:** Sample size is limited, per-market calibration cohorts are too thin
+for individual approval, the data may include after-the-fact corrections, no truly
+frozen pregame snapshots were available, and historical Vegas spreads/totals,
+official inactives, route participation and weather were not reconstructed.
+Thus `deploymentGate: RESEARCH_ONLY` is hard-coded. The live `/nfl` model
+continues to display raw uncalibrated research estimates; no fair odds or
+automatic Glory selection is enabled.
+
+**Next:** Add 2023–2025 season archives to the walk-forward evaluation, then
+separately reserve 2026 forward predictions, add historical lines/market signals,
+evaluate by player position and prop market with minimum cohort thresholds, and
+only promote mappings if they outperform uncalibrated and baseline models
+out of sample across seasons with stable coverage.
+
+## Phase 4 extension — Injury availability + game markets (Nov 24, 2026)
+
+The NFL Lab is now a **full-match research interface**, not only player props.
+- Reads verified nflverse 2026 team scoring results from `schedules/games.csv` strictly before the target week.
+- Draws 30,000 reproducible correlated team-score samples per upcoming game. Market output:
+  home/away moneyline outcome frequency, hypothetical home/away alternate spreads
+  (half-points), and game total over/under thresholds.
+- Team-score estimation blends prior scored/allowed results, recency, neutral
+  regression, home field, and capped injury penalty heuristics. Market lines
+  are thresholds for evaluating the model, not offers; no bookmaker prices
+  or calibrated fair odds are fabricated.
+- NFL team-score simulations are currently **independent from the player-prop
+  sampling engine**, so their marginals CANNOT yet be combined into a
+  validated cross-market same-game parlay probability. The UI permits
+  mixed research slips but disables joint pricing for those slips.
+- Current season roster release `rosters/roster_2026.csv` detects official
+  unavailable reserve/IR/status entries, including players omitted from
+  current-week injury reports. Stable GSIS IDs are used to avoid name guesses.
+- Rams official Nov 13 + Nov 20 injury notices verify that **Puka Nacua is
+  placed on IR** for at least Weeks 12–14; 2026 Weeks 12–18 are conservatively
+  marked unavailable in an explicitly source-linked, time-bound editorial
+  override. This override **never** enters historical backtests.
+- Confirmed unavailable players are downgraded to PASS in the prop model,
+  excluded from target/carry simulation pools, and reflected by a bounded
+  *heuristic* point adjustment in game scores. The same absence is visible
+  in an injury/roster evidence panel.
+- Historical starter QB out without validated replacement causes a model
+  PASS rather than a guessed backup scenario.
+- Tests cover Puka official exclusion, current roster statuses, future
+  score-week leakage, deterministic market sampling, complementary totals,
+  hypothetical injury impact, and QB uncertainty.
+
+### Remaining quality gates for game markets
+1. Validate the score model out of sample by home/away outcome, half-point spread,
+   and totals threshold, reporting Brier score/log loss and per-market reliability.
+2. Add independently verified official current-week inactives and depth-chart
+   role changes. Roster status is not a verified game-day active list.
+3. Replace point adjustments and score spread with estimated, backtested,
+   lineup-dependent changes and game-total distribution.
+4. Link team-score and prop outcomes in a single joint game-level simulator.
+5. Only after held-out and prospective calibration permit a model-fair line
+   or price; keep bookmakers' offers explicitly separate.

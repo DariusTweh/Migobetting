@@ -1,4 +1,5 @@
 import type { NflGame, NflProp, NflMarket, NflBoxLine } from "./engine";
+import { parseScheduleScores, type PlayedGame, type UnavailablePlayer } from "./game-markets";
 
 /**
  * Supplemental nflverse data. All rows must be from weeks strictly before the
@@ -35,10 +36,14 @@ export type NflverseCoverage = {
   statsRows: number; snapsRows: number; injuryRows: number;
   week: number | null; season: number | null;
   attribution: string; sourceWarnings?: string[];
+  rosters?: "available" | "unavailable"; schedules?: "available" | "unavailable";
+  unavailableCount?: number; scoredGamesCount?: number;
 };
 export type NflverseSnapshot = {
   players: WeeklyUsage[]; snaps: SnapRecord[]; injuries: InjuryReport[];
   defense: PositionalAllowed[];
+  unavailable?: UnavailablePlayer[];
+  scoredGames?: PlayedGame[];
   coverage: NflverseCoverage;
 };
 
@@ -278,7 +283,10 @@ export function applyNflverseIntelligence(game: NflGame, props: NflProp[], snaps
       .sort((a,b) => b.week-a.week).slice(0, 3);
     const snapShare = avgOrNull(snapRows.map((row) => row.offensePct));
     const injury = selectUnique(snapshot.injuries, team, pick.player)[0];
-    const rawStatus = injury?.status.toLowerCase() ?? "";
+    const rosterUnavailable=(snapshot.unavailable??[]).find(p=>
+      p.team===team && (pick.athleteId==="nflverse:"+p.id ||
+        normalizePlayer(p.name)===normalizePlayer(pick.player)));
+    const rawStatus = rosterUnavailable ? "ir" : injury?.status.toLowerCase() ?? "";
     const isOut = rawStatus === "out" || rawStatus === "ir" || rawStatus === "injured reserve";
     const isDoubtful = rawStatus === "doubtful";
     const contradictoryReport = rawStatus === "unverified-conflict";
@@ -317,6 +325,7 @@ export function applyNflverseIntelligence(game: NflGame, props: NflProp[], snaps
       ratio === null ? "Opponent positional pace comparison unavailable." :
         "Opponent " + pick.position + " opportunity allowance / league baseline: " + ratio.toFixed(2) +
         "x (" + allowance!.games + " opponent games).",
+      ...(rosterUnavailable ? ["Roster availability: "+rosterUnavailable.status+" — "+rosterUnavailable.source+"."] : []),
       injury ? "Week-specific injury report: " + (injury.status || "not designated") +
         "; practice: " + (injury.practice || "unknown") + (injury.timestampVerified ? " (updated " + injury.modifiedAt + ")." : " (report row undated; observed in pregame fetch).") :
         "No matched current-week injury report. This does NOT confirm the player is active.",
@@ -337,12 +346,39 @@ export function applyNflverseIntelligence(game: NflGame, props: NflProp[], snaps
         source: "nflverse weekly stats/snap counts/injuries",
         sampleGames: recent.length, targets, carries, passingAttempts: passAttempts,
         targetShare: targetShare === null ? null : targetShare * 100,
-        snapShare, status: injury?.status || "unverified",
+        snapShare, status: rosterUnavailable?.status || injury?.status || "unverified",
         defenseRatio: ratio,
       },
     };
   }).sort((a,b) => Number(b.grade === "RESEARCH") - Number(a.grade === "RESEARCH") ||
     b.researchScore - a.researchScore);
+}
+
+/** Official current roster statuses and a narrowly time-bounded verified team IR notice. */
+export function verifiedUnavailable(game:NflGame,rosters:Record<string,string>[],players:WeeklyUsage[]):UnavailablePlayer[]{
+  if(!game.week||!game.season)return [];
+  const teams=new Set([canonicalNflTeam(game.home.abbreviation),canonicalNflTeam(game.away.abbreviation)]);
+  const out=new Map<string,UnavailablePlayer>();
+  const unavailableStatuses=new Set(["IR","RES","INJURED RESERVE","SUS","SUSPENDED","PUP","NFI","CUT","WAIVED","RET","EXE"]);
+  for(const r of rosters){
+    const team=canonicalNflTeam(r.team??r.recent_team??"");
+    const id=r.gsis_id??r.player_id??"",name=r.full_name??r.player_name??"";
+    const status=(r.status??r.status_description_abbr??"").toUpperCase().trim();
+    if(!teams.has(team)||!id||!name||!unavailableStatuses.has(status))continue;
+    out.set(team+":"+id,{id,name,team,status,source:"nflverse season roster status"});
+  }
+  // Official Rams IR announcement Nov 13, 2026, confirms Nacua unavailable
+  // for Weeks 12-14; Nov 20 report states he will be sidelined months.
+  // This evidence is scoped only to the 2026 regular season; not used in backtests.
+  if(game.season===2026 && game.week>=12 && game.week<=18 && teams.has("LAR")){
+    const p=players.filter(r=>r.team==="LAR"&&normalizePlayer(r.name)==="pukanacua")
+      .sort((a,b)=>b.week-a.week)[0];
+    if(p)out.set("LAR:"+p.id,{
+      id:p.id,name:p.name,team:"LAR",status:"IR",
+      source:"Los Angeles Rams official injury updates (Nov 13 and Nov 20, 2026): https://www.therams.com/news/mcvay-rams-placed-puka-nacua-on-ir-because-they-needed-the-roster-spot-week-10-2026-cardinals"
+    });
+  }
+  return [...out.values()];
 }
 
 export async function getNflverseSnapshot(game: NflGame, now = new Date()): Promise<NflverseSnapshot> {
@@ -360,22 +396,49 @@ export async function getNflverseSnapshot(game: NflGame, now = new Date()): Prom
     downloadCsv("stats_player/stats_player_week_" + season + ".csv", ["player_id","player_display_name","team","season","week","game_id","position"]),
     downloadCsv("snap_counts/snap_counts_" + season + ".csv", ["player","team","season","week","offense_pct"]),
     downloadCsv("injuries/injuries_" + season + ".csv", ["full_name","team","season","week"]),
+    downloadCsv("rosters/roster_" + season + ".csv", ["gsis_id","team","status"]),
+    downloadCsv("schedules/games.csv", ["game_id","season","week","gameday","home_team","away_team","home_score","away_score"]),
   ]);
   const sourceWarnings = records.flatMap((result, index) => result.status === "rejected"
-    ? [(["stats","snaps","injuries"][index]) + ": " +
+    ? [(["stats","snaps","injuries","rosters","schedules"][index]) + ": " +
       (result.reason instanceof Error ? result.reason.message.slice(0, 180) : "provider unavailable")]
     : []);
   const stats = records[0].status === "fulfilled" ? parseWeeklyUsage(records[0].value, season, week) : [];
   const snaps = records[1].status === "fulfilled" ? parseSnapCounts(records[1].value, season, week) : [];
   const injuries = records[2].status === "fulfilled" ? parseInjuries(records[2].value, season, week, cutoff) : [];
+  const rosters = records[3].status === "fulfilled" ? records[3].value : [];
+  const scoredGames = records[4].status === "fulfilled" ? parseScheduleScores(records[4].value,season,week) : [];
+  const unavailable=verifiedUnavailable(game,rosters,stats);
   return {
-    players: stats, snaps, injuries, defense: defensiveVolume(stats),
+    players: stats, snaps, injuries, defense: defensiveVolume(stats), unavailable, scoredGames,
     coverage: {
       stats: records[0].status === "fulfilled" ? "available" : "unavailable",
       snaps: records[1].status === "fulfilled" ? "available" : "unavailable",
       injuries: records[2].status === "fulfilled" ? "available" : "unavailable",
       statsRows: stats.length, snapsRows: snaps.length, injuryRows: injuries.length,
       season, week, attribution: "nflverse/nflverse-data (CC BY 4.0)", sourceWarnings,
+      rosters: records[3].status==="fulfilled"?"available":"unavailable",
+      schedules: records[4].status==="fulfilled"?"available":"unavailable",
+      unavailableCount:unavailable.length, scoredGamesCount:scoredGames.length,
     },
   };
+}
+
+/** Full single-season source for historical replay. Never reuse live current-week
+ *  injury rows in retrospective forecasts: their historical update times are
+ *  unavailable in the 2026 nflverse release. */
+export async function getNflverseHistoricalSeason(season: number) {
+  if (!Number.isInteger(season) || season < 2023 || season > 2026) {
+    throw Error("Unsupported NFL historical season");
+  }
+  const [stats, snaps] = await Promise.all([
+    downloadCsv("stats_player/stats_player_week_" + season + ".csv",
+      ["player_id","player_display_name","team","season","week","game_id","position"]),
+    downloadCsv("snap_counts/snap_counts_" + season + ".csv",
+      ["player","team","season","week","offense_pct"]),
+  ]);
+  const players = parseWeeklyUsage(stats, season, 23);
+  const participation = parseSnapCounts(snaps, season, 23);
+  return { season, players, snaps: participation,
+    source: "nflverse/nflverse-data (CC BY 4.0); current-season archive may include retrospective corrections" };
 }
