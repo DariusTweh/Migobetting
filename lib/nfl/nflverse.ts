@@ -411,9 +411,9 @@ export async function getNflverseSnapshot(game: NflGame, now = new Date()): Prom
   const scoredGames = records[4].status === "fulfilled" ? parseScheduleScores(records[4].value,season,week) : [];
   // Previous completed seasons exclusively. Never train on this fixture week
   // or any later result in the target season.
-  const historicalScoring = records[4].status === "fulfilled" ?
-    [2023,2024,2025].filter(year=>year<season)
-      .flatMap(year=>parseScheduleScores(records[4].value,year,23)) : [];
+  const historicalScheduleRows = records[4].status==="fulfilled" ? records[4].value : [];
+  const historicalScoring = [2023,2024,2025].filter(year=>year<season)
+    .flatMap(year=>parseScheduleScores(historicalScheduleRows,year,23));
   const unavailable=verifiedUnavailable(game,rosters,stats);
   return {
     players: stats, snaps, injuries, defense: defensiveVolume(stats), unavailable, scoredGames, historicalScoring,
