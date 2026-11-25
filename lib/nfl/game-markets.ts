@@ -1,10 +1,11 @@
 import type { NflGame } from "./engine";
 import type { WeeklyUsage } from "./nflverse";
 import { inferQuarterbackRole, type QuarterbackRole } from "./qb-availability";
+import { trainNflScorePrior, type NflScoreTraining } from "./scoring-training";
 export type PlayedGame={id:string;season:number;week:number;home:string;away:string;homeScore:number;awayScore:number};
 export type UnavailablePlayer={id:string;name:string;team:string;status:string;source:string};
 export type GameMarket={id:string;market:"moneyline"|"spread"|"total";side:"home"|"away"|"over"|"under";line:number|null;label:string;rawRate:number};
-export type GameMarketReport={status:"READY"|"PASS";reason?:string;modelStatus:"UNCALIBRATED";runs:number;seed:number;home:string;away:string;homeProjected:number|null;awayProjected:number|null;totalProjected:number|null;marginProjected:number|null;injuryEffects:Array<{team:string;lostPoints:number;players:string[]}>;sampleGames:{home:number;away:number};markets:GameMarket[];notes:string[];quarterbacks?:{home:QuarterbackRole;away:QuarterbackRole};projectionQuality?:"NORMAL"|"LIMITED_QB";};
+export type GameMarketReport={status:"READY"|"PASS";reason?:string;modelStatus:"UNCALIBRATED";runs:number;seed:number;home:string;away:string;homeProjected:number|null;awayProjected:number|null;totalProjected:number|null;marginProjected:number|null;injuryEffects:Array<{team:string;lostPoints:number;players:string[]}>;sampleGames:{home:number;away:number};markets:GameMarket[];notes:string[];quarterbacks?:{home:QuarterbackRole;away:QuarterbackRole};projectionQuality?:"NORMAL"|"LIMITED_QB";trainedScores?:NflScoreTraining;};
 const norm=(s:string)=>({WSH:"WAS",JAX:"JAC",LA:"LAR",ARZ:"ARI",STL:"LAR"} as Record<string,string>)[s.toUpperCase()]??s.toUpperCase();
 const clamp=(x:number,a:number,b:number)=>Math.max(a,Math.min(x,b));
 const average=(a:number[])=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;
@@ -44,7 +45,7 @@ function injuryAdjustment(team:string,week:number,unavailable:UnavailablePlayer[
  }
  return {lostPoints:Math.round(Math.min(4,penalty)*10)/10,players:selected,lostQB};
 }
-export function simulateGameMarkets(game:NflGame,games:PlayedGame[],unavailable:UnavailablePlayer[],usage:WeeklyUsage[],runs=30000,seed?:number,historicalReplay=false):GameMarketReport{
+export function simulateGameMarkets(game:NflGame,games:PlayedGame[],unavailable:UnavailablePlayer[],usage:WeeklyUsage[],runs=30000,seed?:number,historicalReplay=false,trainingHistory:PlayedGame[]=[]):GameMarketReport{
  const home=norm(game.home.abbreviation),away=norm(game.away.abbreviation),randomSeed=seed??seedHash(game.id+":score-v1");
  const base:GameMarketReport={status:"PASS",modelStatus:"UNCALIBRATED",runs,seed:randomSeed,home,away,homeProjected:null,awayProjected:null,totalProjected:null,marginProjected:null,injuryEffects:[],sampleGames:{home:0,away:0},markets:[],notes:[
  "Historical score-driven team model. Current opponent form and home-field are weighted research inputs.",
@@ -60,6 +61,11 @@ export function simulateGameMarkets(game:NflGame,games:PlayedGame[],unavailable:
   !Number.isFinite(Date.parse(game.kickoff))||Date.parse(game.kickoff)<=Date.now()))
    return {...base,reason:"Only upcoming fixtures or strict historical week-based replays are supported"};
  const earlier=games.filter(g=>g.season===game.season&&g.week<game.week!);
+ // Refit cached-in-request scoring parameters from prior seasons plus
+ // completed earlier current-season weeks; never use target week outcomes.
+ const history=trainingHistory.filter(g=>g.season<game.season!);
+ const trainedScores=trainNflScorePrior([...history,...earlier]);
+ base.trainedScores=trainedScores;
  const h=recentScores(home,earlier),a=recentScores(away,earlier);
  base.sampleGames={home:h.scored.length,away:a.scored.length};
  if(h.scored.length<4||a.scored.length<4)return {...base,reason:"Insufficient verified prior scoring histories"};
@@ -80,13 +86,20 @@ export function simulateGameMarkets(game:NflGame,games:PlayedGame[],unavailable:
  if(homeUncertain||awayUncertain)base.notes.push(
    "Quarterback replacement is not confirmed by recent starts; model uses wider score uncertainty and conservative team-score adjustment. This is NOT a verified starter forecast."
  );
- const hMean=clamp(.68*(weighted(h.scored)+weighted(a.allowed))*.5+.32*22.5+1.2-hi.lostPoints-homeQBAdjustment,8,37);
- const aMean=clamp(.68*(weighted(a.scored)+weighted(h.allowed))*.5+.32*22.5-1.2-ai.lostPoints-awayQBAdjustment,8,37);
+ const alpha=trainedScores.recencyWeight;
+ const neutral=trainedScores.leaguePointsPerTeam;
+ const advantage=trainedScores.homeAdvantage;
+ const hMean=clamp(alpha*(weighted(h.scored)+weighted(a.allowed))*.5+
+   (1-alpha)*neutral+advantage-hi.lostPoints-homeQBAdjustment,8,37);
+ const aMean=clamp(alpha*(weighted(a.scored)+weighted(h.allowed))*.5+
+   (1-alpha)*neutral-advantage-ai.lostPoints-awayQBAdjustment,8,37);
  const r=prng(randomSeed),homeScores=new Int16Array(runs),awayScores=new Int16Array(runs);
  for(let i=0;i<runs;i++){
-  const shared=gaussian(r)*3.6;
-  let hs=Math.round(clamp(hMean+shared+gaussian(r)*(homeUncertain?11.9:8.9),0,62));
-  let as=Math.round(clamp(aMean+shared+gaussian(r)*(awayUncertain?11.9:8.9),0,62));
+  const shared=gaussian(r)*trainedScores.sharedScoreStd;
+  const independentStd=Math.sqrt(Math.max(20,
+    trainedScores.scoreResidualStd**2-trainedScores.sharedScoreStd**2));
+  let hs=Math.round(clamp(hMean+shared+gaussian(r)*(homeUncertain?independentStd*1.3:independentStd),0,62));
+  let as=Math.round(clamp(aMean+shared+gaussian(r)*(awayUncertain?independentStd*1.3:independentStd),0,62));
   if(hs===as && r()>.006){
     // NFL overtime usually resolves tied regulation scores. Heuristic only;
     // not a calibrated OT model; ties remain possible.
