@@ -283,7 +283,10 @@ export function applyNflverseIntelligence(game: NflGame, props: NflProp[], snaps
       .sort((a,b) => b.week-a.week).slice(0, 3);
     const snapShare = avgOrNull(snapRows.map((row) => row.offensePct));
     const injury = selectUnique(snapshot.injuries, team, pick.player)[0];
-    const rawStatus = injury?.status.toLowerCase() ?? "";
+    const rosterUnavailable=(snapshot.unavailable??[]).find(p=>
+      p.team===team && (pick.athleteId==="nflverse:"+p.id ||
+        normalizePlayer(p.name)===normalizePlayer(pick.player)));
+    const rawStatus = rosterUnavailable ? "ir" : injury?.status.toLowerCase() ?? "";
     const isOut = rawStatus === "out" || rawStatus === "ir" || rawStatus === "injured reserve";
     const isDoubtful = rawStatus === "doubtful";
     const contradictoryReport = rawStatus === "unverified-conflict";
@@ -322,6 +325,7 @@ export function applyNflverseIntelligence(game: NflGame, props: NflProp[], snaps
       ratio === null ? "Opponent positional pace comparison unavailable." :
         "Opponent " + pick.position + " opportunity allowance / league baseline: " + ratio.toFixed(2) +
         "x (" + allowance!.games + " opponent games).",
+      ...(rosterUnavailable ? ["Roster availability: "+rosterUnavailable.status+" — "+rosterUnavailable.source+"."] : []),
       injury ? "Week-specific injury report: " + (injury.status || "not designated") +
         "; practice: " + (injury.practice || "unknown") + (injury.timestampVerified ? " (updated " + injury.modifiedAt + ")." : " (report row undated; observed in pregame fetch).") :
         "No matched current-week injury report. This does NOT confirm the player is active.",
@@ -342,7 +346,7 @@ export function applyNflverseIntelligence(game: NflGame, props: NflProp[], snaps
         source: "nflverse weekly stats/snap counts/injuries",
         sampleGames: recent.length, targets, carries, passingAttempts: passAttempts,
         targetShare: targetShare === null ? null : targetShare * 100,
-        snapShare, status: injury?.status || "unverified",
+        snapShare, status: rosterUnavailable?.status || injury?.status || "unverified",
         defenseRatio: ratio,
       },
     };
