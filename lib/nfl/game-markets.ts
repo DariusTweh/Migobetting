@@ -45,7 +45,7 @@ function injuryAdjustment(team:string,week:number,unavailable:UnavailablePlayer[
  }
  return {lostPoints:Math.round(Math.min(4,penalty)*10)/10,players:selected,lostQB};
 }
-export function simulateGameMarkets(game:NflGame,games:PlayedGame[],unavailable:UnavailablePlayer[],usage:WeeklyUsage[],runs=30000,seed?:number,historicalReplay=false,trainingHistory:PlayedGame[]=[]):GameMarketReport{
+export function simulateGameMarkets(game:NflGame,games:PlayedGame[],unavailable:UnavailablePlayer[],usage:WeeklyUsage[],runs=30000,seed?:number,historicalReplay=false,trainingHistory:PlayedGame[]=[],fixedPrior?:NflScoreTraining):GameMarketReport{
  const home=norm(game.home.abbreviation),away=norm(game.away.abbreviation),randomSeed=seed??seedHash(game.id+":score-v1");
  const base:GameMarketReport={status:"PASS",modelStatus:"UNCALIBRATED",runs,seed:randomSeed,home,away,homeProjected:null,awayProjected:null,totalProjected:null,marginProjected:null,injuryEffects:[],sampleGames:{home:0,away:0},markets:[],notes:[
  "Historical score-driven team model. Current opponent form and home-field are weighted research inputs.",
@@ -64,7 +64,7 @@ export function simulateGameMarkets(game:NflGame,games:PlayedGame[],unavailable:
  // Refit cached-in-request scoring parameters from prior seasons plus
  // completed earlier current-season weeks; never use target week outcomes.
  const history=trainingHistory.filter(g=>g.season<game.season!);
- const trainedScores=trainNflScorePrior([...history,...earlier]);
+ const trainedScores=fixedPrior??trainNflScorePrior([...history,...earlier]);
  base.trainedScores=trainedScores;
  const h=recentScores(home,earlier),a=recentScores(away,earlier);
  base.sampleGames={home:h.scored.length,away:a.scored.length};
@@ -72,8 +72,8 @@ export function simulateGameMarkets(game:NflGame,games:PlayedGame[],unavailable:
  const hi=injuryAdjustment(home,game.week,unavailable,usage),ai=injuryAdjustment(away,game.week,unavailable,usage);
  const homeQB=inferQuarterbackRole(home,game.week,usage,unavailable);
  const awayQB=inferQuarterbackRole(away,game.week,usage,unavailable);
- const homeUncertain=homeQB.status==="UNVERIFIED_REPLACEMENT"||homeQB.status==="NO_TEAM_QB_HISTORY";
- const awayUncertain=awayQB.status==="UNVERIFIED_REPLACEMENT"||awayQB.status==="NO_TEAM_QB_HISTORY";
+ const homeUncertain=!isReplay&&(homeQB.status==="UNVERIFIED_REPLACEMENT"||homeQB.status==="NO_TEAM_QB_HISTORY");
+ const awayUncertain=!isReplay&&(awayQB.status==="UNVERIFIED_REPLACEMENT"||awayQB.status==="NO_TEAM_QB_HISTORY");
  base.quarterbacks={home:homeQB,away:awayQB};
  base.projectionQuality=homeUncertain||awayUncertain?"LIMITED_QB":"NORMAL";
  // Team points remain researchable from scored-game histories even when
