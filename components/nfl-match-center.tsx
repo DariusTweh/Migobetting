@@ -199,6 +199,8 @@ export function NflMatchCenter({game}:{game:NflGame}){
        <div className="nm-player-metrics"><div><span>Simulated mean</span><strong>{s?fmt(s.simulatedMean):"—"}</strong></div><div><span>10th–90th range</span><strong>{s?fmt(s.p10,0)+"–"+fmt(s.p90,0):"—"}</strong></div><div><span>Recent cleared</span><strong>{p.historicalHits}/{p.sampleGames}</strong></div></div>
        <div className="nm-form"><div><span>RECENT GAME LOG</span><small>last {p.recentValues.length} listed</small></div>
         <div className="nm-form-bars">{p.recentValues.map((v,i)=><div key={i} title={String(v)}><span className={v>=p.line?"cleared":""} style={{height:Math.max(5,Math.min(100,100*v/max))+"%"}}/><small>{Math.round(v)}</small></div>)}</div></div>
+       {p.grade==="PASS"&&p.decisionReasons?.length?
+         <div className="nm-pass-reason"><ShieldAlert size={14}/><span>PASS reason: {p.decisionReasons.slice(0,2).join(" ")}</span></div>:null}
        <details className="nm-prop-details"><summary>View usage & risk analysis <ChevronRight size={15}/></summary>
         <div className="nm-prop-evidence">{p.evidence.map((e,i)=><p key={i}><Check size={13}/>{e}</p>)}{p.risks.map((e,i)=><p key={"r"+i}><AlertTriangle size={13}/>{e}</p>)}</div></details>
        <button type="button" className={"nm-add-button "+(selected(p.id)?"selected":"")} disabled={!isEligible} onClick={()=>add({id:p.id,label:p.player+" · "+p.label,kind:"prop",market:p.market})}>
