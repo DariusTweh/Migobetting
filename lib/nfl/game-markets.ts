@@ -60,6 +60,7 @@ export function simulateGameMarkets(game:NflGame,games:PlayedGame[],unavailable:
  if(!isReplay&&(game.status!=="scheduled"||!game.week||!game.season||
   !Number.isFinite(Date.parse(game.kickoff))||Date.parse(game.kickoff)<=Date.now()))
    return {...base,reason:"Only upcoming fixtures or strict historical week-based replays are supported"};
+ const gameWeek=game.week!;
  const earlier=games.filter(g=>g.season===game.season&&g.week<game.week!);
  // Refit cached-in-request scoring parameters from prior seasons plus
  // completed earlier current-season weeks; never use target week outcomes.
@@ -69,9 +70,9 @@ export function simulateGameMarkets(game:NflGame,games:PlayedGame[],unavailable:
  const h=recentScores(home,earlier),a=recentScores(away,earlier);
  base.sampleGames={home:h.scored.length,away:a.scored.length};
  if(h.scored.length<4||a.scored.length<4)return {...base,reason:"Insufficient verified prior scoring histories"};
- const hi=injuryAdjustment(home,game.week,unavailable,usage),ai=injuryAdjustment(away,game.week,unavailable,usage);
- const homeQB=inferQuarterbackRole(home,game.week,usage,unavailable);
- const awayQB=inferQuarterbackRole(away,game.week,usage,unavailable);
+ const hi=injuryAdjustment(home,gameWeek,unavailable,usage),ai=injuryAdjustment(away,gameWeek,unavailable,usage);
+ const homeQB=inferQuarterbackRole(home,gameWeek,usage,unavailable);
+ const awayQB=inferQuarterbackRole(away,gameWeek,usage,unavailable);
  const homeUncertain=!isReplay&&(homeQB.status==="UNVERIFIED_REPLACEMENT"||homeQB.status==="NO_TEAM_QB_HISTORY");
  const awayUncertain=!isReplay&&(awayQB.status==="UNVERIFIED_REPLACEMENT"||awayQB.status==="NO_TEAM_QB_HISTORY");
  base.quarterbacks={home:homeQB,away:awayQB};
