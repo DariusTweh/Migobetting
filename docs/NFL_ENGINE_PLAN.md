@@ -127,3 +127,46 @@ separately reserve 2026 forward predictions, add historical lines/market signals
 evaluate by player position and prop market with minimum cohort thresholds, and
 only promote mappings if they outperform uncalibrated and baseline models
 out of sample across seasons with stable coverage.
+
+## Phase 4 extension — Injury availability + game markets (Nov 24, 2026)
+
+The NFL Lab is now a **full-match research interface**, not only player props.
+- Reads verified nflverse 2026 team scoring results from `schedules/games.csv` strictly before the target week.
+- Draws 30,000 reproducible correlated team-score samples per upcoming game. Market output:
+  home/away moneyline outcome frequency, hypothetical home/away alternate spreads
+  (half-points), and game total over/under thresholds.
+- Team-score estimation blends prior scored/allowed results, recency, neutral
+  regression, home field, and capped injury penalty heuristics. Market lines
+  are thresholds for evaluating the model, not offers; no bookmaker prices
+  or calibrated fair odds are fabricated.
+- NFL team-score simulations are currently **independent from the player-prop
+  sampling engine**, so their marginals CANNOT yet be combined into a
+  validated cross-market same-game parlay probability. The UI permits
+  mixed research slips but disables joint pricing for those slips.
+- Current season roster release `rosters/roster_2026.csv` detects official
+  unavailable reserve/IR/status entries, including players omitted from
+  current-week injury reports. Stable GSIS IDs are used to avoid name guesses.
+- Rams official Nov 13 + Nov 20 injury notices verify that **Puka Nacua is
+  placed on IR** for at least Weeks 12–14; 2026 Weeks 12–18 are conservatively
+  marked unavailable in an explicitly source-linked, time-bound editorial
+  override. This override **never** enters historical backtests.
+- Confirmed unavailable players are downgraded to PASS in the prop model,
+  excluded from target/carry simulation pools, and reflected by a bounded
+  *heuristic* point adjustment in game scores. The same absence is visible
+  in an injury/roster evidence panel.
+- Historical starter QB out without validated replacement causes a model
+  PASS rather than a guessed backup scenario.
+- Tests cover Puka official exclusion, current roster statuses, future
+  score-week leakage, deterministic market sampling, complementary totals,
+  hypothetical injury impact, and QB uncertainty.
+
+### Remaining quality gates for game markets
+1. Validate the score model out of sample by home/away outcome, half-point spread,
+   and totals threshold, reporting Brier score/log loss and per-market reliability.
+2. Add independently verified official current-week inactives and depth-chart
+   role changes. Roster status is not a verified game-day active list.
+3. Replace point adjustments and score spread with estimated, backtested,
+   lineup-dependent changes and game-total distribution.
+4. Link team-score and prop outcomes in a single joint game-level simulator.
+5. Only after held-out and prospective calibration permit a model-fair line
+   or price; keep bookmakers' offers explicitly separate.
