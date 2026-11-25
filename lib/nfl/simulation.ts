@@ -246,7 +246,7 @@ function simulateTeam(team: TeamModel, rng: () => number, pace: number, script: 
 const round = (x: number) => Math.round(x * 10000) / 10000;
 export function simulateNflMatchup(
   game: NflGame, snapshot: NflverseSnapshot, props: NflProp[],
-  options: { runs?: number; seed?: number; jointLegIds?: string[] } = {},
+  options: { runs?: number; seed?: number; jointLegIds?: string[]; historicalReplay?: boolean } = {},
 ): NflSimulationSummary {
   const runs = options.runs ?? NFL_SIM_DEFAULT_RUNS;
   if (!Number.isInteger(runs) || runs < 100 || runs > NFL_SIM_DEFAULT_RUNS)
@@ -271,8 +271,14 @@ export function simulateNflMatchup(
       "Sampling variance is not model uncertainty. Thirty thousand draws cannot fix biased assumptions.",
     ],
   };
-  if (game.status !== "scheduled" || !Number.isFinite(Date.parse(game.kickoff)) ||
-    Date.parse(game.kickoff) <= Date.now())
+  // A historical replay has no invented timestamp, requires a completed
+  // week-based fixture and uses only source weeks strictly before the held-out week.
+  const historical = options.historicalReplay === true &&
+    game.status === "final" && game.kickoff === "" &&
+    Number.isInteger(game.week) && Number.isInteger(game.season);
+  if (!historical && (game.status !== "scheduled" ||
+    !Number.isFinite(Date.parse(game.kickoff)) ||
+    Date.parse(game.kickoff) <= Date.now()))
     return {...base, status:"PASS", reason:"Only upcoming pregame fixtures can be simulated."};
   const spec = inputs(game,snapshot);
   if (!spec) return { ...base,status:"PASS", reason:"Insufficient verified team QB/pass/run/snap history or ambiguous QB usage."};
