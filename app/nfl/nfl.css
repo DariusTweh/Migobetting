@@ -45,3 +45,20 @@
 .nfl-intelligence span { background:#131f24; border:1px solid var(--line); border-radius:7px; padding:6px 9px; color:var(--muted); }
 .nfl-intelligence b { color:var(--text); }
 @media(max-width:560px){ .nfl-provider { grid-template-columns:1fr 1fr; } }
+
+.nfl-simulation-summary { border:1px solid #425944; background:#11221b; border-radius:11px; padding:13px; margin:15px 0; display:grid; gap:6px; font-size:12px; line-height:1.6; color:var(--muted); }
+.nfl-simulation-summary strong { font-size:13px; color:var(--lime); }
+.nfl-simulation-summary span { overflow-wrap:anywhere; font-size:11px; }
+.nfl-simulation-summary p { margin:0; }
+.nfl-simulation-summary p strong { color:var(--text); font-size:12px; }
+.nfl-probability { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin:12px 0; }
+.nfl-probability div { display:flex; flex-direction:column; gap:5px; border:1px solid var(--line); border-radius:8px; padding:9px; background:#152119; }
+.nfl-probability strong { color:var(--lime); font-size:18px; }
+.nfl-probability span { color:var(--muted); font-size:10px; line-height:1.35; }
+.nfl-slip-actions { display:flex; gap:8px; flex-wrap:wrap; padding:0 16px; }
+.nfl-slip-actions button { margin:0; }
+.nfl-slip-message { margin:12px 16px; }
+.nfl-joint { margin:14px 16px 0; padding:14px; border:1px solid var(--line); border-radius:10px; background:#10211b; display:flex; flex-direction:column; gap:8px; font-size:12px; color:var(--muted); line-height:1.5; }
+.nfl-joint strong { color:var(--lime); font-size:18px; }
+.nfl-joint p { margin:0; font-size:11px; }
+@media (max-width:560px) { .nfl-probability { grid-template-columns:1fr 1fr; } }
