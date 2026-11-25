@@ -170,3 +170,36 @@ The NFL Lab is now a **full-match research interface**, not only player props.
 4. Link team-score and prop outcomes in a single joint game-level simulator.
 5. Only after held-out and prospective calibration permit a model-fair line
    or price; keep bookmakers' offers explicitly separate.
+
+## Phase 5 — Game-specific professional NFL app and full-score learning (Nov 24–25, 2026)
+
+### Interface architecture
+- NFL fixture slate: `/nfl` with grouped dates, team badges, game status, and 1-tap deep links.
+- Dedicated matchup route: `/nfl/games/[id]` with score projection hero, overview, market tabs, player prop distribution cards with recent game form, verified injuries, transparent sources, and match-only research slip.
+- Desktop sidebar and responsive mobile cards use the existing app design language without changing the soccer fixture workflows.
+- Full ESPN/NFLverse source uncertainty shown on detailed pages. No phantom bookmaker prices or trained probability claims.
+
+### Current-week learning and replacement starters
+- Team-score priors are fit chronologically from completed 2023–2025 regular-season games + completed **previous** weeks of the active 2026 season, never current/future week outcomes.
+- Fitted parameters: league scoring prior, last-four-game versus eight-game recency shrinkage, home-field effect, and empirical scoring residual dispersion.
+- Incoming quarterback identification is based on the most recent team pass-attempt leader, not a season-long attempts leader; injured reserve players are excluded.
+- If a previously observed replacement started the most recent game, that player may be used with reduced sample support. If no starter can be verified, team-level scores remain provisional with wider variance and transparent lower-confidence annotations, while QB-specific prop eligibility is withheld.
+- Player opportunities remain based on verified current-year target, carry, and pass usage. Missing exact game-day actives, depth charts, and route participation still prevent strong confidence.
+
+### Shared 30,000-game state
+- `lib/nfl/unified.ts` builds **one** seeded scenario per trial, linking team scoring to QB pass touchdowns, passing/rushing volume, shared pace and game conditions, and the eligible player-level stat outcomes.
+- 2–6 selected player/ML/spread/total research legs can be evaluated from the same trial's outcomes. This **does not create calibrated SGP odds**; the scoring relationship and replacement effects are provisional and require out-of-sample validation.
+- If player-level simulation lacks adequate verified data, team-score markets are simulated with the full number of trials rather than quietly falling back to 250 samples. Any selected athlete lacking a valid trial distribution invalidates the joint calculation.
+
+### Score-market validation
+- `/api/nfl/game-validation` is a source-bounded endpoint comparing model ML/spreads/totals with actual 2026 results using 2023–25 trained parameters, with feature windows restricted to completed *earlier weeks*.
+- Separate score-market Brier/log loss/ECE/baseline panels are added to `/nfl/validation`.
+- No retrospective official injury snapshots, historical sportsbook odds or time-frozen actual pregame features; therefore the deployment gate remains **RESEARCH_ONLY**.
+- Testing includes QB replacements, incomplete roles, leakage, market complements, deterministic shared trials, mixed-leg ceilings, and fallback safety.
+
+### Outstanding quality work
+1. Official upcoming QB depth charts and complete active/inactive list with timestamped provenance before each fixture.
+2. Prospectively saved, immutable weekly prediction snapshots; grade against verified final box scores and score outcomes.
+3. True cross-season, per-market predictive calibration on separate hold-out years, not a simple in-sample fit or a single partial season.
+4. Better positional matchup features (coverage, pressure, O-line, red-zone), target route rates and opponent efficiency with measured weight stability.
+5. Optimize prop combinations only when model calibration passes, and clearly distinguish offered BetMGM odds from research thresholds.
