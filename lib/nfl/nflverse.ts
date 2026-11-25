@@ -315,7 +315,7 @@ export function applyNflverseIntelligence(game: NflGame, props: NflProp[], snaps
       pick.factors.efficiency * .1 + context * .1;
     const researchScore = Math.round(Math.min(ratio === null ? 70 : 75, rawScore));
     const grade = isOut || isDoubtful || contradictoryReport || thinVolume || thinSnaps ||
-      pick.historicalHits < 3 || researchScore < 60 ? "PASS" as const : "RESEARCH" as const;
+      pick.historicalHits < 3 || researchScore < 55 ? "PASS" as const : "RESEARCH" as const;
     const evidence = [
       ...pick.evidence,
       "nflverse last-" + lastThree.length + " listed games: " +
@@ -342,7 +342,17 @@ export function applyNflverseIntelligence(game: NflGame, props: NflProp[], snaps
       ...(thinSnaps ? ["Observed offensive snap participation is low."] : []),
       "Matching nflverse stats to ESPN uses unique player name + team; check transfers or duplicate names.",
     ];
-    return { ...pick, factors, researchScore, grade, evidence, risks,
+    const decisionReasons=[
+      ...(isOut?["Player officially unavailable."]:[]),
+      ...(isDoubtful?["Player listed doubtful."]:[]),
+      ...(contradictoryReport?["Conflicting injury reports."]:[]),
+      ...(thinVolume?["Not enough recent opportunity."]:[]),
+      ...(thinSnaps?["Not enough offensive snaps."]:[]),
+      ...(pick.historicalHits<3?["Fewer than three recent clears of this threshold."]:[]),
+      ...(researchScore<55?["Research score below the 55/100 minimum."]:[]),
+      ...(pick.decisionReasons??[]),
+    ];
+    return { ...pick, factors, researchScore, grade, decisionReasons:[...new Set(decisionReasons)], evidence, risks,
       intelligence: {
         source: "nflverse weekly stats/snap counts/injuries",
         sampleGames: recent.length, targets, carries, passingAttempts: passAttempts,
