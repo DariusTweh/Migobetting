@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 const nav = [
   { href: "/", label: "Home", short: "Home", icon: House, key: "home" },
   { href: "/#matches", label: "Matches", short: "Matches", icon: List, key: "matches" },
-  { href: "/nfl", label: "NFL Prop Lab", short: "NFL", icon: BarChart3 },
+  { href: "/nfl", label: "NFL Match Center", short: "NFL", icon: BarChart3 },
   { href: "/builder", label: "Parlays & Builder", short: "Parlays", icon: SlidersHorizontal },
   { href: "/backtest", label: "Backtesting Lab", short: "Lab", icon: FlaskConical },
   { href: "/paper", label: "Paper Performance", short: "Paper", icon: BarChart3 },
@@ -33,7 +33,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <aside className={`sidebar ${open ? "sidebar-open" : ""}`}>
         <div className="brand">
           <div className="brand-mark">M</div>
-          <div><strong>MIGO</strong><span>Soccer Intelligence</span></div>
+          <div><strong>MIGO</strong><span>Sports Intelligence</span></div>
           <button className="icon-button close-menu" onClick={() => setOpen(false)} aria-label="Close menu"><X size={20} /></button>
         </div>
         <nav className="side-nav" aria-label="Primary navigation">
