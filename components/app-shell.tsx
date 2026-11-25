@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 const nav = [
   { href: "/", label: "Home", short: "Home", icon: House, key: "home" },
   { href: "/#matches", label: "Matches", short: "Matches", icon: List, key: "matches" },
+  { href: "/nfl", label: "NFL Prop Lab", short: "NFL", icon: BarChart3 },
   { href: "/builder", label: "Parlays & Builder", short: "Parlays", icon: SlidersHorizontal },
   { href: "/backtest", label: "Backtesting Lab", short: "Lab", icon: FlaskConical },
   { href: "/paper", label: "Paper Performance", short: "Paper", icon: BarChart3 },
