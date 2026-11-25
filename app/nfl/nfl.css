@@ -86,3 +86,28 @@
 .nfl-cal-spin {animation:nfl-cal-rotate 1s linear infinite;}
 @keyframes nfl-cal-rotate {to {transform:rotate(360deg);}}
 @media(max-width:750px){.nfl-cal-stats {grid-template-columns:1fr 1fr;}.nfl-cal-metrics {grid-template-columns:1fr;}}
+
+.nfl-section-head{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center;}
+.nfl-section-head h3{font-size:16px;margin:0;}
+.nfl-section-head span{font-size:11px;color:var(--muted);}
+.nfl-injury-board,.nfl-game-markets{border:1px solid var(--line);border-radius:12px;background:#10191f;padding:15px;margin:14px 0;}
+.nfl-injury-board>strong{font-size:14px;color:var(--text);}
+.nfl-injury-list{display:grid;gap:7px;margin:12px 0;}
+.nfl-injury-list>div{display:flex;flex-direction:column;gap:3px;padding:9px;background:#251b19;border:1px solid #694a38;border-radius:8px;font-size:12px;}
+.nfl-injury-list b{color:#efb7a0;}
+.nfl-injury-list span{color:var(--muted);font-size:11px;overflow-wrap:anywhere;}
+.nfl-projected-score{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0;}
+.nfl-projected-score>div{background:#121f24;border:1px solid var(--line);padding:12px;border-radius:9px;min-width:0;}
+.nfl-projected-score span{display:block;font-size:11px;color:var(--muted);}
+.nfl-projected-score strong{font-size:22px;display:block;margin-top:7px;color:var(--text);}
+.nfl-markets-tabs{display:flex;gap:5px;flex-wrap:wrap;margin:12px 0;}
+.nfl-markets-tabs button{border:1px solid var(--line);border-radius:8px;padding:9px 12px;background:#151b22;color:var(--muted);cursor:pointer;font-size:12px;}
+.nfl-markets-tabs button.active{background:#1e2e21;border-color:var(--lime);color:var(--lime);}
+.nfl-market-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;}
+.nfl-market-row{display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid var(--line);border-radius:8px;background:#0c151b;padding:10px;font-size:12px;}
+.nfl-market-row>span{color:var(--text);}
+.nfl-market-row>div{display:flex;flex-direction:column;align-items:end;white-space:nowrap;}
+.nfl-market-row strong{color:var(--lime);font-size:16px;}
+.nfl-market-row small{font-size:9px;color:var(--muted);}
+.nfl-market-caveat{font-size:11px;color:var(--muted);line-height:1.6;margin:12px 0 0;}
+@media(max-width:560px){.nfl-market-list{grid-template-columns:1fr;}.nfl-projected-score{grid-template-columns:repeat(3,minmax(0,1fr));}.nfl-projected-score strong{font-size:17px;}}
