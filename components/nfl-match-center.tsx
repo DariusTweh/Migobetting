@@ -114,6 +114,10 @@ export function NflMatchCenter({game}:{game:NflGame}){
  const marketRows=markets.filter(m=>m.market===market);
  const bestProps=(preview?.props??[]).filter(p=>p.grade==="RESEARCH"&&simLookup.has(p.id))
   .sort((a,b)=>(simLookup.get(b.id)?.rawModelHitRate??0)-(simLookup.get(a.id)?.rawModelHitRate??0)).slice(0,4);
+ const quarterbackReference=(preview?.props??[]).filter(p=>p.position==="QB"&&
+  ((p.market==="passingYards"&&p.line===200)||
+   (p.market==="passingTds"&&(p.line===1||p.line===2))))
+  .sort((a,b)=>a.player.localeCompare(b.player)||a.market.localeCompare(b.market)||a.line-b.line);
  return <div className="nm-app nm-match">
   <div className="nm-breadcrumb"><Link href="/nfl"><ArrowLeft size={15}/> All NFL games</Link><ChevronRight size={13}/><span>{game.away.abbreviation} @ {game.home.abbreviation}</span></div>
   <section className="nm-match-hero">
@@ -145,6 +149,20 @@ export function NflMatchCenter({game}:{game:NflGame}){
     </div>
     {preview.gameMarkets?.projectionQuality==="LIMITED_QB"?<div className="nm-info-strip nm-danger">
       <ShieldAlert size={17}/><p>Quarterback replacement is not verified by recent game starts. Score estimates remain available with additional uncertainty; player-specific QB projections may be withheld.</p></div>:null}
+    <section className="nm-card">
+      <div className="nm-card-head"><div><h3>QB and scoreboard reconciliation</h3>
+       <span>Scoring points does not require any specific passing-yard or passing-TD threshold</span></div></div>
+      <p className="nm-detail-note">Team points include rushing and other scoring outcomes. These quarterback references are evaluated separately from confidence and availability gates, then linked to team scoring within the shared game simulation when both are eligible.</p>
+      <div className="nm-qb-context">
+       {quarterbackReference.length?quarterbackReference.map(p=>{
+        const outcome=simLookup.get(p.id);
+        return <div key={p.id}><div><strong>{p.player}</strong><small>{p.label} · historical mean {fmt(p.projection)}</small></div>
+         <span>{outcome?pct(outcome.rawModelHitRate):p.grade==="PASS"?"PASS":"—"}</span>
+         {p.grade==="PASS"?<small>{p.decisionReasons?.[0]??"Insufficient verified opportunity data."}</small>:null}
+        </div>;
+       }):<p className="nm-detail-note">Quarterback reference markets are unavailable from the verified data. Team score scenarios may still be shown with lower confidence.</p>}
+      </div>
+    </section>
     <section className="nm-card nm-win-model"><div className="nm-card-head"><div><h3>Win scenarios</h3><span>Full-time outcome from simulated team scores</span></div><Uncalibrated/></div>
      {status==="READY"&&mlHome&&mlAway?<><div className="nm-win-numbers"><div><small>{game.away.abbreviation}</small><strong>{pct(mlAway.rawRate)}</strong></div><div><small>{game.home.abbreviation}</small><strong>{pct(mlHome.rawRate)}</strong></div></div>
       <RateBar home={mlAway.rawRate} away={mlHome.rawRate}/>
