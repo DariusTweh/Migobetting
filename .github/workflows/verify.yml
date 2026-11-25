@@ -21,5 +21,7 @@ jobs:
         run: npm ci
       - name: Unit tests
         run: npm test
+      - name: Prospective ledger integrity tests
+        run: node --test scripts/nfl-prospective.test.mjs
       - name: Production build
         run: npm run build
