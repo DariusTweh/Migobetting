@@ -104,8 +104,17 @@ export function simulateUnifiedNfl(
    onTrial,
  });
  if(simulation.status!=="READY"||baseline.status!=="READY"||scoreDrawCount!==runs){
-   return {simulation,gameMarkets:baseline,mixedJoint:null,sharedDraws:false,
+   // Score markets must not silently fall back to a tiny 250-draw estimate
+   // merely because the QB/individual player model has insufficient coverage.
+   const fullMarket=baseline.status==="READY" ?
+     simulateGameMarkets(game,snapshot.scoredGames??[],snapshot.unavailable??[],
+       snapshot.players,runs,options.seed,false,snapshot.historicalScoring??[]) : baseline;
+   return {simulation,gameMarkets:fullMarket,mixedJoint:null,sharedDraws:false,
      reason:simulation.status!=="READY"?simulation.reason:baseline.reason??"Shared trials were incomplete"};
+ }
+ if(selectedProps.some(id=>!simulation.props.some(p=>p.id===id))){
+   return {simulation,gameMarkets:baseline,mixedJoint:null,sharedDraws:false,
+     reason:"Selected player has no valid simulated trial distribution; refusing fabricated joint rate."};
  }
  const recalculated=baseline.markets.map(m=>{
    let hits=0;for(let i=0;i<runs;i++)if(marketWon(m,homeSeries[i],awaySeries[i]))hits++;
