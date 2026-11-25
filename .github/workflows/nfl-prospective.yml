@@ -1,0 +1,56 @@
+name: NFL prospective pregame ledger
+
+on:
+  schedule:
+    - cron: '17 */4 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: nfl-prospective-ledger
+  cancel-in-progress: false
+
+jobs:
+  freeze-and-grade:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Load the latest forecasting code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Check out isolated append-only NFL data branch
+        uses: actions/checkout@v4
+        with:
+          ref: nfl-prospective-data
+          path: __nfl_data
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify snapshot/grade parsing
+        run: node --test scripts/nfl-prospective.test.mjs
+      - name: Capture pregame research forecasts
+        run: node scripts/nfl-prospective.mjs capture
+        env:
+          NFL_LEDGER_DIR: __nfl_data/data/nfl
+          NFL_FORECAST_BASE_URL: https://migobetting.vercel.app
+      - name: Grade completed games when official weekly stats appear
+        run: node scripts/nfl-prospective.mjs grade
+        env:
+          NFL_LEDGER_DIR: __nfl_data/data/nfl
+      - name: Commit append-only files without deploying site changes
+        shell: bash
+        run: |
+          cd __nfl_data
+          git config user.name "migo-nfl-ledger[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/nfl/pregame
+          if ! git diff --cached --quiet; then
+            git commit -m "Archive NFL pregame and final outcomes [skip ci]"
+            git push origin HEAD:nfl-prospective-data
+          else
+            echo "No new pregame snapshots or final results"
+          fi
