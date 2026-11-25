@@ -44,6 +44,7 @@ export type NflverseSnapshot = {
   defense: PositionalAllowed[];
   unavailable?: UnavailablePlayer[];
   scoredGames?: PlayedGame[];
+  historicalScoring?: PlayedGame[];
   coverage: NflverseCoverage;
 };
 
@@ -408,9 +409,14 @@ export async function getNflverseSnapshot(game: NflGame, now = new Date()): Prom
   const injuries = records[2].status === "fulfilled" ? parseInjuries(records[2].value, season, week, cutoff) : [];
   const rosters = records[3].status === "fulfilled" ? records[3].value : [];
   const scoredGames = records[4].status === "fulfilled" ? parseScheduleScores(records[4].value,season,week) : [];
+  // Previous completed seasons exclusively. Never train on this fixture week
+  // or any later result in the target season.
+  const historicalScoring = records[4].status === "fulfilled" ?
+    [2023,2024,2025].filter(year=>year<season)
+      .flatMap(year=>parseScheduleScores(records[4].value,year,23)) : [];
   const unavailable=verifiedUnavailable(game,rosters,stats);
   return {
-    players: stats, snaps, injuries, defense: defensiveVolume(stats), unavailable, scoredGames,
+    players: stats, snaps, injuries, defense: defensiveVolume(stats), unavailable, scoredGames, historicalScoring,
     coverage: {
       stats: records[0].status === "fulfilled" ? "available" : "unavailable",
       snaps: records[1].status === "fulfilled" ? "available" : "unavailable",
@@ -427,6 +433,12 @@ export async function getNflverseSnapshot(game: NflGame, now = new Date()): Prom
 /** Full single-season source for historical replay. Never reuse live current-week
  *  injury rows in retrospective forecasts: their historical update times are
  *  unavailable in the 2026 nflverse release. */
+/** One verified nflverse schedule archive, reused by the scoring prior and walk-forward evaluator. */
+export async function getNflverseScheduleArchive():Promise<Array<Record<string,string>>> {
+  return downloadCsv("schedules/games.csv",
+    ["game_id","season","week","gameday","home_team","away_team","home_score","away_score"]);
+}
+
 export async function getNflverseHistoricalSeason(season: number) {
   if (!Number.isInteger(season) || season < 2023 || season > 2026) {
     throw Error("Unsupported NFL historical season");
