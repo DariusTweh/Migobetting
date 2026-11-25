@@ -379,3 +379,22 @@ export async function getNflverseSnapshot(game: NflGame, now = new Date()): Prom
     },
   };
 }
+
+/** Full single-season source for historical replay. Never reuse live current-week
+ *  injury rows in retrospective forecasts: their historical update times are
+ *  unavailable in the 2026 nflverse release. */
+export async function getNflverseHistoricalSeason(season: number) {
+  if (!Number.isInteger(season) || season < 2023 || season > 2026) {
+    throw Error("Unsupported NFL historical season");
+  }
+  const [stats, snaps] = await Promise.all([
+    downloadCsv("stats_player/stats_player_week_" + season + ".csv",
+      ["player_id","player_display_name","team","season","week","game_id","position"]),
+    downloadCsv("snap_counts/snap_counts_" + season + ".csv",
+      ["player","team","season","week","offense_pct"]),
+  ]);
+  const players = parseWeeklyUsage(stats, season, 23);
+  const participation = parseSnapCounts(snaps, season, 23);
+  return { season, players, snaps: participation,
+    source: "nflverse/nflverse-data (CC BY 4.0); current-season archive may include retrospective corrections" };
+}
