@@ -58,7 +58,9 @@ const marketForPosition = (position: string): NflMarket[] =>
 export function historyBeforeKickoff(lines: NflBoxLine[], fixture: string | NflGame): NflBoxLine[] {
   const kickoff = typeof fixture === "string" ? fixture : fixture.kickoff;
   const limit = Date.parse(kickoff);
-  if (!Number.isFinite(limit)) return [];
+  if (!Number.isFinite(limit) &&
+    !(typeof fixture !== "string" && Number.isInteger(fixture.week) &&
+      Number.isInteger(fixture.season))) return [];
   return lines.filter((line) => {
     // Never fabricate an NFL game date for a week-level source. A verified season
     // and week are sufficient only when the fixture also has season/week metadata.
