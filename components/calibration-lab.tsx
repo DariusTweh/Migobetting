@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useLocalMatchHistoryStatus } from "@/lib/use-local-history";
 import { runHistoricalBacktest, type HistoricalMatch } from "@/lib/history";
+import { EXTRA_DOMESTIC_ESPN } from "@/lib/uefa-competitions";
 import { getHistoricalMatches, importHistoricalMatches } from "@/lib/history-store";
 import { validateFirstHalfMultiSeason } from "@/lib/first-half-validation";
 import { fullTimeCalibrationSamples, firstHalfSamplesForCompetition } from "@/lib/calibration-sources";
@@ -57,6 +58,12 @@ export function CalibrationLab(){
           await importCalibrationHistory("/api/historical/halftime?league="+id,id,issues);
         }
         const year=new Date().getUTCFullYear();
+        for(const [id,name] of Object.entries(EXTRA_DOMESTIC_ESPN)){
+          for(let y=year-3;y<=year;y++){
+            setProgress("Importing "+name+" · "+y);
+            await importCalibrationHistory("/api/historical/espn?league="+id+"&year="+y,name+" "+y,issues);
+          }
+        }
         for(const competition of competitions.filter(c=>UEFA_HISTORY[c])){
           for(let y=year-3;y<=year;y++){
             setProgress("Importing "+competition+" · "+y);
@@ -78,7 +85,7 @@ export function CalibrationLab(){
           .sort((a,b)=>a.date.localeCompare(b.date));
         const result=runHistoricalBacktest(completed,{
           market:"best-pick",threshold:.68,iterations:1000,seed:"calibration-oos",trainingFraction:.2,
-        });
+        },history);
         const ft=evaluateCalibrationGroups(fullTimeCalibrationSamples(result.predictions));
         reviewed.push(...ft);
         setProgress("Validating "+competition+" · first-half goals");

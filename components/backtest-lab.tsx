@@ -67,7 +67,7 @@ export function BacktestLab() {
   function evaluate(data: HistoricalMatch[], settings = { market, threshold: threshold / 100, iterations, seed }) {
     setRunning(true); setAutoStatus("testing"); setMessage(`Replaying ${data.length.toLocaleString()} fixtures chronologically…`);
     return new Promise<BacktestResult>((resolve) => window.setTimeout(() => {
-      const next = runHistoricalBacktest(data, { ...settings, trainingFraction: 0.6 });
+      const next = runHistoricalBacktest(data, { ...settings, trainingFraction: 0.6 }, matches);
       setResult(next); setRunning(false); setAutoStatus("ready");
       setMessage(`Evaluation complete: ${next.evaluated.toLocaleString()} past matches predicted first, then checked against the real final scores.`);
       resolve(next);

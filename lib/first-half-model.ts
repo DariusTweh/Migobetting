@@ -1,4 +1,5 @@
 import type { Fixture } from "./types";
+import { DOMESTIC_MEN, UEFA_MEN as CONTINENTAL_MEN } from "./uefa-competitions";
 import { formTeamKey } from "./form-history";
 import type { HistoricalMatch } from "./history";
 
@@ -42,12 +43,6 @@ const DAY = 86400000;
 const TRAINING_DAYS = 1461; // Up to four seasons, all data strictly before kickoff
 const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, n));
 const decay = (days: number) => Math.pow(0.5, days / 210);
-const DOMESTIC_MEN = new Set([
-  "Premier League", "La Liga", "Bundesliga", "Serie A", "Ligue 1",
-  "Eredivisie", "Primeira Liga", "Belgian Pro League",
-  "Turkish Super Lig", "Greek Super League", "Scottish Premiership",
-]);
-const CONTINENTAL_MEN = new Set(["Champions League", "UEFA Champions League", "Europa League", "UEFA Europa League", "UEFA Conference League", "Conference League"]);
 const CONTINENTAL_WOMEN = new Set(["UEFA Women's Champions League"]);
 export const isContinentalMen = (fixture: Fixture) =>
   ["uefa.champions", "uefa.europa", "uefa.europa.conf"].includes(fixture.leagueId) || CONTINENTAL_MEN.has(fixture.league);

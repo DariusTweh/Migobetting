@@ -3,6 +3,7 @@
  * promoted only after a train -> validation -> untouched later test sequence.
  * Nothing in this module forecasts a match or reads its final score.
  */
+import { ftVersion, htCalibrationVersion } from "./uefa-competitions";
 export type CalibrationSample = {
   date: string;
   competition: string;
@@ -104,7 +105,7 @@ export function evaluateCalibration(samples: CalibrationSample[]): CalibrationDe
       nTrain:train.length,nValidation:validate.length,nTest:test.length,
       rawBrier:rawTest,calibratedBrier:newTest,rawLogLoss:rawLog,calibratedLogLoss:newLog,
       cutoff:testDay,trainedThrough:clean[clean.length-1].date.slice(0,10),
-      forecastVersion:first.competition.startsWith("1H:")?"migo-first-half-cross-league-v2":"migo-opponent-decay-dc-0.4",
+      forecastVersion:first.competition.startsWith("1H:")?htCalibrationVersion(first.competition.slice(3)):ftVersion(first.competition.slice(3)),
     }:null,
     rawBrier:rawTest,calibratedBrier:newTest,rawLogLoss:rawLog,calibratedLogLoss:newLog,
     reason:approved?

@@ -1,7 +1,9 @@
 import type { HistoricalMatch } from "./history";
+import { EXTRA_DOMESTIC_ESPN } from "./uefa-competitions";
 import { enrichEspnHalfTime } from "./espn-half-events";
 
 export const ESPN_HISTORY_COMPETITIONS = {
+  ...EXTRA_DOMESTIC_ESPN,
   "usa.1": "MLS",
   "uefa.champions": "Champions League",
   "uefa.europa": "Europa League",

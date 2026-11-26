@@ -1,3 +1,4 @@
+import { htCalibrationVersion } from "./uefa-competitions";
 import type { FirstHalfForecast } from "./first-half-model";
 import {
   readCalibrationProfile,correctedMarketProbability,
@@ -13,7 +14,7 @@ export function calibrateFirstHalfForecast(
   const original=new Map(forecast.markets.map(m=>[m.key,m.probability]));
   const probabilities=new Map(forecast.markets.map(m=>[
     m.key,correctedMarketProbability("1H:"+competition,m.key,m.probability,
-      profile,kickoff,"migo-first-half-cross-league-v2"),
+      profile,kickoff,htCalibrationVersion(competition)),
   ]));
   const over05=probabilities.get("first-half-over-0.5")!;
   const over15=Math.min(over05,probabilities.get("first-half-over-1.5")!);
