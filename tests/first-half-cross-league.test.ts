@@ -48,6 +48,12 @@ describe("cross-competition first-half team attack and defense",()=>{
     expect(coverage.validHalfTime).toBe(150);
     expect(coverage.homeMatches).toBeGreaterThan(20);
   });
+  it.each([["uefa.europa","Europa League"],["uefa.europa.conf","UEFA Conference League"]] as const)("uses both clubs' domestic data for %s",(leagueId,league)=>{
+    const forecast=estimateFirstHalf(results,{...fixture,leagueId,league});
+    expect(forecast?.homeTeamMatches).toBeGreaterThan(20);
+    expect(forecast?.awayTeamMatches).toBeGreaterThan(20);
+    expect(forecast?.trainingCompetitions.map(c=>c.name)).toEqual(["La Liga","Bundesliga"]);
+  });
   it("responds to verifiable defensive leaks and 1H attacking performance",()=>{
     // League baseline also needs matches NOT involving Bayern, or a team-
     // specific defensive deterioration would shift the whole Bundesliga mean.

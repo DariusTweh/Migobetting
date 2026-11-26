@@ -2,6 +2,7 @@ import type { Fixture, Forecast } from "./types";
 import type { HistoricalMatch } from "./history";
 import { estimateHistoricalGoals } from "./history";
 import { forecastFixture } from "./model";
+import { ftVersion, isUefaMen } from "./uefa-competitions";
 import { calibrateFullTimeForecast } from "./full-time-calibration";
 
 const leagueName = (fixture: Fixture) => fixture.leagueId === "usa.1" ? "MLS" : fixture.league;
@@ -21,10 +22,10 @@ export function forecastWithHistory(fixture: Fixture, all: HistoricalMatch[]): F
     expectedHomeGoals: estimate.expectedHomeGoals,
     expectedAwayGoals: estimate.expectedAwayGoals,
     lowScoreCorrelation: estimate.lowScoreCorrelation,
-    version: "migo-opponent-decay-dc-0.4",
+    version: ftVersion(leagueName(fixture)),
     quality: good ? "good" : "limited",
     evidence: [
-      "Recency-weighted local history: " + estimate.matches + " earlier " + leagueName(fixture) + " matches (" + estimate.effectiveMatches.toFixed(1) + " effective).",
+      "Recency-weighted local history: " + estimate.matches + " earlier " + (isUefaMen(leagueName(fixture))?"domestic and UEFA":leagueName(fixture)) + " matches (" + estimate.effectiveMatches.toFixed(1) + " effective).",
       fixture.home.shortName + ": " + estimate.homeMatches + " previous matches; " + fixture.away.shortName + ": " + estimate.awayMatches + ".",
       "Opponent-adjusted league home/away averages: " + estimate.leagueHomeAverage.toFixed(2) + " / " + estimate.leagueAwayAverage.toFixed(2) + ".",
       "Adjusted scoring expectations: " + estimate.expectedHomeGoals.toFixed(2) + " / " + estimate.expectedAwayGoals.toFixed(2) + " goals.",
@@ -34,6 +35,7 @@ export function forecastWithHistory(fixture: Fixture, all: HistoricalMatch[]): F
       ...(estimate.homeMatches < 7 || estimate.awayMatches < 7
         ? ["At least one team has fewer than seven matches in this league, so its rating is heavily shrunk toward the fitted league average."]
         : []),
+      ...(isUefaMen(leagueName(fixture))?["Cross-league ratings normalize scoring environments; absolute league-strength differences still require validation."]:[]),
       "Opponent-adjusted goal estimates are not verified expected-goals (xG) or player-specific forecasts.",
       "Unavailable injuries, tactical changes, absences, and confirmed lineups are not yet assigned numerical effects.",
       "The fitted probabilities still require rolling out-of-sample calibration before real-money use.",

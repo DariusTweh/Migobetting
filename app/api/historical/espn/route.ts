@@ -7,7 +7,7 @@ export async function GET(request: Request) {
   const league = search.get("league") ?? "";
   const year = Number(search.get("year"));
   if (!isEspnHistoryLeague(league) || !Number.isInteger(year) || year < 2022 || year > new Date().getUTCFullYear()) {
-    return Response.json({ error: "Specify league=usa.1 or uefa.wchampions and a year from 2022 to the current year." }, { status: 400 });
+    return Response.json({ error: "Specify a supported ESPN history league and a year from 2022 to the current year." }, { status: 400 });
   }
 
   // Monthly windows avoid silently truncating large soccer schedules on year queries.

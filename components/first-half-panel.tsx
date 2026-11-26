@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import type { Fixture } from "@/lib/types";
+import { EXTRA_DOMESTIC_ESPN } from "@/lib/uefa-competitions";
 import type { HistoricalMatch } from "@/lib/history";
 import { importHistoricalMatches } from "@/lib/history-store";
 import { estimateFirstHalf, firstHalfCoverage, isContinentalMen, clubHalfTimeKey } from "@/lib/first-half-model";
@@ -45,6 +46,19 @@ async function fetchDomestic(code:string):Promise<Backfill> {
   let promise=requestCache.get(code);
   if(!promise){
     promise=(async()=>{
+      if(code in EXTRA_DOMESTIC_ESPN){
+        const year=new Date().getUTCFullYear();
+        const settled=await Promise.allSettled([year-1,year].map(async y=>{
+          const response=await fetch("/api/historical/espn?league="+encodeURIComponent(code)+"&year="+y);
+          const data=await response.json() as {matches?:HistoricalMatch[];error?:string};
+          if(!response.ok||!data.matches?.length)throw Error(data.error||"ESPN history missing");
+          return data.matches;
+        }));
+        const matches=settled.flatMap(r=>r.status==="fulfilled"?r.value:[]);
+        if(!matches.length)throw Error(code+": ESPN history unavailable");
+        await importHistoricalMatches(matches);window.dispatchEvent(new Event("migo:history"));
+        return {league:code,matches,coverage:[],warnings:settled.some(r=>r.status==="rejected")?["Partial ESPN year coverage"]:[]};
+      }
       const response=await fetch("/api/historical/halftime?league="+encodeURIComponent(code));
       const payload=await response.json() as Partial<Backfill>&{error?:string};
       if(!response.ok || !payload.matches?.length)
@@ -114,7 +128,7 @@ export function FirstHalfPanel({fixture,history,ready}:{
     const sources=clubCompetition?
       insufficientClubs?[...new Set([
         ...missingCore,
-        ...(extras.length?extras:OTHER_EUROPE),
+        ...extras, ...OTHER_EUROPE, ...Object.keys(EXTRA_DOMESTIC_ESPN),
       ])]:[]:
       DOMESTIC.includes(fixture.leagueId as typeof DOMESTIC[number]) ||
       OTHER_EUROPE.includes(fixture.leagueId as typeof OTHER_EUROPE[number])
@@ -180,7 +194,7 @@ export function FirstHalfPanel({fixture,history,ready}:{
         {model.quality.toUpperCase()} DATA
       </span>:undefined}/>
     {loading?<div className="fh-data-banner"><span className="fh-sync-dot"/>
-      Updating {clubCompetition?"club domestic leagues + ESPN Champions League":"verified halftime records"}…
+      Updating {clubCompetition?"club domestic leagues + ESPN UEFA history":"verified halftime records"}…
     </div>:null}
     {pull.warnings.length?<div className="fh-data-warning">
       Partial data coverage: {pull.warnings.slice(0,2).join(" · ")}
@@ -198,7 +212,7 @@ export function FirstHalfPanel({fixture,history,ready}:{
         </div>
         Predictions need at least 60 earlier recorded halftime results in the training pool
         and four matching previous club results for each team.
-        {clubCompetition?" Domestic European records are counted even if the Champions League season just started.":""}
+        {clubCompetition?" Domestic European records are counted even if the UEFA season just started.":""}
       </div>:<>
       <div className="fh-data-banner fh-data-success"><span className="fh-sync-dot"/>
         {model.homeTeamMatches} {fixture.home.shortName} games · {model.awayTeamMatches} {fixture.away.shortName} games

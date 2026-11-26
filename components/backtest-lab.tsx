@@ -26,7 +26,7 @@ const ESPN_LEAGUES: Record<string, string> = {
 };
 const HISTORY_LEAGUES = Object.entries(ESPN_HISTORY_COMPETITIONS) as Array<[EspnHistoryLeague, string]>;
 const espnHistoryId = (name: string) => HISTORY_LEAGUES.find(([, title]) => title === name)?.[0];
-const historicalYears = () => Array.from({ length: 3 }, (_, index) => new Date().getUTCFullYear() - 2 + index);
+const historicalYears = () => Array.from({ length: 4 }, (_, index) => new Date().getUTCFullYear() - 3 + index);
 const AUTOMATIC_ESPN_HISTORY = ["MLS"];
 const percent = (value: number | null) => value === null ? "—" : `${(value * 100).toFixed(1)}%`;
 const goalMetric = (value: number, unit: "goals" | "rate") => unit === "rate" ? (value * 100).toFixed(1) + "%" : value.toFixed(2);
@@ -67,7 +67,7 @@ export function BacktestLab() {
   function evaluate(data: HistoricalMatch[], settings = { market, threshold: threshold / 100, iterations, seed }) {
     setRunning(true); setAutoStatus("testing"); setMessage(`Replaying ${data.length.toLocaleString()} fixtures chronologically…`);
     return new Promise<BacktestResult>((resolve) => window.setTimeout(() => {
-      const next = runHistoricalBacktest(data, { ...settings, trainingFraction: 0.6 });
+      const next = runHistoricalBacktest(data, { ...settings, trainingFraction: 0.6 }, matches);
       setResult(next); setRunning(false); setAutoStatus("ready");
       setMessage(`Evaluation complete: ${next.evaluated.toLocaleString()} past matches predicted first, then checked against the real final scores.`);
       resolve(next);

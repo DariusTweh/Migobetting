@@ -1,3 +1,4 @@
+import { ftVersion } from "./uefa-competitions";
 import type { Forecast } from "./types";
 import { decimalToAmerican } from "./odds";
 import {
@@ -14,9 +15,9 @@ export function calibrateFullTimeForecast(
   profile:CalibrationProfile|null=readCalibrationProfile(),
 ):Forecast {
   if(!profile || forecast.dataQuality==="insufficient" ||
-    !forecast.modelVersion.startsWith("migo-opponent-decay-dc-0.4"))return forecast;
+    !forecast.modelVersion.startsWith(ftVersion(competition)))return forecast;
   const prefix="FT:"+competition;
-  const correction=(key:string)=>getCorrection(prefix,key,profile,kickoff,"migo-opponent-decay-dc-0.4");
+  const correction=(key:string)=>getCorrection(prefix,key,profile,kickoff,ftVersion(competition));
   const adjusted=(key:string,raw:number)=>correction(key)?
     correctProbability(raw,correction(key)!):raw;
   const homeC=correction("home"),drawC=correction("draw"),awayC=correction("away");

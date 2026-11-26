@@ -1,6 +1,7 @@
 import { forecastFixture } from "./model";
 import { summarizeGoalCalibration, type GoalCalibration } from "./goal-calibration";
 import type { Fixture } from "./types";
+import { eligibleUefaHistory, isUefaMen, ftVersion } from "./uefa-competitions";
 
 export type HistoricalMatch = {
   id: string;
@@ -98,6 +99,7 @@ const TEAM_ALIASES: Record<string, string> = {
   "hamburg sv": "hamburg", "fc cologne": "fc koln", "1 fc heidenheim 1846": "heidenheim",
   "sc freiburg": "freiburg", "vfl wolfsburg": "wolfsburg", "paris sg": "paris saint-germain", "paris saintgermain": "paris saint-germain",
   "as monaco": "monaco", "stade rennais": "rennes", "le havre ac": "le havre", "aj auxerre": "auxerre",
+  "bayern munich":"bayern", "bayern munchen":"bayern", "real madrid cf":"real madrid", "sporting cp":"sporting", "sporting lisbon":"sporting", "psv eindhoven":"psv", "sl benfica":"benfica", "ajax amsterdam":"ajax",
   "ac milan": "milan", "hellas verona": "verona", "as roma": "roma",
 };
 
@@ -147,6 +149,31 @@ const bounded = (value: number, low: number, high: number) => Math.max(low, Math
 const modelTeamKey = (name: string) => normalizeTeamName(name)
   .replace(/^(fc|afc|cf) /, "").replace(/ (fc|afc|cf|sc)$/, "").trim();
 
+/** UEFA-only model: normalize each score against its own competition/venue,
+ * then estimate shrunk attack and defense with extra weight on European games.
+ * This does not establish a validated absolute ranking of domestic leagues. */
+function estimateUefaGoals(matches:HistoricalMatch[], input:{competition:string;homeTeam:string;awayTeam:string;kickoff:string;halfLifeDays?:number}):HistoricalGoalEstimate|null {
+ const cutoff=Date.parse(input.kickoff.slice(0,10)+"T00:00:00Z");
+ if(!Number.isFinite(cutoff))return null;
+ const halfLife=bounded(input.halfLifeDays??180,60,365);
+ const rows=[...new Map(matches.filter(m=>eligibleUefaHistory(m.competition)&&Number.isFinite(Date.parse(m.date))&&Date.parse(m.date)<cutoff&&Date.parse(m.date)>=cutoff-1096*86400000&&Number.isInteger(m.homeGoals)&&m.homeGoals>=0&&Number.isInteger(m.awayGoals)&&m.awayGoals>=0).map(m=>[m.id,m])).values()].map(m=>({...m,homeKey:modelTeamKey(m.homeTeam),awayKey:modelTeamKey(m.awayTeam),weight:Math.pow(.5,(cutoff-Date.parse(m.date))/86400000/halfLife)*(isUefaMen(m.competition)?1.5:1)}));
+ if(rows.length<40)return null;
+ const groups=new Map<string,{w:number;h:number;a:number}>();
+ for(const m of rows){const g=groups.get(m.competition)??{w:0,h:0,a:0};g.w+=m.weight;g.h+=m.weight*m.homeGoals;g.a+=m.weight*m.awayGoals;groups.set(m.competition,g);}
+ const pooled=[...groups.values()].reduce((t,g)=>({w:t.w+g.w,h:t.h+g.h,a:t.a+g.a}),{w:0,h:0,a:0});
+ if(pooled.w<15)return null;
+ const rates=new Map([...groups].map(([k,g])=>[k,{h:Math.max(.25,(g.h+10*pooled.h/pooled.w)/(g.w+10)),a:Math.max(.25,(g.a+10*pooled.a/pooled.w)/(g.w+10))}]));
+ const target=rates.get(input.competition)??{h:pooled.h/pooled.w,a:pooled.a/pooled.w};
+ const stats=new Map<string,{w:number;attack:number;defense:number}>();
+ const add=(key:string,w:number,gf:number,ga:number,forRate:number,againstRate:number)=>{const s=stats.get(key)??{w:0,attack:0,defense:0};s.w+=w;s.attack+=w*gf/forRate;s.defense+=w*ga/againstRate;stats.set(key,s);};
+ for(const m of rows){const r=rates.get(m.competition)!;add(m.homeKey,m.weight,m.homeGoals,m.awayGoals,r.h,r.a);add(m.awayKey,m.weight,m.awayGoals,m.homeGoals,r.a,r.h);}
+ const index=(key:string,kind:"attack"|"defense")=>{const s=stats.get(key);return s?bounded((6+s[kind])/(6+s.w),.5,2):1;};
+ const strength=(key:string,home:boolean)=>{let w=0,attack=6,defense=6,n=0;for(const m of rows){const h=m.homeKey===key;if(!h&&m.awayKey!==key)continue;n++;const r=rates.get(m.competition)!,opp=h?m.awayKey:m.homeKey,weight=m.weight*(h===home?1:.55);w+=weight;attack+=weight*(h?m.homeGoals:m.awayGoals)/((h?r.h:r.a)*index(opp,"defense"));defense+=weight*(h?m.awayGoals:m.homeGoals)/((h?r.a:r.h)*index(opp,"attack"));}return {n,attack:bounded(attack/(6+w),.45,2.4),defense:bounded(defense/(6+w),.45,2.4)};};
+ const h=strength(modelTeamKey(input.homeTeam),true),a=strength(modelTeamKey(input.awayTeam),false);
+ if(h.n<4||a.n<4)return null;
+ return {expectedHomeGoals:bounded(target.h*h.attack*a.defense,.25,3.7),expectedAwayGoals:bounded(target.a*a.attack*h.defense,.2,3.4),lowScoreCorrelation:0,matches:rows.length,homeMatches:h.n,awayMatches:a.n,leagueHomeAverage:target.h,leagueAwayAverage:target.a,effectiveMatches:pooled.w};
+}
+
 function fittedLowScoreCorrelation(
   matches: WeightedHistoricalMatch[], attack: Map<string, number>, defense: Map<string, number>,
   leagueHome: number, leagueAway: number,
@@ -185,6 +212,7 @@ export function estimateHistoricalGoals(matches: HistoricalMatch[], input: {
   kickoff: string;
   halfLifeDays?: number;
 }): HistoricalGoalEstimate | null {
+  if(isUefaMen(input.competition))return estimateUefaGoals(matches,input);
   const kickoff = Date.parse(input.kickoff);
   if (!Number.isFinite(kickoff)) return null;
   const halfLifeDays = bounded(input.halfLifeDays ?? 180, 60, 365);
@@ -374,7 +402,7 @@ function selectionLabel(selection: MarketSelection, match: HistoricalMatch) {
   return selection;
 }
 
-export function runHistoricalBacktest(matches: HistoricalMatch[], config: BacktestConfig): BacktestResult {
+export function runHistoricalBacktest(matches: HistoricalMatch[], config: BacktestConfig, trainingContext:HistoricalMatch[] = []): BacktestResult {
   const sorted = [...matches].sort((a, b) => a.date.localeCompare(b.date));
   const predictions: BacktestPrediction[] = [];
   const priorLineups = new Map<string, string[]>();
@@ -402,7 +430,7 @@ export function runHistoricalBacktest(matches: HistoricalMatch[], config: Backte
     const awayKey = `${match.competition}:${normalizeTeamName(match.awayTeam)}`;
     const projectedLineupEligible = priorLineups.has(homeKey) && priorLineups.has(awayKey);
     const actualLineupEligible = match.lineup?.home.starters.length === 11 && match.lineup?.away.starters.length === 11;
-    const expected = matchIndex >= splitIndex ? estimateHistoricalGoals(committedMatches, {
+    const expected = matchIndex >= splitIndex ? estimateHistoricalGoals(isUefaMen(match.competition)&&trainingContext.length ? [...trainingContext,...committedMatches] : committedMatches, {
       competition: match.competition,
       homeTeam: match.homeTeam,
       awayTeam: match.awayTeam,
@@ -425,7 +453,7 @@ export function runHistoricalBacktest(matches: HistoricalMatch[], config: Backte
         expectedHomeGoals: expected.expectedHomeGoals,
         expectedAwayGoals: expected.expectedAwayGoals,
         lowScoreCorrelation: expected.lowScoreCorrelation,
-        version: "migo-opponent-decay-dc-0.4",
+        version: ftVersion(match.competition),
         quality: expected.homeMatches >= 16 && expected.awayMatches >= 16 ? "good" : "limited",
         evidence: [],
         risks: [],

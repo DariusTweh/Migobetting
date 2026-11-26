@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useLocalMatchHistoryStatus } from "@/lib/use-local-history";
-import { runHistoricalBacktest } from "@/lib/history";
+import { runHistoricalBacktest, type HistoricalMatch } from "@/lib/history";
+import { EXTRA_DOMESTIC_ESPN } from "@/lib/uefa-competitions";
+import { getHistoricalMatches, importHistoricalMatches } from "@/lib/history-store";
 import { validateFirstHalfMultiSeason } from "@/lib/first-half-validation";
 import { fullTimeCalibrationSamples, firstHalfSamplesForCompetition } from "@/lib/calibration-sources";
 import {
@@ -13,8 +15,21 @@ import { Metric, Notice, Panel, PanelHead } from "./ui";
 
 const LEAGUES=[
   "Premier League","La Liga","Bundesliga","Serie A","Ligue 1",
-  "Champions League","UEFA Women's Champions League",
+  "Champions League","Europa League","UEFA Conference League","UEFA Women's Champions League",
 ];
+const UEFA_HISTORY:Record<string,string>={
+  "Champions League":"uefa.champions","Europa League":"uefa.europa","UEFA Conference League":"uefa.europa.conf",
+};
+const DOMESTIC_HISTORY=["eng.1","esp.1","ger.1","ita.1","fra.1","nl.1","por.1","bel.1","tur.1","gre.1","sco.1"];
+async function importCalibrationHistory(url:string,label:string,issues:string[]){
+  try{
+    const response=await fetch(url);
+    const payload=await response.json() as {matches?:HistoricalMatch[];error?:string;errors?:string[];warnings?:string[]};
+    if(!response.ok||!payload.matches?.length)throw new Error(payload.error||"No verified matches returned");
+    await importHistoricalMatches(payload.matches);
+    if(payload.errors?.length)issues.push(label+": partial provider coverage ("+payload.errors.length+" failed months).");
+  }catch(cause){issues.push(label+": "+String(cause instanceof Error?cause.message:cause));}
+}
 const short=(n:number|null)=>(n===null?"—":n.toFixed(3));
 const sleep=()=>new Promise<void>(resolve=>setTimeout(resolve,16));
 
@@ -36,10 +51,32 @@ export function CalibrationLab(){
     const reviewed:CalibrationDecision[]=[];
     const issues:string[]=[];
     try{
+      let history=matches;
+      if(competitions.some(c=>UEFA_HISTORY[c])){
+        setProgress("Importing verified domestic club history for UEFA calibration");
+        for(const id of DOMESTIC_HISTORY){
+          await importCalibrationHistory("/api/historical/halftime?league="+id,id,issues);
+        }
+        const year=new Date().getUTCFullYear();
+        for(const [id,name] of Object.entries(EXTRA_DOMESTIC_ESPN)){
+          for(let y=year-3;y<=year;y++){
+            setProgress("Importing "+name+" · "+y);
+            await importCalibrationHistory("/api/historical/espn?league="+id+"&year="+y,name+" "+y,issues);
+          }
+        }
+        for(const competition of competitions.filter(c=>UEFA_HISTORY[c])){
+          for(let y=year-3;y<=year;y++){
+            setProgress("Importing "+competition+" · "+y);
+            await importCalibrationHistory("/api/historical/espn?league="+UEFA_HISTORY[competition]+"&year="+y,competition+" "+y,issues);
+          }
+        }
+        history=await getHistoricalMatches();
+        window.dispatchEvent(new Event("migo:history"));
+      }
       for(const competition of competitions){
         setProgress("Validating "+competition+" · full-time goals and match outcomes");
         await sleep();
-        const rows=matches.filter(m=>m.competition===competition);
+        const rows=history.filter(m=>m.competition===competition);
         if(rows.length<150){
           issues.push(competition+": fewer than 150 completed matches; cannot independently validate all markets.");
           continue;
@@ -48,12 +85,12 @@ export function CalibrationLab(){
           .sort((a,b)=>a.date.localeCompare(b.date));
         const result=runHistoricalBacktest(completed,{
           market:"best-pick",threshold:.68,iterations:1000,seed:"calibration-oos",trainingFraction:.2,
-        });
+        },history);
         const ft=evaluateCalibrationGroups(fullTimeCalibrationSamples(result.predictions));
         reviewed.push(...ft);
         setProgress("Validating "+competition+" · first-half goals");
         await sleep();
-        const ht=validateFirstHalfMultiSeason(matches,competition,400);
+        const ht=validateFirstHalfMultiSeason(history,competition,400);
         if(ht.scored){
           reviewed.push(...evaluateCalibrationGroups(firstHalfSamplesForCompetition(ht.samples,competition)));
         }else{

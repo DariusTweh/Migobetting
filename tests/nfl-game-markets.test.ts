@@ -1,4 +1,4 @@
-import {describe,it,expect} from "vitest";
+import {describe,it,expect,beforeEach,afterEach,vi} from "vitest";
 import {simulateGameMarkets,parseScheduleScores,type PlayedGame,type UnavailablePlayer} from "../lib/nfl/game-markets";
 import {verifiedUnavailable,type WeeklyUsage} from "../lib/nfl/nflverse";
 import type {NflGame} from "../lib/nfl/engine";
@@ -20,6 +20,8 @@ const usage:WeeklyUsage[]=[1,2,3,4,5].map(week=>({
  receivingYards:104,rushingYards:3,passingYards:0,passingTds:0,passingAttempts:0,
 }));
 describe("NFL team-score and availability research",()=>{
+ beforeEach(()=>{vi.spyOn(Date,"now").mockReturnValue(Date.parse("2026-11-24T12:00:00Z"));});
+ afterEach(()=>{vi.restoreAllMocks();});
  it("rejects current and future weeks and unverified scores",()=>{
   const data=[
    {game_id:"g1",season:"2026",week:"10",game_type:"REG",gameday:"2026-11-01",home_team:"GB",away_team:"LAR",home_score:"30",away_score:"24"},

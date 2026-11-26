@@ -107,6 +107,8 @@ export function validateFirstHalfMultiSeason(
     for (const match of targets) {
       const fixture: Fixture = {
         id: match.id, leagueId: competition === "Champions League" ? "uefa.champions" :
+          competition === "Europa League" ? "uefa.europa" :
+          competition === "UEFA Conference League" ? "uefa.europa.conf" :
           competition === "UEFA Women's Champions League" ? "uefa.wchampions" : "eng.1",
         league: competition, kickoff: match.date,
         status: "scheduled", statusLabel: "Historical", source: "ESPN",
