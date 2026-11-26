@@ -114,7 +114,7 @@ export function FirstHalfPanel({fixture,history,ready}:{
     const sources=clubCompetition?
       insufficientClubs?[...new Set([
         ...missingCore,
-        ...(extras.length?extras:OTHER_EUROPE),
+        ...extras, ...OTHER_EUROPE,
       ])]:[]:
       DOMESTIC.includes(fixture.leagueId as typeof DOMESTIC[number]) ||
       OTHER_EUROPE.includes(fixture.leagueId as typeof OTHER_EUROPE[number])
@@ -180,7 +180,7 @@ export function FirstHalfPanel({fixture,history,ready}:{
         {model.quality.toUpperCase()} DATA
       </span>:undefined}/>
     {loading?<div className="fh-data-banner"><span className="fh-sync-dot"/>
-      Updating {clubCompetition?"club domestic leagues + ESPN Champions League":"verified halftime records"}…
+      Updating {clubCompetition?"club domestic leagues + ESPN UEFA history":"verified halftime records"}…
     </div>:null}
     {pull.warnings.length?<div className="fh-data-warning">
       Partial data coverage: {pull.warnings.slice(0,2).join(" · ")}
@@ -198,7 +198,7 @@ export function FirstHalfPanel({fixture,history,ready}:{
         </div>
         Predictions need at least 60 earlier recorded halftime results in the training pool
         and four matching previous club results for each team.
-        {clubCompetition?" Domestic European records are counted even if the Champions League season just started.":""}
+        {clubCompetition?" Domestic European records are counted even if the UEFA season just started.":""}
       </div>:<>
       <div className="fh-data-banner fh-data-success"><span className="fh-sync-dot"/>
         {model.homeTeamMatches} {fixture.home.shortName} games · {model.awayTeamMatches} {fixture.away.shortName} games

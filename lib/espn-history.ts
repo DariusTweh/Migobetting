@@ -1,8 +1,11 @@
 import type { HistoricalMatch } from "./history";
+import { enrichEspnHalfTime } from "./espn-half-events";
 
 export const ESPN_HISTORY_COMPETITIONS = {
   "usa.1": "MLS",
   "uefa.champions": "Champions League",
+  "uefa.europa": "Europa League",
+  "uefa.europa.conf": "UEFA Conference League",
   "uefa.wchampions": "UEFA Women's Champions League",
 } as const;
 
@@ -54,7 +57,7 @@ export function parseEspnHistory(
     const ag = score(away.score);
     if (!homeTeam || !awayTeam || hg === null || ag === null) continue;
     const year = Number(obj(event.season).year);
-    matches.push({
+    const match: HistoricalMatch = {
       id: "espn:" + leagueId + ":" + id,
       competition: ESPN_HISTORY_COMPETITIONS[leagueId],
       season: String(Number.isInteger(year) && year > 2000 ? year : new Date(date).getUTCFullYear()),
@@ -63,7 +66,10 @@ export function parseEspnHistory(
       result: hg > ag ? "H" : hg < ag ? "A" : "D",
       source: "ESPN historical scoreboard (" + leagueId + ")",
       importedAt,
-    });
+    };
+    // A completed scoreboard may include reconciled half-by-half linescores.
+    // Otherwise retain full-time history only; never invent halftime results.
+    matches.push(enrichEspnHalfTime({ header: { competitions: [competition] } }, match) ?? match);
   }
   return matches;
 }

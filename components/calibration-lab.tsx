@@ -13,7 +13,7 @@ import { Metric, Notice, Panel, PanelHead } from "./ui";
 
 const LEAGUES=[
   "Premier League","La Liga","Bundesliga","Serie A","Ligue 1",
-  "Champions League","UEFA Women's Champions League",
+  "Champions League","Europa League","UEFA Conference League","UEFA Women's Champions League",
 ];
 const short=(n:number|null)=>(n===null?"—":n.toFixed(3));
 const sleep=()=>new Promise<void>(resolve=>setTimeout(resolve,16));

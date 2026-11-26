@@ -1,10 +1,10 @@
-import { parseEspnHistory } from "../../../../lib/espn-history";
+import { parseEspnHistory, isEspnHistoryLeague } from "../../../../lib/espn-history";
 import { enrichEspnHalfTime } from "../../../../lib/espn-half-events";
 import { clubHalfTimeKey } from "../../../../lib/first-half-model";
 import type { HistoricalMatch } from "../../../../lib/history";
 
 export const dynamic="force-dynamic";
-const LEAGUES=new Set(["uefa.champions","uefa.wchampions"]);
+const LEAGUES=new Set(["uefa.champions","uefa.europa","uefa.europa.conf","uefa.wchampions"]);
 const ESPN="https://site.api.espn.com/apis/site/v2/sports/soccer/";
 const HEADERS={Accept:"application/json","User-Agent":"MIGO-Soccer-Intelligence/0.5"};
 
@@ -12,8 +12,8 @@ function monthKeys(before:string):string[] {
   const date=new Date(before);
   if(!Number.isFinite(date.getTime()))return [];
   const month=new Date(Date.UTC(date.getUTCFullYear(),date.getUTCMonth(),1));
-  // 30 months spans three UCL seasons for a late-autumn current-season match.
-  return Array.from({length:30},(_,i)=>{
+  // Rolling history for the current season plus three preceding seasons.
+  return Array.from({length:48},(_,i)=>{
     const m=new Date(Date.UTC(month.getUTCFullYear(),month.getUTCMonth()-i,1));
     return m.getUTCFullYear()+String(m.getUTCMonth()+1).padStart(2,"0");
   });
@@ -27,7 +27,7 @@ export async function GET(request:Request) {
   const home=(query.get("home")??"").trim().slice(0,100);
   const away=(query.get("away")??"").trim().slice(0,100);
   const kickoff=query.get("kickoff")??"";
-  if(!LEAGUES.has(league)||!home||!away||!Number.isFinite(Date.parse(kickoff)))
+  if(!LEAGUES.has(league)||!isEspnHistoryLeague(league)||!home||!away||!Number.isFinite(Date.parse(kickoff)))
     return Response.json({error:"Specify a supported UEFA league, home, away and kickoff."},{status:400});
   const homeKey=clubHalfTimeKey(home),awayKey=clubHalfTimeKey(away);
   if(!homeKey||!awayKey||homeKey===awayKey)
@@ -42,7 +42,7 @@ export async function GET(request:Request) {
     const data:unknown=await response.json();
     const events=(data as {events?:unknown[]}).events;
     if(Array.isArray(events)&&events.length>=500)throw new Error(month+" schedule may be truncated");
-    return parseEspnHistory(data,league as "uefa.champions"|"uefa.wchampions",new Date().toISOString());
+    return parseEspnHistory(data,league,new Date().toISOString());
   }));
   const all=[...new Map(fetched.flatMap((r,i)=>{
     if(r.status==="fulfilled")return r.value;

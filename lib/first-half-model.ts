@@ -47,10 +47,10 @@ const DOMESTIC_MEN = new Set([
   "Eredivisie", "Primeira Liga", "Belgian Pro League",
   "Turkish Super Lig", "Greek Super League", "Scottish Premiership",
 ]);
-const CONTINENTAL_MEN = new Set(["Champions League", "UEFA Champions League"]);
+const CONTINENTAL_MEN = new Set(["Champions League", "UEFA Champions League", "Europa League", "UEFA Europa League", "UEFA Conference League", "Conference League"]);
 const CONTINENTAL_WOMEN = new Set(["UEFA Women's Champions League"]);
 export const isContinentalMen = (fixture: Fixture) =>
-  fixture.leagueId === "uefa.champions" || CONTINENTAL_MEN.has(fixture.league);
+  ["uefa.champions", "uefa.europa", "uefa.europa.conf"].includes(fixture.leagueId) || CONTINENTAL_MEN.has(fixture.league);
 const isContinentalWomen = (fixture: Fixture) =>
   fixture.leagueId === "uefa.wchampions" || CONTINENTAL_WOMEN.has(fixture.league);
 

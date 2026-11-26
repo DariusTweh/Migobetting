@@ -1,4 +1,4 @@
-export type LeagueId = "eng.1" | "esp.1" | "ger.1" | "ita.1" | "fra.1" | "uefa.champions" | "uefa.wchampions" | "usa.1";
+export type LeagueId = "eng.1" | "esp.1" | "ger.1" | "ita.1" | "fra.1" | "uefa.champions" | "uefa.europa" | "uefa.europa.conf" | "uefa.wchampions" | "usa.1";
 
 export type Team = {
   id: string;

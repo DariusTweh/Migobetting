@@ -26,7 +26,7 @@ const ESPN_LEAGUES: Record<string, string> = {
 };
 const HISTORY_LEAGUES = Object.entries(ESPN_HISTORY_COMPETITIONS) as Array<[EspnHistoryLeague, string]>;
 const espnHistoryId = (name: string) => HISTORY_LEAGUES.find(([, title]) => title === name)?.[0];
-const historicalYears = () => Array.from({ length: 3 }, (_, index) => new Date().getUTCFullYear() - 2 + index);
+const historicalYears = () => Array.from({ length: 4 }, (_, index) => new Date().getUTCFullYear() - 3 + index);
 const AUTOMATIC_ESPN_HISTORY = ["MLS"];
 const percent = (value: number | null) => value === null ? "—" : `${(value * 100).toFixed(1)}%`;
 const goalMetric = (value: number, unit: "goals" | "rate") => unit === "rate" ? (value * 100).toFixed(1) + "%" : value.toFixed(2);
